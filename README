@@ -1,0 +1,108 @@
+OpenPANA is a free implementation of the PANA protocol (RFC 5191).
+Is intended to be a multithreading solution, allowing multiple users.
+
+							May 19, 2011
+							Rafa Marín López
+							Pedro Moreno Sánchez
+							Francisco Vidal Meca,
+							Universidad de Murcia
+
+ This document describes the OpenPANA software suites.
+
+o DIRECTORIES
+
+  certs/ - Files needed for creating the certificates
+
+  src/ - All the code, certs and example applications including client (PaC) and server (PAA)
+  
+  src/wpa_supplicant/ - WPA Supplicant's implementation done by Jouni Malinen ( http://hostap.epitest.fi )
+  
+  src/src - Hostapd extra files
+  
+  src/libeapstack/ - Implementation of the wrapper done from EAP library
+  
+  src/state_machines/ - Code implementing the conceptual state machines for PANA (RFC 5609)
+  
+  
+
+o What is the OpenPANA?
+
+ OpenPANA consists of free libraries and sample applications for PANA
+ message exchange. 
+
+o STANDARD REFERENCES
+
+ Currently, OpenPANA supports the following specifications, but does not
+ cover all details of them.
+
+  PANA
+    RFC5191 - "Protocol for Carrying Authentication for Network Access
+             (PANA)"
+    RFC5193 - "Protocol for Carrying Authentication for Network Access
+             (PANA) Framework"
+    RFC5609 - "State Machines for the Protocol for Carrying
+              Authentication for Network Access (PANA)"
+
+  EAP
+    RFC3748 - "Extensible Authentication Protocol (EAP)"
+    RFC4137 - "State Machines for EAP Peer and Authenticator"
+
+  EAP-PSK
+    RFC4764 - "The EAP-PSK Protocol: A Pre-Shared Key Extensible
+              Authentication Protocol (EAP) Method"
+
+o Install
+
+ 1. OpenPANA probably requires following libraries:
+
+  - OpennSSL library
+    http://wwww.openssl.org
+
+ 2. Configuring OpenPANA:
+    In order to change the default settings, you can modify the following files:
+  	./src/configclient.h
+  	./src/configserver.h
+
+ 3. Building the OpenPANA softwares:
+
+  You can just run the 'autogen.sh', 'configure' script and 'make'.
+  
+ 4. OpenPANA will need a working installation of a Radius Server using EAP-TLS method.
+    OpenPANA will require the following certificate files in ./src application's folder:
+    	- ca.pem 
+    	- client.pem
+    	- client.pk8 (Can be obtained from client.key using: openssl pkcs8 -topk8 -in client.key -out client.pk8 -nocrypt
+  
+   An example of certificates and a working eap.conf (to use with freeRadius) can be found in radius_conf folder of svn root.
+   
+ 5. After all you have PaC and PAA in the ./src application's folder.
+ 
+o Contact Points
+
+ Informations about OpenPANA are available at the project's web site:
+
+  http://openpana.sourceforge.net
+
+ If you have any questions about OpenPANA, you can ask to the mailing
+ list: openapana-users@list.sourceforge.net
+
+ Or mailto: f.vidalmeca@um.es , p.morenosanchez@um.es or rafa@um.es
+
+o  License 
+
+ Basically this software suites follows the GNU GPL v3 license.
+ In short, the code is freely available but with
+ no warranty.
+
+
+o Initial Authors
+
+	Rafa Marín López	- Universidad de Murcia
+	Pedro Moreno Sánchez	- Universidad de Murcia
+	Francisco Vidal Meca	- Universidad de Murcia
+
+
+o Acknowledgments
+
+ Yosihiro Ohba - Toshiba
+ Jouni Malinen - Hostapd implementation
