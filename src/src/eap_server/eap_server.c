@@ -535,11 +535,6 @@ SM_STATE(EAP, AAA_REQUEST)
 SM_STATE(EAP, AAA_RESPONSE)
 {
 
-	fprintf(stderr, "--PEDRO: entra en el estado AAA_RESPONSE\n");
-	fprintf(stderr, "--PEDRO: El valor de aaaEapNoReq = %d\n", sm->eap_if.aaaEapNoReq);
-	fprintf(stderr, "--PEDRO: El valor de aaaEapReq = %d\n", sm->eap_if.aaaEapReq);
-	fprintf(stderr, "--PEDRO: El valor de aaaFail = %d\n", sm->eap_if.aaaFail);
-	fprintf(stderr, "--PEDRO: El valor de aaaSuccess = %d\n", sm->eap_if.aaaSuccess);
 	
 	SM_ENTRY(EAP, AAA_RESPONSE);
 	eap_copy_buf(&sm->eap_if.eapReqData, sm->eap_if.aaaEapReqData);
@@ -551,12 +546,6 @@ SM_STATE(EAP, AAA_RESPONSE)
 SM_STATE(EAP, AAA_IDLE)
 {
 	
-	fprintf(stderr, "--PEDRO: entra en el estado AAA_IDLE\n");
-	fprintf(stderr, "--PEDRO: El valor de aaaEapNoReq = %d\n", sm->eap_if.aaaEapNoReq);
-	fprintf(stderr, "--PEDRO: El valor de aaaEapReq = %d\n", sm->eap_if.aaaEapReq);
-	fprintf(stderr, "--PEDRO: El valor de aaaFail = %d\n", sm->eap_if.aaaFail);
-	fprintf(stderr, "--PEDRO: El valor de aaaSuccess = %d\n", sm->eap_if.aaaSuccess);
-
 	
 	SM_ENTRY(EAP, AAA_IDLE);
 	sm->eap_if.aaaFail = FALSE;
@@ -569,7 +558,6 @@ SM_STATE(EAP, AAA_IDLE)
 
 SM_STATE(EAP, TIMEOUT_FAILURE2)
 {
-	fprintf(stderr, "--PEDRO: entra en el estado FAILURE2\n");
 	SM_ENTRY(EAP, TIMEOUT_FAILURE2);
 
 	sm->eap_if.eapTimeout = TRUE;
@@ -588,7 +576,6 @@ SM_STATE(EAP, FAILURE2)
 SM_STATE(EAP, SUCCESS2)
 {
 
-	fprintf(stderr, "--PEDRO: entra en el estado SUCCESS2\n");
 	SM_ENTRY(EAP, SUCCESS2);
 
 	eap_copy_buf(&sm->eap_if.eapReqData, sm->eap_if.aaaEapReqData);
