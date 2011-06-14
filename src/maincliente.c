@@ -25,7 +25,7 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h> //Función exit
+#include <stdlib.h> //Function exit
 #include <unistd.h> //Function sleep
 #include <pthread.h>     /* pthread functions and data structures     */
 #include <arpa/inet.h>
@@ -49,7 +49,7 @@ pana_ctx pana_session;
 
 void signal_handler(int sig) {
 	#ifdef DEBUG
-    fprintf(stderr,"\nDEBUG: Petición de salida del cliente, signal: %d\n", sig);
+    fprintf(stderr,"\nDEBUG: Client's exit petition, signal: %d\n", sig);
     #endif
     signal_received = TRUE;
 }
@@ -64,7 +64,7 @@ void* handle_alarm_management(void* none) {
 		while ((alarm=get_next_alarm(&list_alarms, tv.tv_sec)) != NULL){
 			 if (alarm->id == RETR_ALARM) {
 	#ifdef DEBUG
-				fprintf(stderr, "DEBUG: Se ha producido una alarma de RETRANSMISIÓN_PANA\n");
+				fprintf(stderr, "DEBUG: A PANA_RETRANSMISSION alarm ocurred\n");
 	#endif
 				
 				pthread_mutex_lock(&session_mutex);
@@ -73,7 +73,7 @@ void* handle_alarm_management(void* none) {
 				pthread_mutex_unlock(&session_mutex);
 			} else if (alarm->id == SESS_ALARM) {
 	#ifdef DEBUG
-				fprintf(stderr, "DEBUG: Se ha producido una alarma de SESIÓN\n");
+				fprintf(stderr, "DEBUG: A SESSION alarm ocurred\n");
 	#endif
 				
 				pthread_mutex_lock(&session_mutex);
@@ -84,7 +84,7 @@ void* handle_alarm_management(void* none) {
 			}
 			else {
 	#ifdef DEBUG
-				fprintf(stderr, "DEBUG: Se ha producido una alarma de TIPO DESCONOCIDO\n");
+				fprintf(stderr, "DEBUG: An UNKNOWN alarm ocurred\n");
 	#endif
 			}
 		}
@@ -111,7 +111,7 @@ int main(int argc, char *argv[]) {
 	printf(PACKAGE_NAME);
 	printf(" Client - ");
 	printf(PACKAGE_VERSION);
-	printf("\n");
+	printf("\nhttp://openpana.sf.net \n\n\n");
     printf("Copyright (C) 2011  Pedro Moreno Sánchez and Francisco Vidal Meca\n");
     printf("This program comes with ABSOLUTELY NO WARRANTY.\n");
     printf("This is free software, and you are welcome to redistribute it\n");
@@ -144,18 +144,17 @@ int main(int argc, char *argv[]) {
     }
 
     int b = 1;
-    // Se le pone la opcion reuseaddr por si se cierra inesperadamente
-    // el cliente que se pueda reutilizar el socket
+    // SO_REUSEADDR option is used in case of an unexpected exit, the
+    // client will be able to reuse the socket
     if (setsockopt(pana_sock, SOL_SOCKET, SO_REUSEADDR, &b, 4)) {
         perror("setsockopt");
         return 0;
     }
-    //Evitaría que no se pudieran reutilizar puertos por una salida errónea
     
     memset((char *) &eap_peer_ll_sockaddr, 0, sizeof (eap_peer_ll_sockaddr));
     eap_peer_ll_sockaddr.sin_family = AF_INET;
     eap_peer_ll_sockaddr.sin_port = htons(pana_session.src_port);
-    eap_peer_ll_sockaddr.sin_addr.s_addr = inet_addr(DESTIP); // FIXME: Esto xk no va del fich. de conf??
+    eap_peer_ll_sockaddr.sin_addr.s_addr = inet_addr(DESTIP);
 
 	//Avoid's a warning, bind expects the "const ptr" type
     const struct sockaddr * ll_sockaddr = (struct sockaddr *) &eap_peer_ll_sockaddr;
@@ -192,8 +191,8 @@ int main(int argc, char *argv[]) {
         addr_size = sizeof (eap_auth_ll_addr);
         
 #ifdef DEBUG
-        fprintf(stderr,"DEBUG: Me voy a poner a escuchar!\n");
-        fprintf(stderr,"DEBUG: Mi estado es: %s\n", state_name[pana_session.CURRENT_STATE + 1]);
+        fprintf(stderr,"DEBUG: I'm gonna start listening! \n");
+        fprintf(stderr,"DEBUG: My state is: %s\n", state_name[pana_session.CURRENT_STATE + 1]);
 #endif
 		//Wait for net events
         if (select(FD_SETSIZE, &readfds, NULL, &exceptfds, NULL) < 0) {
@@ -214,7 +213,7 @@ int main(int argc, char *argv[]) {
                 updateSession(pana, &pana_session);
                 pthread_mutex_unlock(&session_mutex);
 #ifdef DEBUG
-                fprintf(stderr,"DEBUG: Mi estado para realizar la transición es: %s\n", state_name[pana_session.CURRENT_STATE + 1]);
+                fprintf(stderr,"DEBUG: My state to begin a transition is: %s\n", state_name[pana_session.CURRENT_STATE + 1]);
 #endif
 				pthread_mutex_lock(&session_mutex);
                 transition(&pana_session);
@@ -224,7 +223,7 @@ int main(int argc, char *argv[]) {
                 //Check if exist a Response for eap server
                 if (eap_peer_get_eapResp(&(pana_session.eap_ctx)) == TRUE) {
 #ifdef DEBUG
-                    fprintf(stderr,"DEBUG: Hay un EAPResponse\n");
+                    fprintf(stderr,"DEBUG: There's an EAPResponse\n");
 #endif
                     pthread_mutex_lock(&session_mutex);
                     transition(&pana_session);
@@ -235,7 +234,7 @@ int main(int argc, char *argv[]) {
                 //Check if eap authentication has finished with success
                 if (eap_peer_get_eapSuccess(&(current_session->eap_ctx)) == TRUE) {
 #ifdef DEBUG
-                    fprintf(stderr,"DEBUG: Hay un eapSuccess\n");
+                    fprintf(stderr,"DEBUG: There's an eapSuccess\n");
 #endif
                     pthread_mutex_lock(&session_mutex);
                     transition(&pana_session);
@@ -247,7 +246,7 @@ int main(int argc, char *argv[]) {
         
 	//ending while(!signal_received)
 #ifdef DEBUG
-        fprintf(stderr, "DEBUG: Sale del bucle while principal cliente\n");
+        fprintf(stderr, "DEBUG: Exits the client's main while loop.\n");
 #endif
 		/* 
 		 * When the client's program is gonna exit, the current state 
@@ -262,7 +261,7 @@ int main(int argc, char *argv[]) {
             transition(&pana_session); //Transition to make it effective
             pthread_mutex_unlock(&session_mutex);
 #ifdef DEBUG
-            fprintf(stderr, "DEBUG: Debe comunicar al servidor que va a terminar.\n");
+            fprintf(stderr, "DEBUG: Has to tell the server that he's gonna stop.\n");
 #endif
 			//It will manage pana messages until client disconnects
             while (TRUE){
@@ -274,8 +273,8 @@ int main(int argc, char *argv[]) {
 				FD_SET(pana_sock, &exceptfds);
 				
 			#ifdef DEBUG
-				fprintf(stderr,"DEBUG: Me voy a poner a escuchar!\n");
-				fprintf(stderr,"DEBUG: Mi estado es: %s\n", state_name[pana_session.CURRENT_STATE + 1]);
+				fprintf(stderr,"DEBUG: I'm gonna start listening! \n");
+				fprintf(stderr,"DEBUG: My state is: %s\n", state_name[pana_session.CURRENT_STATE + 1]);
 			#endif
 				//Wait for net events
 				if (select(FD_SETSIZE, &readfds, NULL, &exceptfds, NULL) < 0) {
@@ -294,7 +293,7 @@ int main(int argc, char *argv[]) {
 						pana = unserializePana((char *) pana_packet, length);
 						updateSession(pana, &pana_session);
 			#ifdef DEBUG
-						fprintf(stderr,"DEBUG: Mi estado para realizar la transición es: %s\n", state_name[pana_session.CURRENT_STATE + 1]);
+						fprintf(stderr,"DEBUG: My state to begin a transition is: %s\n", state_name[pana_session.CURRENT_STATE + 1]);
 			#endif
 						pthread_mutex_lock(&session_mutex);
 						transition(&pana_session);

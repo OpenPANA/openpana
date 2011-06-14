@@ -24,7 +24,7 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h> //Función exit
+#include <stdlib.h> //Function exit
 #include <unistd.h> //Function sleep
 #include <pthread.h>     /* pthread functions and data structures     */
 #include <semaphore.h>
@@ -68,7 +68,7 @@ void * process_receive_eap_ll_msg(void *arg) {
     struct pana_func_paramater pana_params = *((struct pana_func_paramater*) arg);
 
 #ifdef DEBUG
-    fprintf(stderr, "DEBUG: Iniciado el tratamiento del paquete pana\n");
+    fprintf(stderr, "DEBUG: PANA message treatment started \n");
 #endif
 
     // Current pana session.
@@ -136,7 +136,7 @@ void * process_receive_eap_ll_msg(void *arg) {
     else { //If the messsage is another one
         int id = ntohl(pana->header.session_id); 
 #ifdef DEBUG
-        fprintf(stderr, "DEBUG: Va a buscar el id: %d\n", id);
+        fprintf(stderr, "DEBUG: It's gonna search id: %d\n", id);
 #endif
         //Check if the session is in the alarm list
         pana_session = get_alarm_session(&(list_alarms), id, PCI_ALARM);
@@ -194,8 +194,8 @@ void* process_receive_radius_msg(void* arg) {
                 || (eap_auth_get_eapSuccess(eap_ctx) == TRUE)) {
 		//A transition with PANA ctx is made
 #ifdef DEBUG
-            fprintf(stderr,"DEBUG: Hay un eap request dentro de radius\n");
-            fprintf(stderr, "DEBUG: Intenta hacer una transición con el paquete de Radius\n");
+            fprintf(stderr,"DEBUG: There's an eap request in RADIUS\n");
+            fprintf(stderr, "DEBUG: Trying to make a transition with the message from RADIUS\n");
 #endif
             transition((pana_ctx *) eap_ctx->eap_ll_ctx);
             pthread_mutex_unlock(&(ll_session->mutex));
@@ -293,7 +293,7 @@ pana_ctx* get_sesssion(int id) {
     struct pana_ctx_list* session = NULL;
 
 #ifdef DEBUG
-    fprintf(stderr, "DEBUG: Se intenta sacar la sesión asociada al id: %d\n", id);
+    fprintf(stderr, "DEBUG: Trying to get session of id: %d\n", id);
 #endif
     /* lock the mutex, to assure exclusive access to the list */
     rc = pthread_mutex_lock(&list_sessions_mutex);
@@ -302,7 +302,7 @@ pana_ctx* get_sesssion(int id) {
         session = list_pana_sessions;
         while (session != NULL) {
 #ifdef DEBUG
-            fprintf(stderr, "DEBUG: Se comprueba el id: %d\n", session->pana_session->session_id);
+            fprintf(stderr, "DEBUG: Checking id: %d\n", session->pana_session->session_id);
 #endif
             if (session->pana_session->session_id == id) break;
             session = session->next;
@@ -316,7 +316,7 @@ pana_ctx* get_sesssion(int id) {
     /* return the session to the caller. */
     if (session == NULL) {
 #ifdef DEBUG
-        fprintf(stderr, "DEBUG: No se ha encontrado la sesión asociada al id: %d\n", id);
+        fprintf(stderr, "DEBUG: Session not found, id: %d\n", id);
 #endif
         return NULL;
     }
@@ -332,7 +332,7 @@ void remove_session(int id) {
     struct pana_ctx_list* anterior = NULL;
     
 #ifdef DEBUG
-    fprintf(stderr, "DEBUG: Se intenta borrar la sesión asociada al id: %d\n", id);
+    fprintf(stderr, "DEBUG: Trying to delete session with id: %d\n", id);
 #endif
     // lock the mutex, to assure exclusive access to the list 
     rc = pthread_mutex_lock(&list_sessions_mutex);
@@ -342,7 +342,7 @@ void remove_session(int id) {
         //If the session is the first
         if (session->pana_session->session_id == id) {
 #ifdef DEBUG
-    fprintf(stderr, "DEBUG: Encontrada y borrada la sesión asociada al id: %d\n", id);
+    fprintf(stderr, "DEBUG: Found and deleted session with id: %d\n", id);
 #endif
             list_pana_sessions = list_pana_sessions->next;
             session->next=NULL;
@@ -376,7 +376,7 @@ struct task_list* get_task() {
     struct task_list* task = NULL;
     
 #ifdef DEBUG
-    fprintf(stderr, "DEBUG: Se intenta sacar una tarea\n");
+    fprintf(stderr, "DEBUG: Trying to get a task.\n");
 #endif
     /* lock the mutex, to assure exclusive access to the list */
     rc = pthread_mutex_lock(&list_tasks_mutex);
@@ -394,7 +394,7 @@ struct task_list* get_task() {
     /* return the task to the caller. */
     if (task == NULL) {
 #ifdef DEBUG
-        fprintf(stderr, "DEBUG: No se ha encontrado ninguna tarea:\n");
+        fprintf(stderr, "DEBUG: Task not found. \n");
 #endif
         return NULL;
     }
@@ -426,7 +426,7 @@ void* handle_worker(void* data) {
     /* do forever.... */
     while (1) {
 #ifdef DEBUG
-        fprintf(stderr, "DEBUG: thread '%d' intenta sacar una tarea\n", thread_id);
+        fprintf(stderr, "DEBUG: thread '%d' tries to get a task.\n", thread_id);
 #endif
 
         if (list_tasks != NULL) { /* a request is pending */
@@ -435,11 +435,11 @@ void* handle_worker(void* data) {
 
         if (a_task) {
 #ifdef DEBUG
-            fprintf(stderr, "DEBUG: Va a ejecutar la tarea. Id session: %d\n", a_task->id_session);
+            fprintf(stderr, "DEBUG: Running task. Id session: %d\n", a_task->id_session);
 #endif
             a_task->use_function(a_task->data);
 #ifdef DEBUG
-            fprintf(stderr, "DEBUG: Termina de ejecutar la tarea. Id session: %d\n", a_task->id_session);
+            fprintf(stderr, "DEBUG: Ended task. Id session: %d\n", a_task->id_session);
 #endif
 			//FIXME: PEDRO: Habría que liberar esta memoria. El problema está en que
 			//cuando la session llega al estado CLOSED, se libera su memoria, y al 
@@ -473,13 +473,12 @@ void* handle_network_management() {
 
     eap_ll_sock = socket(AF_INET, SOCK_DGRAM, 0);
     int b = 1;
-    // Se le pone la opcion reuseaddr por si se cierra inesperadamente
-    // el servidor que se pueda reutilizar el socket
+    // SO_REUSEADDR option is used in case of an unexpected exit, the
+    // client will be able to reuse the socket
     if (setsockopt(eap_ll_sock, SOL_SOCKET, SO_REUSEADDR, &b, 4)) {
         perror("setsockopt");
         return 0;
     }
-    //Evitaría que no se pudieran reutilizar puertos por una salida errónea
     
     memset((char *) & sa, 0, sizeof (sa));
     sa.sin_family = AF_INET;
@@ -491,7 +490,7 @@ void* handle_network_management() {
     sa.sin_port = htons(SRCPORT);
     sa.sin_addr.s_addr = htonl(INADDR_ANY);
 
-    //Evita warning, bind esperaba const ptr
+	//Avoid's a warning, bind expects the "const ptr" type
     const struct sockaddr * sockaddr = (struct sockaddr *) & sa;
     if (bind(eap_ll_sock, sockaddr, sizeof (sa)) == -1) {
         perror("Binding socket error:\n");
@@ -579,11 +578,11 @@ void* handle_alarm_management(void* none) {
 			 retrans_params.id = 0;
 			 if (alarm->id == PCI_ALARM) {
 	#ifdef DEBUG
-				fprintf(stderr, "DEBUG: Se ha producido una alarma de un PCI\n");
+				fprintf(stderr, "DEBUG: A PCI alarm ocurred\n");
 	#endif
 			} else if (alarm->id == RETR_ALARM) {
 	#ifdef DEBUG
-				fprintf(stderr, "DEBUG: Se ha producido una alarma de RETRANSMISIÓN_PANA\n");
+				fprintf(stderr, "DEBUG: A PANA_RETRANSMISSION alarm ocurred\n");
 	#endif
 				//alarm->pana_session->RTX_TIMEOUT = 1;//fIXME: Esto no debería tocarse aquí. 
 				
@@ -592,7 +591,7 @@ void* handle_alarm_management(void* none) {
 				add_task(process_retr, &retrans_params, alarm->pana_session->session_id);
 			} else if (alarm->id == SESS_ALARM) {
 	#ifdef DEBUG
-				fprintf(stderr, "DEBUG: Se ha producido una alarma de SESIÓN\n");
+				fprintf(stderr, "DEBUG: A SESSION alarm ocurred\n");
 	#endif
 				//alarm->pana_session->SESS_TIMEOUT = 1;//fIXME: Esto no debería tocarse aquí. 
 				
@@ -600,7 +599,7 @@ void* handle_alarm_management(void* none) {
 				add_task(process_retr, &retrans_params, alarm->pana_session->session_id);
 			} else if (alarm->id == RETR_AAA) {
 	#ifdef DEBUG
-				fprintf(stderr, "DEBUG: Se ha producido una alarma de RETRANSMISIÓN_AAA\n");
+				fprintf(stderr, "DEBUG: An AAA_RETRANSMISSION alarm ocurred\n");
 	#endif
 				retrans_params.id = RETR_AAA;
 				add_task(process_retr, &retrans_params, alarm->pana_session->session_id);
@@ -608,7 +607,7 @@ void* handle_alarm_management(void* none) {
 			} 
 			else {
 	#ifdef DEBUG
-				fprintf(stderr, "DEBUG: Se ha producido una alarma de TIPO DESCONOCIDO\n");
+				fprintf(stderr, "DEBUG: An UNKNOWN alarm ocurred\n");
 	#endif
 			}
 		}
@@ -626,11 +625,11 @@ void* process_retr(void *arg){
 	
 	if (alarm_id == PCI_ALARM) {
 #ifdef DEBUG
-		fprintf(stderr, "DEBUG: Se ha producido una alarma de un PCI\n");
+		fprintf(stderr, "DEBUG: A PCI alarm ocurred\n");
 #endif
 	} else if (alarm_id == RETR_ALARM) {
 #ifdef DEBUG
-		fprintf(stderr, "DEBUG: Se ha producido una alarma de RETRANSMISIÓN_PANA\n");
+		fprintf(stderr, "DEBUG: A PANA_RETRANSMISSION alarm ocurred\n");
 #endif
 		pthread_mutex_lock(&(pana_session->mutex));
 		pana_session->RTX_TIMEOUT = 1; 
@@ -639,7 +638,7 @@ void* process_retr(void *arg){
 		
 	} else if (alarm_id == SESS_ALARM) {
 #ifdef DEBUG
-		fprintf(stderr, "DEBUG: Se ha producido una alarma de SESIÓN\n");
+		fprintf(stderr, "DEBUG: A SESSION alarm ocurred\n");
 #endif
 		
 		pthread_mutex_lock(&(pana_session->mutex));
@@ -649,7 +648,7 @@ void* process_retr(void *arg){
 		
 	} else if (alarm_id == RETR_AAA) {
 #ifdef DEBUG
-		fprintf(stderr, "DEBUG: Se ha producido una alarma de RETRANSMISIÓN_AAA\n");
+		fprintf(stderr, "DEBUG: An AAA_RETRANSMISSION alarm ocurred\n");
 #endif
 
 		pthread_mutex_lock(&(pana_session->mutex));
@@ -659,7 +658,7 @@ void* process_retr(void *arg){
 	} 
 	else {
 #ifdef DEBUG
-		fprintf(stderr, "DEBUG: Se ha producido una alarma de TIPO DESCONOCIDO\n");
+		fprintf(stderr, "DEBUG: An UNKNOWN alarm ocurred\n");
 #endif
 	}
 	
@@ -680,7 +679,7 @@ int main(int argc, char* argv[]) {
 	printf(PACKAGE_NAME);
 	printf(" Server - ");
 	printf(PACKAGE_VERSION);
-	printf("\n");
+	printf("\nhttp://openpana.sf.net \n\n\n");
     printf("Copyright (C) 2011  Pedro Moreno Sánchez and Francisco Vidal Meca\n");
     printf("This program comes with ABSOLUTELY NO WARRANTY.\n");
     printf("This is free software, and you are welcome to redistribute it\n");
@@ -731,47 +730,47 @@ int main(int argc, char* argv[]) {
 void check_eap_status(pana_ctx *pana_session) {
     //Check eap status
 #ifdef DEBUG
-    fprintf(stderr,"DEBUG: Comienza a hacer comprobaciones de EAP (check_eap_status)\n");
+    fprintf(stderr,"DEBUG: Starting to check EAP status (check_eap_status)\n");
 #endif
     if (eap_auth_get_eapReq(&(pana_session->eap_ctx)) == TRUE) {
 #ifdef DEBUG
-        fprintf(stderr,"DEBUG: Hay un EAPRequest\n");
+        fprintf(stderr,"DEBUG: There's an EAPRequest\n");
 #endif
         transition(pana_session);
     }
 
     if (eap_auth_get_eapSuccess(&(pana_session->eap_ctx)) == TRUE) {
 #ifdef DEBUG
-        fprintf(stderr,"DEBUG: Hay un EAPSUCESS\n");
+        fprintf(stderr,"DEBUG: There's an EAPSUCESS\n");
 #endif
         transition(pana_session);
     }
     if (eap_auth_get_eapNoReq(&(pana_session->eap_ctx)) == TRUE) {
 #ifdef DEBUG
-        fprintf(stderr,"DEBUG: Hay un EAP NO REQUEST\n");
+        fprintf(stderr,"DEBUG: There's an EAP NO REQUEST\n");
 #endif
         transition(pana_session);
     }
     if (eap_auth_get_eapTimeout(&(pana_session->eap_ctx)) == TRUE) {
 #ifdef DEBUG
-        fprintf(stderr,"DEBUG: Hay un EAP TIMEOUT\n");
+        fprintf(stderr,"DEBUG: There's an EAP TIMEOUT\n");
 #endif
         transition(pana_session);
     }
     if (eap_auth_get_eapKeyAvailable(&(pana_session->eap_ctx)) == TRUE) {
 #ifdef DEBUG
-        fprintf(stderr,"DEBUG: Hay un EAP KEY AVAILABLE\n");
+        fprintf(stderr,"DEBUG: There's an EAP KEY AVAILABLE\n");
 #endif
         transition(pana_session);
     }
     if (eap_auth_get_eapFail(&(pana_session->eap_ctx)) == TRUE) {
 #ifdef DEBUG
-        fprintf(stderr,"DEBUG: Hay un EAP FAIL\n");
+        fprintf(stderr,"DEBUG: There's an EAP FAIL\n");
 #endif
         transition(pana_session);
     }
 #ifdef DEBUG
-    fprintf(stderr,"DEBUG: Termina de hacer comprobaciones de EAP\n");
+    fprintf(stderr,"DEBUG: Finished EAP check\n");
 #endif
 }
 

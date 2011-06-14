@@ -1,5 +1,5 @@
-ALL=eap_auth_ll_test eap_peer_ll_test 
-
+#ALL=eap_auth_ll_test eap_peer_ll_test 
+ALL=libeap.a
 all: $(ALL)
 
 
@@ -120,8 +120,8 @@ endif
 
 OBJS_lib=$(OBJS_both) $(OBJS_peer) $(OBJS_server)
 
-OBJS_ex = eap_auth_ll_test.o
-OBJS_peer_ll = eap_peer_ll_test.o
+#OBJS_ex = eap_auth_ll_test.o
+#OBJS_peer_ll = eap_peer_ll_test.o
 
 ../src/utils/*.o:
 	$(MAKE) -C ../src/utils
@@ -135,27 +135,27 @@ OBJS_peer_ll = eap_peer_ll_test.o
 ../src/radius/*.o:
 	$(MAKE) -C ../src/radius        
 
-ifneq ($(CONFIG_SOLIB), yes)
-LIBEAP = libeap.a
+#ifneq ($(CONFIG_SOLIB), yes)
+#LIBEAP = libeap.a
 libeap.a: $(OBJS_lib)
 	$(AR) crT libeap.a $(OBJS_lib)
 	$(RANLIB) libeap.a
 
-else
-CFLAGS  += -fPIC -DPIC
-LDFLAGS += -shared
+#else
+#CFLAGS  += -fPIC -DPIC
+#LDFLAGS += -shared
 
-LIBEAP  = libeap.so
-libeap.so: $(OBJS_lib)
-	$(LDO) $(LDFLAGS) $(OBJS_lib) -o $(LIBEAP)
+#LIBEAP  = libeap.so
+#libeap.so: $(OBJS_lib)
+#	$(LDO) $(LDFLAGS) $(OBJS_lib) -o $(LIBEAP)
 
-endif
+#endif
 
-eap_auth_ll_test: $(OBJS_ex) $(LIBEAP)
-	$(LDO) -o eap_auth_ll_test $(OBJS_ex) $(LIBS) -L. -leap
+#eap_auth_ll_test: $(OBJS_ex) $(LIBEAP)
+#	$(LDO) -o eap_auth_ll_test $(OBJS_ex) $(LIBS) -L. -leap
 
-eap_peer_ll_test: $(OBJS_peer_ll) $(LIBEAP)
-	$(LDO) -o eap_peer_ll_test $(OBJS_peer_ll) $(LIBS) -L. -leap        
+#eap_peer_ll_test: $(OBJS_peer_ll) $(LIBEAP)
+#	$(LDO) -o eap_peer_ll_test $(OBJS_peer_ll) $(LIBS) -L. -leap        
 
 clean:
 	$(MAKE) -C ../src clean

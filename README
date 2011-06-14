@@ -19,7 +19,7 @@ o DIRECTORIES
   
   src/src - Hostapd extra files
   
-  src/libeapstack/ - Implementation of the wrapper done from EAP library
+  src/libeapstack/ - Implementation of the wrapper done from EAP library by Rafa Marín López
   
   src/state_machines/ - Code implementing the conceptual state machines for PANA (RFC 5609)
   
@@ -81,7 +81,7 @@ o Contact Points
 
  Informations about OpenPANA are available at the project's web site:
 
-  http://openpana.sourceforge.net
+  http://openpana.sf.net
 
  If you have any questions about OpenPANA, you can ask to the mailing
  list: openapana-users@list.sourceforge.net
@@ -97,12 +97,13 @@ o  License
 
 o Initial Authors
 
-	Rafa Marín López	- Universidad de Murcia
-	Pedro Moreno Sánchez	- Universidad de Murcia
-	Francisco Vidal Meca	- Universidad de Murcia
+	Rafa Marín López <rafa@um.es>		    - Universidad de Murcia
+	Pedro Moreno Sánchez <p.morenosanchez@um.es>- Universidad de Murcia
+	Francisco Vidal Meca <f.vidalmeca@um.es>    - Universidad de Murcia
 
 
 o Acknowledgments
 
  Yosihiro Ohba - Toshiba
  Jouni Malinen - Hostapd implementation
+

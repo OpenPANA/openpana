@@ -1,0 +1,17 @@
+2011-05-09 - OpenPANA released
+We are proud to present the first release of OpenPANA.
+
+It's expected to be soon a full functional solution which implements the PANA protocol.
+By now its a multithreading implementation which allows multiple users to authenticate 
+using the hostapd EAP library.
+
+Many aspects defined in IETF RFC 5191 and 5609 are covered such as
+- Integrity check
+- Authentication, authorization, reauthentication and termination phases are implemented.
+- Sequence Number and Retransmission
+- Pana SA
+- Message Authentication
+- Session Lifetime
+
+Any comments and reports are welcomed in the OpenPANA mailing list available at 
+openpana-users@lists.sourceforge.net
