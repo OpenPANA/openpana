@@ -123,16 +123,16 @@ OBJS_lib=$(OBJS_both) $(OBJS_peer) $(OBJS_server)
 #OBJS_ex = eap_auth_ll_test.o
 #OBJS_peer_ll = eap_peer_ll_test.o
 
-../src/utils/*.o:
+../wpa_supplicant/src/utils/*.o:
 	$(MAKE) -C ../wpa_supplicant/src/utils
 
-../src/crypto/*.o:
+../wpa_supplicant/src/crypto/*.o:
 	$(MAKE) -C ../wpa_supplicant/src/crypto
 
-../src/tls/libtls.a:
+../wpa_supplicant/src/tls/libtls.a:
 	$(MAKE) -C ../wpa_supplicant/src/tls
 
-../src/radius/*.o:
+../wpa_supplicant/src/radius/*.o:
 	$(MAKE) -C ../wpa_supplicant/src/radius        
 
 #ifneq ($(CONFIG_SOLIB), yes)
