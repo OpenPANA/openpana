@@ -123,7 +123,7 @@ fi
 
 AC_SUBST([AM_CFLAGS])
 # Set the preprocessor flags for the entire project
-AC_SUBST(AM_CPPFLAGS, " -L./state_machines -L./libeapstack -I./src -I./src/utils  -I./src -I./src/utils")
+AC_SUBST(AM_CPPFLAGS, " -L./state_machines -L./libeapstack -I./wpa_supplicant/src -I./wpa_supplicant/src/utils  -I./wpa_supplicant/src -I./wpa_supplicant/src/utils")
 
 ##To include empty targets on libeapstack, in order to allow distribution
 AC_CONFIG_FILES(src/libeapstack/Makefile)

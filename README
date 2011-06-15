@@ -15,11 +15,8 @@ o DIRECTORIES
 
   src/ - All the code, certs and example applications including client (PaC) and server (PAA)
   
-  src/wpa_supplicant/ - WPA Supplicant's implementation done by Jouni Malinen ( http://hostap.epitest.fi )
-			using v0.7.1
-  
-  src/src - Hostapd extra files
-  
+  src/wpa_supplicant/ - WPA Supplicant's implementation done by Jouni Malinen ( http://hostap.epitest.fi ) using v0.7.1
+			
   src/libeapstack/ - Implementation of the wrapper done from EAP library by Rafa Marín López
   
   src/state_machines/ - Code implementing the conceptual state machines for PANA (RFC 5609)
