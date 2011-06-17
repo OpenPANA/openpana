@@ -23,50 +23,41 @@
  *  https://sourceforge.net/projects/openpana/
  */
 
-#define MAX_DATA_LEN 2048
-#define RETR_AAA_TIME 1 //Time waited before retransmiting aaa request
-#define MAX_RETR_AAA 3  // Max. number of retransmissiones to aaa's server
-#define TIME_WAKE_UP 1000000 //Time to wake up the alarm manager (in miliseconds). 
-
 #include "./libeapstack/eap_auth_interface.h"
 #include "state_machines/session.h"
 
+#define MAX_DATA_LEN 2048
+/**Time waited before retransmiting AAA request. */
+#define RETR_AAA_TIME 1
+/**Max. number of retransmissions to an AAA server. */
+#define MAX_RETR_AAA 3
+/** Time to wake up the alarm manager (in miliseconds).*/
+#define TIME_WAKE_UP 1000000
+
 typedef void* (*func)(void* data);
 
-void increase_one(char *value, int length);
-void add_session(pana_ctx * session);
-void remove_session(int id);
-void add_task(func funcion, void* arg, int session_id);
-void add_mutex(int id);
-pthread_mutex_t* get_mutex(int id);
-void check_eap_status(pana_ctx *pana_session);
-pana_ctx* get_sesssion(int id);
-int generateSessionId(char * ip, short port);
-int retransmitAAA (pana_ctx* current_session);
-
-// Callbacks used as tasks
-
-
-// Format a list of pana contexts
-
+/** List of PANA contexts.*/
 struct pana_ctx_list {
+	/**PANA context value.*/
     pana_ctx * pana_session;
+    /**Pointer to the next PANA context of the list.*/
     struct pana_ctx_list * next;
 };
 
-// Format a list of tasks
-
+/** List of tasks*/
 struct task_list {
+	/** Function to be used with the task.*/
     func use_function;
+    /** Data of the task.*/
     void* data;
+    /** Id session of the task.*/
     int id_session;
+    /**Pointer to the next task of the list.*/
     struct task_list * next;
 };
 
 
-
-//Format a process_receive_eap_ll_msg function's parameter
-
+/**Struct of process_receive_eap_ll_msg function's parameter*/
 struct pana_func_paramater {
     struct sockaddr_in* eap_ll_dst_addr;
     panaMessage * pana_msg;
@@ -74,30 +65,34 @@ struct pana_func_paramater {
     int id_alarm;
 };
 
-//Format a process_retr function's parameter
-
+/**Struct of process_retr function's parameter*/
 struct retr_func_parameter {
 	int id;
 	pana_ctx * session;
 };
 
-//Format a process_receive_radius_msg function's parameter
-
+/**Struct of process_receive_radius_msg function's parameter*/
 struct radius_func_parameter {
     struct eap_auth_ctx * context_eap;
     struct radius_msg *radius_msg;
     struct radius_client_data *rad_data;
 };
 
-struct mutex_list {
-    pthread_mutex_t mutex;
-    int session_id;
-    struct mutex_list* next;
-};
+void add_session(pana_ctx * session);
+void add_task(func funcion, void* arg, int session_id);
+void check_eap_status(pana_ctx *pana_session);
+int generateSessionId(char * ip, short port);
+pana_ctx* get_sesssion(int id);
+struct task_list* get_task();
+void* handle_alarm_management(void* none);
+void* handle_network_management();
+void* handle_worker(void* data);
+void remove_session(int id);
+int retransmitAAA (pana_ctx* current_session);
+
+// Callbacks used as tasks
 
 // Functions used as task
 void* process_receive_eap_ll_msg(void * arg);
 void* process_receive_radius_msg(void* arg);
 void* process_retr(void *arg);
-
-

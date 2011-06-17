@@ -28,5 +28,8 @@
 
 #define TIME_WAKE_UP 1000000 //Time to wake up the alarm manager (in miliseconds).
 
+void* handle_alarm_management(void* none);
+void signal_handler(int sig);
+
 #endif	/* _MAINCLIENTE_H */
 

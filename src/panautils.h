@@ -32,6 +32,7 @@
 #define MAXSIZEUDP 1280
 
 //Devuelve el numero de bytes enviados o -1 en caso de error
+//FIXME: Hace un envío normal y corriente, se podría eliminar la función?
 int sendPana(struct sockaddr_in destaddr, char *msg, int sock);
 
 /**
@@ -52,45 +53,109 @@ char * serializePana(panaMessage *msg);
  */
 panaMessage * unserializePana(char * buf, int numbytes);
 
-/* 
- * Devuelve si un mensaje pana es correcto, comprueba que la cabecera
- * sea correcta (flags, reservado, tipos de mensaje), numeros de seq,
- * tipos de mensajes, session_id y valor del auth si existe.
- */
+ /** 
+  * Returns if a PANA message is correct. Checks the header (flags, reserved field, messages types),
+  * sequence numbers, session identificators and AUTH value if any. 
+  * 
+  * @param msg PANA message.
+  * @param pana_session PANA session of the message to check.
+  * 
+  * @return 0 If the message is incorrect. 
+  * @return 1 If the message is correct.
+  * */
 int checkPanaMessage(panaMessage *msg, pana_ctx *pana_session);
 
-//FIXME: Es la función que encripta el auth avp con la clave
+/** Encrypts the AUTH AVP given a key.
+ * 
+ * @param msg PANA message.
+ * @param key Key to use during encryption.
+ * @param key_len Key's length.
+ * 
+ * @return 0 The encryption was successful.
+ * @return 1 No AUTH AVP was found in the PANA message.
+ * */
 int cryptAuth(panaMessage *msg, char* key, int key_len);
 
-//FIXME: Genera el Session ID a partir de la IP y el Puerto dado del cliente
+/** 
+ * Generates a Session ID from an IP and port given.
+ * 
+ * @param ip IP to use in the generation.
+ * @param port Port to use in the generation.
+ * 
+ * @return Session Id generated.
+ * */
 int generateSessionId (char * ip, short port);
 
-//FIXME: Devuelve el tipo del mensaje a partir de su código
+/** 
+ * Returns the name of the message type given its code.
+ * 
+ * @param msg_type Message type code.
+ * 
+ * @return Message name. 
+ * */
 char * getMsgName(int msg_type);
 
-//FIXME: Devuelve el tipo de AVP a partir de su código
+/** 
+ * Returns the name of the AVP given its code.
+ * 
+ * @param avp_code AVP code.
+ * 
+ * @return AVP name. 
+ * */
 char * getAvpName(int avp_code);
 
 //FIXME: Extrae el NONCE
 u8 * extractNonce(char * message);
 
-//FIXME: Genera la clave AUTH a partir de los datos de la sesion
 //Poner que debe liberarse la memoria.
+/** 
+ * Generates the AUTH key given a PANA session.
+ * 
+ * @param current_session PANA session.
+ * 
+ * @return AUTH key generated.
+ * */
 u8 * generateAUTH(pana_ctx * current_session);
 
-//FIXME: Funcion que obtiene un puntero avp del tipo determinado de un mensaje
+/** 
+ * Returns the pointer to a given AVP in a message.
+ * 
+ * @param msg PANA message.
+ * @param type AVP code to get.
+ * 
+ * @return Pointer to the AVP.
+ * */
 avp * getAvp(panaMessage *msg, int type);
 
-//FIXME: Función que devuelve si un tipo de avp es octetString o no
+/**
+ * Returns if an AVP is OctetString or not.
+ * 
+ * @param type AVP code.
+ * 
+ * @return If the AVP is OctetString.
+ * */
 int isOctetString(int type);
 
 //FIXME: Función que devuelve si las dos sesiones pana son iguales
 int isEqual(pana_ctx* sess1, pana_ctx* sess2);
 
-//FIXME: Función que genera el key id y lo guarda en el parámetro
+/**
+ * Generates a Key Id to the MSK given and stores it in the parameter.
+ * 
+ * @param key_id Pointer where the Key Id will be stored.
+ * @param key_id_length Length of the Key Id to generate.
+ * @param msk_key MSK key.
+ * @param msk_len MKS length.
+ * */
 int generateKeyID (char* key_id, int key_id_length, u8* msk_key, unsigned int msk_len);
 
-//FIXME: Calcula el padding necesario para el avp de tipo octetstring
+/**
+ * Returns the padding space needed given an OctetString size.
+ * 
+ * @param size AVP size.
+ * 
+ * @return Padding needed.
+ */
 int paddingOctetString(int size);
 
 //Debugging functions

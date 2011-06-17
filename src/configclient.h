@@ -28,9 +28,12 @@
 
 #define SRCPORT 5333
 #define DSTPORT	716 //PANAPORT
+/** PaC's IP */
 #define LOCALIP "127.0.0.1" // source ip
+/** PAA's IP */
 #define DESTIP "127.0.0.1"  // destination ip
-#define CHECK_SESSID 1 // Allows activation of session id checking
+/** Allows activation of session id checking */
+#define CHECK_SESSID 1
 
 /* A duration that is associated with a PANA session. For an
 established PANA session, the session lifetime is bound to the
@@ -40,6 +43,7 @@ authentication before it expires. Until a PANA session is
 established, the lifetime SHOULD be set to a value that allows the
 PaC to detect a failed session in a reasonable amount of time.
 */
-#define FAILED_SESS_TIMEOUT_CONFIG 150 //time necessary to do the authentication
+/** Time necessary to do the authentication. */
+#define FAILED_SESS_TIMEOUT_CONFIG 150 
 
 #endif

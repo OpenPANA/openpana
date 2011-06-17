@@ -72,9 +72,12 @@
 #define NUM_EVENTS	22
 
 // States
+/** The state doesn't change. */
 #define NO_CHANGE 				-1
+/** Initial state.*/
 #define INITIAL 				0
 #define WAIT_PNA_PING 			1
+/**Closed state.*/
 #define CLOSED					2
 #define WAIT_PAA 				3
 #define WAIT_EAP_MSG			4
@@ -106,11 +109,20 @@ typedef int (*function)();
  * associated event, the corresponding callback function is called. */
 function table [NUM_STATES][NUM_EVENTS];
 
-
+/** Pointer to the current PANA session.*/
 pana_ctx * current_session;
 
 // Functions' headers
+/**
+ * Initializes the common transition table between PaC and PAA.
+ * */
 void initTable();
+
+/**
+ * Change the state of the state machine if a transition has to be made.
+ * @return ERROR If an error ocurred during transition.
+ * @return 0 If the function worked properly.
+ * */
 int transition(pana_ctx *pana_session);
 
 // Functions that do the exit action
@@ -133,7 +145,7 @@ void disconnect();
  * procedure must return FALSE.
  *  
  * @return 1 If authorization is successful. 
- * @return o If authorization is unsuccessful.
+ * @return 0 If authorization is unsuccessful.
  */
 int authorize();
 /**
@@ -203,9 +215,27 @@ int generatePanaSa();
 int keyAvailable();
 
 // Functions that check the condition, do the action and return 
+/**
+ * A procedure to check the retransmission condition in the state 
+ * machine and retransmit if needed.
+ * 
+ * @return NO_CHANGE If a retrasmission has been made.
+ * @return ERROR If no retransmission needed.
+ * */
 int retransmission();
+/**
+ * A procedure to check the maximum number of retransmission has been 
+ * reached in the state machine and disconnects if needed.
+ * 
+ * @return CLOSED If the state machine has disconnected.
+ * @return ERROR If no disconnection needed.
+ * */
 int reachMaxNumRt();
 int livenessTestPeer();
 int livenessTestResponse();
+/**
+ * A procedure to use during the CLOSE state with any event, it does nothing.
+ * @return CLOSED Always.
+ * */
 int allEventClosedState();
 #endif

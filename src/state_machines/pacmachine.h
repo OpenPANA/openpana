@@ -79,7 +79,9 @@ int sessionTermInitPaaStateWaitPnaReauth();
 int sessionTermInitPaaStateWaitPnaPing();
 
 
-//Init functions
-void initPacTable();
+/**
+ * Initializes the PaC transition table.
+ * */
+ void initPacTable();
 
 #endif

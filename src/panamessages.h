@@ -60,24 +60,39 @@ int asprintf(char **strp, const char *fmt, ...); //FIXME: como solucionar esto?
 #define I_FLAG 0x0400
 
 //PANA messages types definition, see RFC section 7
-
+/**PANA-Client-Initiation message type. */
 #define PCI_MSG 1
+/**PANA-Auth-Request message type. */
 #define PAR_MSG 2
+/**PANA-Auth-Answer message type. */
 #define PAN_MSG 2
+/**PANA-Termination-Request message type. */
 #define PTR_MSG 3
+/**PANA-Termination-Answer message type. */
 #define PTA_MSG 3
+/**PANA-Notification-Request message type. */
 #define PNR_MSG 4
+/**PANA-Notification-Answer message type. */
 #define PNA_MSG 4
 
 //AVP Codes definition, see RFC 5191 section 8
+/** AUTH AVP code */
 #define AUTH_AVP 1
+/** EAP-Payload AVP code */
 #define EAPPAYLOAD_AVP 2
+/** Integrity-Algorithm AVP code */
 #define INTEGRITYALG_AVP 3
+/** Key-Id AVP code */
 #define KEYID_AVP 4
+/** Nonce AVP code */
 #define NONCE_AVP 5
+/** PRF-Algorithm AVP code */
 #define PRFALG_AVP 6
+/** Result-Code AVP code */
 #define RESULTCODE_AVP 7
+/** Session-Lifetime AVP code */
 #define SESSIONLIFETIME_AVP 8
+/** Termination-Cause AVP code */
 #define TERMINATIONCAUSE_AVP 9
 
 /**
@@ -226,23 +241,25 @@ typedef struct {
     char * avp_list; //Lists the AVPs of the message
 } __attribute__((packed)) panaMessage;
 
-/* FIXME Especificar que debe liberarse la memoria devuelta por el 
- * método transmissionMessage si no se utiliza. */
 /**
  * A procedure to send a PANA message to its peering PANA entity. \n\n 
  * See RFC 5609 as void Tx:PANA_MESSAGE_NAME[flag](AVPs)
  * 
  * @param *msgtype Name's abbreviation of the packet to be sent e.g. 
- * "PAR".
- * 
+ * "PAR". 
  * @param flags Contains one or more flags to be set to the message, 
  * except for ’R’ (Request) flag.
- * 
- * @param *lista Contains a list of names of optional AVPs to be
+ * @param sequence_number Sequence number field of the message.
+ * @param sess_id Session id field of the message.
+ * @param *avps Contains a list of names of optional AVPs to be
  * inserted in the message, except for AUTH AVP.
+ * @param destaddr Socket information to use during transmission.
+ * @param data Data to be used in the AVP generation.
+ * @param sock Socket to use in the transmission.
+ * 
+ * @return Message sended. It must to be freed when no longer needed.
  */
-//FIXME DOXYGEN
-char * transmissionMessage(char * msgtype, short flags, int * sequence_number, int sess_id, char * avps, struct sockaddr_in destaddr, void **data, int sock);
+char * transmissionMessage(char * msgtype, short flags, int *sequence_number, int sess_id, char * avps, struct sockaddr_in destaddr, void **data, int sock);
 
 /**
  * A procedure to insert AVPs for each specified AVP name in the list
@@ -254,6 +271,8 @@ char * transmissionMessage(char * msgtype, short flags, int * sequence_number, i
  * @param *msg PANA message to insert the AVPs.
  * 
  * @param *names AVP names to be inserted in the message.
+ * 
+ * @param **data AVP data to use during their generation.
  */
 void insertAvp(panaMessage* msg, char * names, void **data);
 

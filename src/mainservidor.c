@@ -58,7 +58,6 @@ struct lalarm* list_alarms = NULL; // alarms' list
 pthread_mutex_t list_sessions_mutex;
 pthread_mutex_t list_tasks_mutex;
 pthread_mutex_t alarm_list_mutex;
-pthread_mutex_t mutex_list_mutex;
 pthread_mutexattr_t request_mutex_attr; //Needed to set attributes to pthread_mutex_t
 
 /* global condition variable for our program. assignment initializes it. */
@@ -702,7 +701,6 @@ int main(int argc, char* argv[]) {
     pthread_mutex_init(&list_sessions_mutex, NULL);
     pthread_mutex_init(&list_tasks_mutex, NULL);
     pthread_mutex_init(&alarm_list_mutex, NULL);
-    pthread_mutex_init(&mutex_list_mutex, NULL);
 
 
     //Init global variables

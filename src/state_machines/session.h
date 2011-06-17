@@ -35,10 +35,11 @@
 
 #include "../panamessages.h"
 
+/** Max Request retry attempts. See rfc 3315*/
+#define REQ_MAX_RC	10 
 
-#define REQ_MAX_RC	10 /** Max Request retry attempts. See rfc 3315*/
-#define REQ_MAX_RT	30 /** Max Request timeout value. See rfc 3315*/
-
+/** Max Request timeout value. See rfc 3315*/
+#define REQ_MAX_RT	30 
 /// Struct of a pana message flags
 
 typedef struct {
@@ -46,7 +47,9 @@ typedef struct {
     int receive;
     short flags;
 } pana_msg_flags;
-
+/**
+ * Struct containing all variables needed to define a PANA session.
+ * */
 typedef struct {
     unsigned short src_port;
     unsigned short dst_port;
@@ -169,39 +172,43 @@ typedef struct {
     char * PaC_nonce;
     char * PAA_nonce;
 
-    u8 * msk_key; //Contains MSK key value when generated
-    unsigned int key_len; //MSK key length
+	/**Contains MSK key value when generated.*/
+    u8 * msk_key;
+    /**MSK key length.*/
+    unsigned int key_len;
     
-    
+    /** Stores the actual MSK Identifier (Key_id) */
     char * key_id; //MSK Identifier = Key_id
+    /** Key_id's variable length*/
     int key_id_length;
     
     //Data ptrs to fill with AVPs information,
     //its size is from the last avp defined
+    /** AVP data to fill with information that will be used by AVPs when
+     * needed.*/
     void *avp_data[TERMINATIONCAUSE_AVP + 1];
+    /**Alarm list.*/
     struct lalarm** list_of_alarms;
+    /** Last message sended, to use during retransmissions.*/
     char * retr_msg;
 #ifdef ISCLIENT //Include session variables only for PANA clients
+	/** PANA variables only for PANA Clients. */
     pana_client_ctx client_ctx;
+	/** EAP variables only for PANA Clients. */
     struct eap_peer_ctx eap_ctx;
 #endif
 
 #ifdef ISSERVER //Include session variables only for PANA servers
+	/** PANA variables only for PANA Servers. */
     pana_server_ctx server_ctx;
+	/** EAP variables only for PANA Servers. */
     struct eap_auth_ctx eap_ctx;
 
     /** Number of retransmission to AAA*/
     int RTX_COUNTER_AAA;
 #endif
 
-    // Configurable values
-    /**
-     * Configurable maximum for how many retransmissions should be
-     * attempted before aborting.
-     */
-    int RTX_MAX_NUM;
-
-    struct sockaddr_in eap_ll_dst_addr;
+	struct sockaddr_in eap_ll_dst_addr;
     int addr_size;
     int eap_ll_sock;
     int session_id;
@@ -209,6 +216,15 @@ typedef struct {
     int integ_alg;
     int socket;
     pthread_mutex_t mutex;
+    
+    // Configurable values
+    /**
+     * Configurable maximum for how many retransmissions should be
+     * attempted before aborting.
+     */
+    int RTX_MAX_NUM;
+
+   
     // Retransmissions variables
     /** Retransmission timeout from the previous (re)transmission*/
     float RT;
@@ -226,7 +242,10 @@ typedef struct {
 } pana_ctx;
 
 // Procedures
+/** Initializes the pana_ctx structure refered to a new PANA session. */
 void initSession(pana_ctx * pana_session);
-void updateSession();
+/** Updates the session given a PANA message.*/
+void updateSession(panaMessage *msg, pana_ctx *pana_session);
+/** Resets the PANA session. */ 
 void resetSession();
 #endif

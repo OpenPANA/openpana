@@ -45,7 +45,7 @@
 
 // Procedures
 /**
- * This is a procedure to check whether the PANA session has a new
+ * Procedure to check whether the PANA session has a new
  * PANA_AUTH_KEY. If the state machine already has a PANA_AUTH_KEY,
  * it returns FALSE. If the state machine does not have a
  * PANA_AUTH_KEY, it tries to retrieve an MSK from the EAP entity.
@@ -77,5 +77,8 @@ int eapRetransmission();
 int eapAuthTimeoutFailure();
 int ptaProcessing();
 
+/**
+ * Initializes the PAA transition table.
+ * */
 void initPaaTable();
 #endif

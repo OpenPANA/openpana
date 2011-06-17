@@ -23,7 +23,9 @@
 #define SESSIONSERVER
 
 #include "../configserver.h"
-
+/**
+ * PANA context only for PAAs.
+ * */
 typedef struct {
     // Variables
     /**

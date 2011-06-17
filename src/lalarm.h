@@ -43,16 +43,24 @@
 pthread_mutex_t * mutex;
 
 struct lalarm {
-    pana_ctx* pana_session; /* Session pana asociada a la alarma */
-    time_t tmp; /* Tiempo de inicio de la alarma */
-    struct lalarm * sig; /* Siguiente elemento de la lista */
-    int id;	/* Identificador de la alarma*/
+	/** PANA session associated to the alarm. */
+    pana_ctx* pana_session;
+    /** Alarm's start time.*/ 
+    time_t tmp;
+    /** Next element */
+    struct lalarm * sig;
+    /** Alarm's id.*/
+    int id;
 };
-
-struct lalarm* crear_alarma(pthread_mutex_t * mutex_list); /*Crea una lista nueva de alarmas*/
-struct lalarm* add_alarma(struct lalarm ** l, pana_ctx* session, time_t tiempo, int iden); /* Añade alarmas */
-struct lalarm* del_alarma(struct lalarm **l); /* Elimina la primera  alarma de la lista */
+/** Creates a new alarm list. */
+struct lalarm* crear_alarma(pthread_mutex_t * mutex_list);
+/** Adds a new alarm to a list.*/
+struct lalarm* add_alarma(struct lalarm ** l, pana_ctx* session, time_t tiempo, int iden);
+/** Deletes the first alarm. */ 
+struct lalarm* del_alarma(struct lalarm **l);
+/** Returns the alarm requested.*/
 pana_ctx * get_alarm_session(struct lalarm** list, int id_session, int id_alarm);
+
 struct lalarm * get_next_alarm(struct lalarm** list, time_t time);
 void remove_alarm(struct lalarm** list, int id_session);
 #endif

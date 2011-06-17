@@ -24,7 +24,9 @@
 #define SESSIONCLIENT
 
 #include "../configclient.h"
-
+/**
+ * PANA context only for PaCs.
+ * */
 typedef struct {
     // Configurable value
     /**

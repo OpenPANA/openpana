@@ -19,9 +19,7 @@ o DIRECTORIES
 			
   src/libeapstack/ - Implementation of the wrapper done from EAP library by Rafa Marín López
   
-  src/state_machines/ - Code implementing the conceptual state machines for PANA (RFC 5609)
-  
-  
+  src/state_machines/ - Code implementing the conceptual state machines for PANA (RFC 5609)  
 
 o What is the OpenPANA?
 
@@ -80,6 +78,8 @@ o Contact Points
  Informations about OpenPANA are available at the project's web site:
 
   http://openpana.sf.net
+
+ Documentation can be generated with doxygen building with: 'make doxygen-doc' and it will be generated in html and pdf format.
 
  If you have any questions about OpenPANA, you can ask to the mailing
  list: openapana-users@list.sourceforge.net

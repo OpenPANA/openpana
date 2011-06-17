@@ -26,7 +26,8 @@
 #define CONFIGSERVER_H
 
 #define SRCPORT 716 //PANAPORT
-#define CHECK_SESSID 1 // Allows activation of session id checking
+/**Allows activation of session id checking*/
+#define CHECK_SESSID 1
 
 /* A duration that is associated with a PANA session. For an
 established PANA session, the session lifetime is bound to the
@@ -36,10 +37,13 @@ authentication before it expires. Until a PANA session is
 established, the lifetime SHOULD be set to a value that allows the
 PaC to detect a failed session in a reasonable amount of time.
 */
-#define LIFETIME_SESSION_TIMEOUT_CONFIG 10000 //Timeout for expiring a session in the server
-#define LIFETIME_SESSION_CLIENT_TIMEOUT_CONFIG 3 //Timeout for expiring client session
-/* number of threads used to service requests */
+/**Timeout for expiring a session in the server*/
+#define LIFETIME_SESSION_TIMEOUT_CONFIG 10000
+/**Timeout for expiring client session*/
+#define LIFETIME_SESSION_CLIENT_TIMEOUT_CONFIG 3
+/** Number of threads used to service requests */
 #define NUM_WORKERS 3
-#define TIME_PCI 3 			//Time while a session is on the server without answer
+/**Time while a session is on the server without answer*/
+#define TIME_PCI 3 			
 
 #endif
