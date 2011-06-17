@@ -142,6 +142,21 @@ void initSession(pana_ctx * pana_session) {
 
 void updateSession(panaMessage *msg, pana_ctx *pana_session) {
     resetSession(pana_session);
+    
+    #ifdef ISCLIENT
+	// Update the session id to the client only in the first message from
+    // the PAA during authentication, it has to be a PAR message with
+    // S_FLAG active
+    if ((ntohs(msg->header.flags) & S_FLAG) == S_FLAG &&
+					(ntohs(msg->header.flags) & R_FLAG) == R_FLAG &&
+					ntohs(msg->header.msg_type) == PAR_MSG) {
+		pana_session->session_id = ntohl(msg->header.session_id);
+		#ifdef DEBUG
+		fprintf(stderr,"DEBUG: Client's session updated with Session Id from PAA: %d\n",pana_session->session_id);
+		#endif
+	}
+	#endif
+    
     //If the message is not valid, discard it.
     if (checkPanaMessage(msg, pana_session) == 0) {		
         return;
@@ -153,15 +168,7 @@ void updateSession(panaMessage *msg, pana_ctx *pana_session) {
 		free(pana_session->LAST_MESSAGE);
 	}
     pana_session->LAST_MESSAGE = msg;
-    
-      
-    // Update the session id to the client
-#ifdef ISCLIENT
-    pana_session->session_id = ntohl(msg->header.session_id);
-    #ifdef DEBUG
-    fprintf(stderr,"DEBUG: Sesion de cliente actualizada con el sess_id del mensaje: %d\n",pana_session->session_id);
-    #endif
-#endif
+
     // Detect message type and flags
     //FIXME: Falta detectar el result-code
     if (existAvp(msg, "PRF-Algorithm")) {

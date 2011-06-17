@@ -171,37 +171,13 @@ int checkPanaMessage(panaMessage *msg, pana_ctx *pana_session) {
         return 0;
     }
     
-    //Session ID Check, can be disabled in configuration file.
-    if(CHECK_SESSID == 1){
-		//The port used to generate the session id is:
-		short port=0;
-	#ifdef ISSERVER
-		//The destination port in the server
-		port = ntohs(pana_session->eap_ll_dst_addr.sin_port);
-	#endif
-	#ifdef ISCLIENT
-		//The source port in the client
-		port = SRCPORT;
-	#endif
-		
-		char * ip = inet_ntoa(pana_session->eap_ll_dst_addr.sin_addr);
-		int session_id = generateSessionId(ip, port);
-		#ifdef DEBUG
-		fprintf(stderr,"DEBUG: Puerto: %d, ip: %s\n", port, ip);
-		fprintf(stderr,"DEBUG: Comprueba los id: %d<--->%d\n", ntohl(msg->header.session_id), session_id);
-		#endif
-		if (ntohl(msg->header.session_id)!=session_id && !(ntohl(msg->header.session_id)==0 && ntohs(msg->header.msg_type))){
-				fprintf(stderr,"ERROR: The message session id is not valid. Dropping message\n");
-				return 0;
-		}
+	//Checks session-id
+	if (ntohl(msg->header.session_id)!=pana_session->session_id && !(ntohl(msg->header.session_id)==0 && ntohs(msg->header.msg_type))){
+			fprintf(stderr,"ERROR: The message session id is not valid. Dropping message\n");
+			return 0;
 	}
-	#ifdef DEBUG
-	else{
-		fprintf(stderr,"DEBUG: No se está comprobando el SessionID, mirar configuración.\n");
-	}
-	#endif
+	
     //Check sequence numbers
-    
     #ifdef DEBUG
 	fprintf(stderr, "DEBUG: Secuencia cliente: %d. Secuencia paquete: %d\n", pana_session->SEQ_NUMBER,(ntohl(msg->header.seq_number) - 1));
 	#endif

@@ -26,8 +26,6 @@
 #define CONFIGSERVER_H
 
 #define SRCPORT 716 //PANAPORT
-/**Allows activation of session id checking*/
-#define CHECK_SESSID 1
 
 /* A duration that is associated with a PANA session. For an
 established PANA session, the session lifetime is bound to the
