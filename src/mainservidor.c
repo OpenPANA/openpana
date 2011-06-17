@@ -176,15 +176,16 @@ void * process_receive_eap_ll_msg(void *arg) {
 void* process_receive_radius_msg(void* arg) {
     struct radius_func_parameter radius_params = *((struct radius_func_parameter*) arg);
 
+
     int radius_type = RADIUS_AUTH;
     struct radius_msg *radmsg = radius_params.radius_msg;
     struct radius_client_data *radius_data = radius_params.rad_data;
-    //struct eap_auth_ctx * eap_ctx = radius_params.context_eap;
 
 	struct radius_hdr *hdr = radius_msg_get_hdr(radmsg);
     struct eap_auth_ctx *eap_ctx = search_eap_ctx_rad_client(hdr->identifier);
-    pana_ctx *ll_session = eap_ctx->eap_ll_ctx;
+    pana_ctx *ll_session = (pana_ctx*)eap_ctx->eap_ll_ctx;
     
+    //pana_ctx * ll_session = (pana_ctx*) (eap_ctx->eap_ll_ctx);
     pthread_mutex_lock(&(ll_session->mutex));
     //Delete the alarm associated to this message
 	get_alarm_session(ll_session->list_of_alarms, ll_session->session_id, RETR_AAA);
@@ -552,6 +553,9 @@ void* handle_network_management() {
                     //Init the radius function parameters
                     radius_params.radius_msg = radmsg;
                     radius_params.rad_data = radius_data;
+                    int session_id = 45; //Fixme: Este número no es necesario. Hay que ver la forma de quitar
+                    //el session_id de los parámetros de add_task. Ya no hacen falta, porque el mutex de la sesion
+                    // está metido dentro de la propia sesión.
                     
                     add_task(process_receive_radius_msg, &radius_params);
                     

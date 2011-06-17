@@ -558,11 +558,7 @@ void radius_client_receive(struct radius_msg *msg, void *eloop_ctx, void *sock_c
 			break;
 	}
 	
-	//PEDRO: Esto lo he puesto yo
 	
-	//printf("Va a bloquearse en radius_client_recieve\n");
-	pthread_mutex_lock(&list_mutex);
-	//Hasta aquí
 	prev_req = NULL;
 	req = radius->msgs;
 	while (req) {
@@ -584,11 +580,7 @@ void radius_client_receive(struct radius_msg *msg, void *eloop_ctx, void *sock_c
 		req = req->next;
 	}
 	
-	//PEDRO: Esto lo he puesto yo
 	
-	//printf("Va a desbloquearse en radius_client_receive\n");
-	pthread_mutex_unlock(&list_mutex);
-	//Hasta aquí
 	
 	if (req == NULL) {
 		hostapd_logger(radius->ctx, NULL, HOSTAPD_MODULE_RADIUS,
@@ -1245,9 +1237,7 @@ struct radius_client_data *
 radius_client_init(void *ctx, struct hostapd_radius_servers *conf)
 {
 	struct radius_client_data *radius;
-	//PEDRO: Esto lo he puesto yo
-	pthread_mutex_init(&list_mutex, NULL);
-	// Hasta aquí
+	
 	radius = os_zalloc(sizeof(struct radius_client_data));
 	if (radius == NULL)
 		return NULL;
