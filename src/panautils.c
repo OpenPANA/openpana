@@ -203,7 +203,7 @@ int checkPanaMessage(panaMessage *msg, pana_ctx *pana_session) {
         }
     }
 
-    //After checking the sequence numbers, the AUTH avp value is checked if found
+    //Then the AUTH avp value is checked if found
     //FIXME: Sólo comprobar si está autenticado, si no está correcto se descarta
     //Check if it contains the Auth AVP and checks it
     if (existAvp(msg, "AUTH")) {
@@ -447,6 +447,12 @@ u8 * generateAUTH(pana_ctx * session) {
         #endif
         return NULL;
     }
+    else if (session->key_id == NULL || session->key_id_length <=0){
+		#ifdef DEBUG
+        fprintf(stderr, "DEBUG: No se ha podido generar la clave. No hay Key-Id\n");
+        #endif
+        return NULL;
+	}
     #ifdef DEBUG
     fprintf(stderr, "DEBUG: Función generateAUTH, con todos los datos necesarios.\n");
     #endif
@@ -511,12 +517,12 @@ u8 * generateAUTH(pana_ctx * session) {
 	
 	
 	//Generates the Key-Id 
-	if(session->key_id != NULL){
+	/*if(session->key_id != NULL){
 		free(session->key_id);
 	}
 	session->key_id = malloc(session->key_id_length);
 	generateKeyID(session->key_id, session->key_id_length, session->msk_key, session->key_len);
-	
+	*/
     memcpy(sequence + seq_length, session->key_id, session->key_id_length);
     seq_length += session->key_id_length;
 

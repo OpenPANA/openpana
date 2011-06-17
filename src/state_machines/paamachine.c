@@ -518,6 +518,15 @@ int newKeyAvailable() {
 #endif
 			//If an MSK is retrieved, it computes a PANA_AUTH_KEY from
 			//the MSK and returns TRUE
+			
+			//First, the Key-Id of the new MSK is generated
+			if(session->key_id != NULL){
+				free(session->key_id);
+			}
+			session->key_id = malloc(session->key_id_length);
+			generateKeyID(session->key_id, session->key_id_length, session->msk_key, session->key_len);
+			
+			//Afterwards we generate the PANA_AUTH_KEY
 			u8 * new_auth_key = NULL;
 			new_auth_key = generateAUTH(current_session);
 			if(new_auth_key != NULL){
