@@ -176,13 +176,15 @@ void * process_receive_eap_ll_msg(void *arg) {
 void* process_receive_radius_msg(void* arg) {
     struct radius_func_parameter radius_params = *((struct radius_func_parameter*) arg);
 
-
     int radius_type = RADIUS_AUTH;
     struct radius_msg *radmsg = radius_params.radius_msg;
     struct radius_client_data *radius_data = radius_params.rad_data;
-    struct eap_auth_ctx * eap_ctx = radius_params.context_eap;
+    //struct eap_auth_ctx * eap_ctx = radius_params.context_eap;
+
+	struct radius_hdr *hdr = radius_msg_get_hdr(radmsg);
+    struct eap_auth_ctx *eap_ctx = search_eap_ctx_rad_client(hdr->identifier);
+    pana_ctx *ll_session = eap_ctx->eap_ll_ctx;
     
-    pana_ctx * ll_session = (pana_ctx*) (eap_ctx->eap_ll_ctx);
     pthread_mutex_lock(&(ll_session->mutex));
     //Delete the alarm associated to this message
 	get_alarm_session(ll_session->list_of_alarms, ll_session->session_id, RETR_AAA);
@@ -206,7 +208,7 @@ void* process_receive_radius_msg(void* arg) {
     return NULL;
 }
 
-void add_task(func funcion, void * arg, int session_id) {
+void add_task(func funcion, void * arg) {
     int rc; /* return code of pthreads functions.  */
     
     struct task_list * new_element; // A new element in the list
@@ -220,7 +222,6 @@ void add_task(func funcion, void * arg, int session_id) {
     
     new_element->use_function = funcion;
     new_element->data = arg;
-    new_element->id_session = session_id;
     new_element->next = NULL;
 
     /* lock the mutex, to assure exclusive access to the list */
@@ -533,7 +534,7 @@ void* handle_network_management() {
                     pana_params.eap_ll_dst_addr = &(eap_ll_dst_addr);
                     pana_params.sock = eap_ll_sock;
 
-                    add_task(process_receive_eap_ll_msg, &pana_params, ntohl(pana->header.session_id));
+                    add_task(process_receive_eap_ll_msg, &pana_params);
                     
                 } else fprintf(stderr,"recvfrom returned ret=%d, errno=%d\n", length, errno);
             }
@@ -548,16 +549,11 @@ void* handle_network_management() {
                     struct radius_client_data *radius_data = get_rad_client_ctx();
                     //int radius_type = RADIUS_AUTH; //Unused
 
-                    struct radius_hdr *hdr = radius_msg_get_hdr(radmsg);
-                    struct eap_auth_ctx *eap_ctx = search_eap_ctx_rad_client(hdr->identifier);
-                    pana_ctx *ll_ctx = eap_ctx->eap_ll_ctx;
-
                     //Init the radius function parameters
-                    radius_params.context_eap = eap_ctx;
                     radius_params.radius_msg = radmsg;
                     radius_params.rad_data = radius_data;
                     
-                    add_task(process_receive_radius_msg, &radius_params, ll_ctx->session_id);
+                    add_task(process_receive_radius_msg, &radius_params);
                     
                 } else fprintf(stderr,"recvfrom returned ret=%d, errno=%d\n", length, errno);
             }
@@ -588,7 +584,7 @@ void* handle_alarm_management(void* none) {
 				
 				retrans_params.id = RETR_ALARM;
 				//transition(alarm->pana_session);
-				add_task(process_retr, &retrans_params, alarm->pana_session->session_id);
+				add_task(process_retr, &retrans_params);
 			} else if (alarm->id == SESS_ALARM) {
 	#ifdef DEBUG
 				fprintf(stderr, "DEBUG: A SESSION alarm ocurred\n");
@@ -596,13 +592,13 @@ void* handle_alarm_management(void* none) {
 				//alarm->pana_session->SESS_TIMEOUT = 1;//fIXME: Esto no debería tocarse aquí. 
 				
 				retrans_params.id = SESS_ALARM;
-				add_task(process_retr, &retrans_params, alarm->pana_session->session_id);
+				add_task(process_retr, &retrans_params);
 			} else if (alarm->id == RETR_AAA) {
 	#ifdef DEBUG
 				fprintf(stderr, "DEBUG: An AAA_RETRANSMISSION alarm ocurred\n");
 	#endif
 				retrans_params.id = RETR_AAA;
-				add_task(process_retr, &retrans_params, alarm->pana_session->session_id);
+				add_task(process_retr, &retrans_params);
 				
 			} 
 			else {

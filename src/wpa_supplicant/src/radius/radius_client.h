@@ -17,11 +17,6 @@
 
 #include "ip_addr.h"
 
-// PEDRO: Esto lo he puesto yo
-#include <pthread.h>     /* pthread functions and data structures     */
-
-pthread_mutex_t list_mutex; 
-// Hasta aquí
 struct radius_msg;
 
 /**

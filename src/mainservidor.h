@@ -36,7 +36,7 @@ typedef void* (*func)(void* data);
 void increase_one(char *value, int length);
 void add_session(pana_ctx * session);
 void remove_session(int id);
-void add_task(func funcion, void* arg, int session_id);
+void add_task(func funcion, void* arg);
 void add_mutex(int id);
 pthread_mutex_t* get_mutex(int id);
 void check_eap_status(pana_ctx *pana_session);
@@ -59,7 +59,6 @@ struct pana_ctx_list {
 struct task_list {
     func use_function;
     void* data;
-    int id_session;
     struct task_list * next;
 };
 
@@ -84,7 +83,6 @@ struct retr_func_parameter {
 //Format a process_receive_radius_msg function's parameter
 
 struct radius_func_parameter {
-    struct eap_auth_ctx * context_eap;
     struct radius_msg *radius_msg;
     struct radius_client_data *rad_data;
 };
