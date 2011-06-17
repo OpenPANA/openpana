@@ -2,3 +2,17 @@ ChangeLog for OpenPANA
 
 2011-05-09 - v0.1.0
 	* Initial version of OpenPANA.
+	* Many aspects defined in IETF RFC 5191 and 5609 are covered such as
+		- Integrity check
+		- Authentication, authorization, reauthentication and termination phases
+		are implemented.
+		- Sequence Number and Retransmission
+		- Pana SA
+		- Message Authentication
+		- Session Lifetime
+
+	* Some features developed:
+		- Multithreading solution
+		- It is allowed the authentication of a lot of users
+		- Available multiple EAP methods (see hostapd implementation for more
+		  information)
