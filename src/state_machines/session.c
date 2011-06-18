@@ -131,13 +131,13 @@ void initSession(pana_ctx * pana_session) {
     pana_session->server_ctx.PAC_FOUND = 0;
     pana_session->server_ctx.REAUTH_TIMEOUT = 0;
     pana_session->RTX_COUNTER_AAA = 0;
-    //FIXME: Se supone que es aleatoria no?
-    pana_session->SEQ_NUMBER = 41; //See client's seq_number
+    
+    //RCF 5191 11.1: Secuence numbers are randomly initialized at the
+    //beginning of the session.
+    pana_session->SEQ_NUMBER = rand(); 
 	
 	pana_session->server_ctx.global_key_id = NULL;
-
     eap_auth_init(&(pana_session->eap_ctx), pana_session);
-
 #endif
 }
 

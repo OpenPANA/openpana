@@ -624,21 +624,6 @@ int isEqual(pana_ctx* sess1, pana_ctx* sess2){
 	//FIXME: falta implementación
 	return 1;
 }
-int generateKeyID (char* key_id, int key_id_length, u8* msk_key, unsigned int msk_len) {
-    /* FIXME El el cliente, el key-id debe generarse o no? creo que hay que cogerlo del
-     * paquete que envía el PAA ya que el identificador te lo da él. Así se consigue
-     * poder utilizar implementaciones que generan el key-id de forma distinta sin problemas, no?.
-     * */
-    for (int i = 0; i <= key_id_length; i += msk_len) {
-        //If we need the whole int value
-        if ((i + msk_len) <= key_id_length) {
-            memcpy((key_id + i), msk_key, msk_len);
-        } else { //If only a part is needed
-            memcpy((key_id + i), msk_key, (key_id_length % msk_len));
-        }
-    }
-    return 0;
-}
 
 int generateRandomKeyID (char** global_key_id) {
     struct timeval seed;

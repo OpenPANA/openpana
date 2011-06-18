@@ -145,15 +145,6 @@ void increase_one (char *value, int length);
 
 //FIXME: Función que devuelve si las dos sesiones pana son iguales
 int isEqual(pana_ctx* sess1, pana_ctx* sess2);
-/**
- * Generates a Key Id to the MSK given and stores it in the parameter.
- * 
- * @param key_id Pointer where the Key Id will be stored.
- * @param key_id_length Length of the Key Id to generate.
- * @param msk_key MSK key.
- * @param msk_len MKS length.
- * */
-int generateKeyID (char* key_id, int key_id_length, u8* msk_key, unsigned int msk_len);
 
 /**
  * Generates a Random Key Id and stores it in the parameter.
