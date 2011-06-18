@@ -90,7 +90,7 @@ void initSession(pana_ctx * pana_session) {
 
     //FIXME: Comprobar fallo de segm al descomentar
     //memset((char *) &(pana_session->eap_ll_dst_addr), 0, sizeof (pana_session->eap_ll_dst_addr));
-    pana_session->key_id_length = 12;
+    pana_session->key_id_length = 4;
 
     //FIXME: De momento, tanto cliente como servidor solamente tienen el prf_alg y el integrity algorithm estáticos
     // definidos aquí.
@@ -133,7 +133,8 @@ void initSession(pana_ctx * pana_session) {
     pana_session->RTX_COUNTER_AAA = 0;
     //FIXME: Se supone que es aleatoria no?
     pana_session->SEQ_NUMBER = 41; //See client's seq_number
-
+	
+	pana_session->server_ctx.global_key_id = NULL;
 
     eap_auth_init(&(pana_session->eap_ctx), pana_session);
 

@@ -588,12 +588,42 @@ int isOctetString(int type){
 	return (type==AUTH_AVP || type ==EAPPAYLOAD_AVP || type == NONCE_AVP);		
 }
 
+//Añade 1 al valor actual del KeyId
+void increase_one(char *value, int length) {
+	
+	fprintf(stderr,"DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG \n");
+	fprintf(stderr,"VALOR DE LENGTH: %d\n",length);
+	
+    int i;
+    fprintf(stderr,"ANTES\n");
+	for(i=0; i< length;i++){
+		fprintf(stderr,"%02x ", value[i]);
+	}
+	fprintf(stderr,"\n\n");
+	
+    int increased = 0;
+    for (i = length - 1; (i >= 0 && increased == 0); i--) {
+        if (value[i] != 0xff) {
+            increased = 1;
+            value[i] += 1;
+        } else {
+            value[i] = 0x00;
+        }
+    }
 
+    //If value is 0xfffff...
+    if (i == -1) value[length - 1] = 0x01;
+    
+    fprintf(stderr,"DESPUES\n");
+	for(i=0; i< length;i++){
+		fprintf(stderr,"%02x ", value[i]);
+	}
+	fprintf(stderr,"\n\n");
+}
 int isEqual(pana_ctx* sess1, pana_ctx* sess2){
-	//FIXME: falta implementación, Pacovi: se usa alguna vez?
+	//FIXME: falta implementación
 	return 1;
 }
-
 int generateKeyID (char* key_id, int key_id_length, u8* msk_key, unsigned int msk_len) {
     /* FIXME El el cliente, el key-id debe generarse o no? creo que hay que cogerlo del
      * paquete que envía el PAA ya que el identificador te lo da él. Así se consigue
@@ -605,6 +635,24 @@ int generateKeyID (char* key_id, int key_id_length, u8* msk_key, unsigned int ms
             memcpy((key_id + i), msk_key, msk_len);
         } else { //If only a part is needed
             memcpy((key_id + i), msk_key, (key_id_length % msk_len));
+        }
+    }
+    return 0;
+}
+
+int generateRandomKeyID (char** global_key_id) {
+    struct timeval seed;
+    gettimeofday(&seed, NULL);
+    srand(seed.tv_usec); //initialize random generator using usecs
+    int key_id_length = 12;
+    (*global_key_id) = (char *) malloc(key_id_length * (sizeof (char)));
+    for (int i = 0; i <= key_id_length; i += sizeof (int)) {
+        int random = rand();
+        //If we need the whole int value
+        if ((i + sizeof (int)) <= key_id_length) {
+            memcpy(((*global_key_id) + i), &random, sizeof (random));
+        } else { //If only a part is needed
+            memcpy(((*global_key_id) + i), &random, (key_id_length % sizeof (random)));
         }
     }
     return 0;

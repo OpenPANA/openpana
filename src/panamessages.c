@@ -36,7 +36,7 @@ void generateAvp(avpList *lista, char *avp_name, void **data) {
     //For further information see RFC 5191 section 8
     int padding = 0; //Extra memory to complete the avp packet depending on the type
 #ifdef DEBUG
-    fprintf(stderr,"\nDEBUG: Funcion generateAvp \nDEBUG: Leido el AVP: %s\n", avp_name);
+    fprintf(stderr,"\nDEBUG: generateAvp Function\nDEBUG: Readed AVP: %s\n", avp_name);
 #endif
     avp * elmnt = calloc(sizeof (avp), 1);
     if (NULL == elmnt) {
@@ -48,9 +48,8 @@ void generateAvp(avpList *lista, char *avp_name, void **data) {
     elmnt->reserved = htons(0); //They MUST be set to zero and ignored by the receiver
 
     elmnt->value = NULL; //By now avp value is none
-    elmnt->avp_length = htons(0); //So it's ength is set to 0
+    elmnt->avp_length = htons(0); //So it's length is set to 0
 
-    //FIXME: quedan campos por rellenar, sólamente se ha construido el mensaje
     if (strcmp(avp_name, "AUTH") == 0) {
         //The AUTH AVP (AVP Code 1) is used to integrity protect PANA messages.
         //The AVP data payload contains the Message Authentication Code encoded
@@ -74,7 +73,7 @@ void generateAvp(avpList *lista, char *avp_name, void **data) {
         
 #ifdef DEBUG
         if (data[EAPPAYLOAD_AVP] == NULL) {
-            fprintf(stderr,"DEBUG: Generando un avp EAP-Payload sin Payload\n");
+            fprintf(stderr,"DEBUG: Generating an EAP-Payload AVP without Payload.\n");
         }
 #endif
 		//Now eap packet is gonna be built
@@ -107,13 +106,17 @@ void generateAvp(avpList *lista, char *avp_name, void **data) {
         //integrity algorithm. All PANA implementations MUST support
         //AUTH_HMAC_SHA1_160 (7) [RFC4595].
         elmnt->avp_code = htons(INTEGRITYALG_AVP);
-        elmnt->avp_length = htons(12);
+        
+		//According to RFC 3588: the AVP Length field MUST be set to 12
+		//(16 if the ’V’ bit is enabled). But with PANA, the AVP Length
+		//field DOES NOT include the header size, so size will be 
+		// 12 - panaHeader = 4.
+        elmnt->avp_length = htons(4);
         elmnt->value = calloc(ntohs(elmnt->avp_length), sizeof (char));
         if(elmnt->value == NULL){
 			fprintf(stderr,"Out of memory\n");
 			exit(1);
 		}
-        //The AVP Length field MUST be set to 12 (16 if the ’V’ bit is enabled).
         //FIXME: De momento el servidor siempre manda el hmac_sha1. Ver como se manda una lista de varios
         int option = ntohl((int) data[ntohs(elmnt->avp_code)]);
         memcpy(elmnt->value, &option, sizeof (int));
@@ -122,15 +125,21 @@ void generateAvp(avpList *lista, char *avp_name, void **data) {
         //The Key-Id AVP (AVP Code 4) is of type Integer32 and contains an MSK
         //identifier. The MSK identifier is assigned by PAA and MUST be unique
         //within the PANA session.
+        // AVP Integer32: (RFC 3588 4.2 )
+		//32 bit signed value, in network byte order. 
+		//According to RFC 3588: the AVP Length field MUST be set to 12
+		//(16 if the ’V’ bit is enabled). But with PANA, the AVP Length
+		//field DOES NOT include the header size, so size will be 
+		// 12 - panaHeader = 4.
         elmnt->avp_code = htons(KEYID_AVP);
-        elmnt->avp_length = htons(12);
-        elmnt->value = calloc(ntohs(elmnt->avp_length), sizeof (char));
+        elmnt->avp_length = htons(4);
+        elmnt->value = calloc(4, sizeof (char));
         if(elmnt->value == NULL){
 			fprintf(stderr,"Out of memory\n");
 			exit(1);
 		}
-        //The AVP Length field MUST be set to 12 (16 if the ’V’ bit is enabled).
-        memcpy(elmnt->value, data[ntohs(elmnt->avp_code)], ntohs(elmnt->avp_length));
+
+         memcpy(elmnt->value, data[ntohs(elmnt->avp_code)], 4);
     } else if (strcmp(avp_name, "Nonce") == 0) {
         //See section 8.5 RFC 5191
         elmnt->avp_code = htons(NONCE_AVP);
@@ -169,14 +178,16 @@ void generateAvp(avpList *lista, char *avp_name, void **data) {
         //Transform Type 2 [RFC4306]. All PANA implementations MUST support
         //PRF_HMAC_SHA1 (2) [RFC2104].
         elmnt->avp_code = htons(PRFALG_AVP);
-        elmnt->avp_length = htons(12);
+        //According to RFC 3588: the AVP Length field MUST be set to 12
+		//(16 if the ’V’ bit is enabled). But with PANA, the AVP Length
+		//field DOES NOT include the header size, so size will be 
+		// 12 - panaHeader = 4.
+        elmnt->avp_length = htons(4);
         elmnt->value = calloc(ntohs(elmnt->avp_length), sizeof (char));
         if(elmnt->value == NULL){
 			fprintf(stderr,"Out of memory\n");
 			exit(1);
 		}
-        //The AVP Length field MUST be set to 12 (16 if the ’V’ bit is enabled).
-        //FIXME: De momento el servidor siempre manda el hmac_sha1. Ver como se manda una lista de varios
         int option = ntohl((int) data[ntohs(elmnt->avp_code)]);
         memcpy(elmnt->value, &option, sizeof (int));
 
@@ -184,7 +195,11 @@ void generateAvp(avpList *lista, char *avp_name, void **data) {
         //The Result-Code AVP (AVP Code 7) is of type Unsigned32 and indicates
         //whether an EAP authentication was completed successfully.
         elmnt->avp_code = htons(RESULTCODE_AVP);
-        elmnt->avp_length = htons(12);
+        //According to RFC 3588: the AVP Length field MUST be set to 12
+		//(16 if the ’V’ bit is enabled). But with PANA, the AVP Length
+		//field DOES NOT include the header size, so size will be 
+		// 12 - panaHeader = 4.
+        elmnt->avp_length = htons(4);
         elmnt->value = calloc(ntohs(elmnt->avp_length), sizeof (char));
         if(elmnt->value == NULL){
 			fprintf(stderr,"Out of memory\n");
@@ -199,7 +214,11 @@ void generateAvp(avpList *lista, char *avp_name, void **data) {
         //remaining before the current session is considered expired. The AVP
         //data is of type Unsigned32.
         elmnt->avp_code = htons(SESSIONLIFETIME_AVP);
-        elmnt->avp_length = htons(12);
+        //According to RFC 3588: the AVP Length field MUST be set to 12
+		//(16 if the ’V’ bit is enabled). But with PANA, the AVP Length
+		//field DOES NOT include the header size, so size will be 
+		// 12 - panaHeader = 4.
+        elmnt->avp_length = htons(4);
         elmnt->value = calloc(ntohs(elmnt->avp_length), sizeof (char));
         if(elmnt->value == NULL){
 			fprintf(stderr,"Out of memory\n");
@@ -207,15 +226,17 @@ void generateAvp(avpList *lista, char *avp_name, void **data) {
 		}
         int option = htonl((int) data[ntohs(elmnt->avp_code)]);
         memcpy(elmnt->value, &option, sizeof (int));
-        //The AVP Length field MUST be set to 12 (16 if the ’V’ bit is enabled).
 
     } else if (strcmp(avp_name, "Termination-Cause") == 0) {
         //See section 8.9 RFC 5191
         //SEE page 45 rfc 3588 AVP Type: Enumerated
         elmnt->avp_code = htons(TERMINATIONCAUSE_AVP);
-        elmnt->avp_length = htons(12);
+        //According to RFC 3588: the AVP Length field MUST be set to 12
+		//(16 if the ’V’ bit is enabled). But with PANA, the AVP Length
+		//field DOES NOT include the header size, so size will be 
+		// 12 - panaHeader = 4.
+        elmnt->avp_length = htons(4);
         elmnt->value = calloc(ntohs(elmnt->avp_length), sizeof (char));
-        //The AVP Length field MUST be set to 12 (16 if the ’V’ bit is enabled).
         int * valor;
         valor = (int *) elmnt->value;
         *valor = ntohs((int) data[ntohs(elmnt->avp_code)]);
@@ -223,34 +244,35 @@ void generateAvp(avpList *lista, char *avp_name, void **data) {
     }
 #ifdef DEBUG
     else {
-        fprintf(stderr,"\nDEBUG: Función generateAvp, nombre del avp inválido %s \n", avp_name);
+        fprintf(stderr,"\nDEBUG: generateAvp function, invalid AVP name %s \n", avp_name);
     }
-    //printf("\n\nDEBUG: Se imprime el AVP antes de copiarlo a la lista.\n");
+    //printf("\n\nDEBUG: Print AVP before adding it to the list.\n");
     //debug_print_avp(elmnt);
 #endif
     
     //The AVP is added to the list
-    //The size is the given by 4 shorts, the length of the avp value plus the padding
-    int sizeavp = (sizeof (unsigned short) *4) + ntohs(elmnt->avp_length) + padding;
+    //The size is the given by 4 shorts (panaHeader), the length of the
+    //	avp value plus the padding if needed
+	int sizeheader = (sizeof (unsigned short) *4);
+    int sizeavp = sizeheader + ntohs(elmnt->avp_length) + padding;
     int oldsize = lista->size;
 
 #ifdef DEBUG
-    fprintf(stderr,"DEBUG: SizeAVP calculado para el memcpy: %d bytes.\n", sizeavp);
+    fprintf(stderr,"DEBUG: SizeAVP calculated to use in memcpy: %d bytes.\n", sizeavp);
     fprintf(stderr,"DEBUG: OLDSIZE : %d bytes.\n", oldsize);
 #endif
 
     lista->size = lista->size + sizeavp; //Update the size with the new AVP
     lista->value = realloc(lista->value, lista->size); //Reserve the memory needed
-    memset((lista->value + oldsize), 0, sizeavp); //The new memory is set to 0 (important so the padding isnt unset)
+    //The new memory is set to 0 (important so the padding is always 0)
+    memset((lista->value + oldsize), 0, sizeavp);
 
-    //The value area is not copied to the list yet because it's always 0 by the moment.
-    // A specific memcpy of the elmnt->value char will be needed.
-    int sizeheader = (sizeof (unsigned short) *4);
-    memcpy((lista->value + oldsize), elmnt, sizeheader); //Copy the avp header to the new area of the avp list
+	//Copy the avp header to the new area of the avp list
+    memcpy((lista->value + oldsize), elmnt, sizeheader);
     //Now the value field is copied after the header
-    memcpy((lista->value + oldsize + sizeheader), elmnt->value, ntohs(elmnt->avp_length)); //Copy the avp header to the new area of the avp list
+    memcpy((lista->value + oldsize + sizeheader), elmnt->value, ntohs(elmnt->avp_length));
 
-    if (ntohs(elmnt->avp_length) > 0) {//Memory will be //freed if needed
+    if (ntohs(elmnt->avp_length) > 0) {//Memory will be freed if needed
         free(elmnt->value);
     }
     free(elmnt);
@@ -293,7 +315,7 @@ char * transmissionMessage(char * msgtype, short flags, int *sequence_number, in
         char *lista2 = ""; //Auxiliar list to be filled with the avp list except AUTH
         if (strcmp(ptr, "AUTH") == 0) {//If is found, it'll be ignored
 #ifdef DEBUG
-            fprintf(stderr,"DEBUG: AVISO se le ha pasado a la función transmissionMessage el AVP \"AUTH\" como parámetro, será IGNORADO.\n");
+            fprintf(stderr,"DEBUG: WARNING function transmissionMessage received \"AUTH\" AVP as a parameter, it'll be IGNORED.\n");
 #endif
         } else {
             if(asprintf(&lista2, "%s*%s", lista2, ptr)==-1){ //The rest will be added to the new list
@@ -306,7 +328,7 @@ char * transmissionMessage(char * msgtype, short flags, int *sequence_number, in
         while ((ptr = strtok(NULL, sep)) != NULL) {//Add the rest of AVPs if any
             if (strcmp(ptr, "AUTH") == 0) {//If is found, it'll be ignored
 #ifdef DEBUG
-                fprintf(stderr,"DEBUG: AVISO se le ha pasado a la función transmissionMessage el AVP \"AUTH\" como parámetro, será IGNORADO.\n");
+			fprintf(stderr,"DEBUG: WARNING function transmissionMessage received \"AUTH\" AVP as a parameter, it'll be IGNORED.\n");
 #endif
             } else {
                 if(asprintf(&lista2, "%s*%s", lista2, ptr)==-1){ //The rest will be added to the new list
@@ -326,7 +348,7 @@ char * transmissionMessage(char * msgtype, short flags, int *sequence_number, in
 
     //Header's values to be included in panaMessage once they're initialized
     short msg_type = -1;
-    int session_id = sess_id; //FIXME:Cómo se inicializan estos valores cuando no se tocan?
+    int session_id = sess_id;
 
     //Different types of messages are identified and initialized
     if (strcmp(msgtype, "PCI") == 0) {//PANA-Client-Initiation, see RFC 5191 7.1
@@ -430,14 +452,13 @@ char * transmissionMessage(char * msgtype, short flags, int *sequence_number, in
     }
 
     //We add the values needed to the message
-    //msg->header.reserved = htons(0); //Not needed, already 0
     msg->header.flags = htons((msg->header.flags | flags)); //Flags are added
     //Check if its a Request message and update the sequence number if needed
     if ((ntohs(msg->header.flags) & R_FLAG) == R_FLAG) { //Request msg
         *(sequence_number) += 1;
     }
     msg->header.msg_type = htons(msg_type);
-    msg->header.session_id = htonl(session_id); //FIXME: Que valores hay que poner? cuando se actualizan?
+    msg->header.session_id = htonl(session_id);
     msg->header.seq_number = htonl(*(sequence_number));
     msg->header.msg_length = htons(sizeof (panaHeader)); //At the moment there's only the panaHeader size
 
@@ -455,7 +476,6 @@ char * transmissionMessage(char * msgtype, short flags, int *sequence_number, in
     //If the message contains an auth avp, it must be encrypted
     if (existAvp(msg, "AUTH")) {
         cryptAuth(msg, data[AUTH_AVP], 40); //FIXME: Porque de momento la clave es de 320 bits
-        
     }
     
 #ifdef DEBUG
@@ -494,7 +514,7 @@ void insertAvp(panaMessage* msg, char * names, void **data) {
 
     if (msg == NULL) {//If there is no message given
 #ifdef DEBUG
-        fprintf(stderr,"DEBUG: función insertAVP no ha recibido ningún mensaje, debe llamarse con un panaMessage válido.");
+		fprintf(stderr,"DEBUG: insertAVP hasn't got any message, it MUST be used with a valid panaMessage.");
 #endif
         return;
     }
@@ -542,7 +562,7 @@ void insertAvp(panaMessage* msg, char * names, void **data) {
         //panaHeader + previous list of avps size + new list of avps size
         msg->header.msg_length = htons(sizeof (panaHeader) + used + lista->size);
 #ifdef DEBUG
-        fprintf(stderr,"DEBUG: Actualizado tamaño a %d\n", ntohs(msg->header.msg_length));
+        fprintf(stderr,"DEBUG: Size updated to %d\n", ntohs(msg->header.msg_length));
 #endif
 
         free(lista->value); //The temporal list is freed after the copy
@@ -550,7 +570,7 @@ void insertAvp(panaMessage* msg, char * names, void **data) {
     }
 #ifdef DEBUG
     else {
-        fprintf(stderr,"DEBUG: función insertAVP no ha recibido ningún AVP.\n");
+        fprintf(stderr,"DEBUG: insertAVP function used without AVP.\n");
     }
 #endif
 }
@@ -587,7 +607,7 @@ int existAvp(panaMessage * msg, char *avp_name) {
         type = TERMINATIONCAUSE_AVP;
     } else {
 #ifdef DEBUG
-        fprintf(stderr,"\nDEBUG: Función existAvp, nombre del avp inválido %s \n", avp_name);
+        fprintf(stderr,"\nDEBUG: existAvp function, invalid AVP name %s \n", avp_name);
 #endif
         return 0;
     }

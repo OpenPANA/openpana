@@ -136,9 +136,15 @@ avp * getAvp(panaMessage *msg, int type);
  * */
 int isOctetString(int type);
 
+/**
+ * Adds 1 to a character array given it's length.
+ * @param value Array to increase.
+ * @param length Array length.
+ * */
+void increase_one (char *value, int length);
+
 //FIXME: Función que devuelve si las dos sesiones pana son iguales
 int isEqual(pana_ctx* sess1, pana_ctx* sess2);
-
 /**
  * Generates a Key Id to the MSK given and stores it in the parameter.
  * 
@@ -148,6 +154,13 @@ int isEqual(pana_ctx* sess1, pana_ctx* sess2);
  * @param msk_len MKS length.
  * */
 int generateKeyID (char* key_id, int key_id_length, u8* msk_key, unsigned int msk_len);
+
+/**
+ * Generates a Random Key Id and stores it in the parameter.
+ * 
+ * @param **global_key_id Where to store the random generated value
+ * */
+ int generateRandomKeyID (char** global_key_id);
 
 /**
  * Returns the padding space needed given an OctetString size.

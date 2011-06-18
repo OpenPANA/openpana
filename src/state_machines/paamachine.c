@@ -32,7 +32,10 @@
 void initPaaTable(pana_ctx *pana_session) {
     initTable(); // Init the common state machine between pac and paa
     // Initialization Action
-    pana_session->server_ctx.OPTIMIZED_INIT = UNSET; //FIXME: A esta variable hay que ponerle el valor set/unset
+    
+    //FIXME: A esta variable hay que ponerle el valor set/unset
+    //Sacar a la configuración
+    pana_session->server_ctx.OPTIMIZED_INIT = UNSET;
     // dependiendo de lo que queramos
     pana_session->NONCE_SENT = UNSET;
     pana_session->RTX_COUNTER = 0;
@@ -520,11 +523,24 @@ int newKeyAvailable() {
 			//the MSK and returns TRUE
 			
 			//First, the Key-Id of the new MSK is generated
+			//by increasing the global key_id.
 			if(session->key_id != NULL){
 				free(session->key_id);
 			}
 			session->key_id = malloc(session->key_id_length);
-			generateKeyID(session->key_id, session->key_id_length, session->msk_key, session->key_len);
+			fprintf(stderr, "++\t\t++++++++++++PACOVI DEBUG: Valor del key_id antes de sumar:\n");
+			for (i = 0; i < session->key_id_length; i++)
+				fprintf(stderr,"%02x ", session->server_ctx.global_key_id[i]);
+			fprintf(stderr,"\n");
+			increase_one(session->server_ctx.global_key_id, session->key_id_length);
+			
+			fprintf(stderr, "++\t\t++++++++++++PACOVI DEBUG: Valor del key_id después de sumar:\n");
+			for (i = 0; i < session->key_id_length; i++)
+				fprintf(stderr,"%02x ", session->server_ctx.global_key_id[i]);
+			fprintf(stderr,"\n");
+			memcpy(session->key_id, session->server_ctx.global_key_id, session->key_id_length);
+			
+			//generateKeyID(session->key_id, session->key_id_length, session->msk_key, session->key_len);
 			
 			//Afterwards we generate the PANA_AUTH_KEY
 			u8 * new_auth_key = NULL;

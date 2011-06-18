@@ -49,6 +49,7 @@ typedef struct {
      */
     int REAUTH_TIMEOUT;
     
+    char * global_key_id;
 } pana_server_ctx;
 
 #endif
