@@ -1,5 +1,16 @@
 ChangeLog for OpenPANA
 
+2011-06-XX - v0.1.1
+	* Minor bugfixes and deleted useless code:
+		- Key-Id generation fixed.
+		- First sequence number is a random value.
+		- Session Id only generated on PAA.
+		- Some unused functions deleted such as isEqual
+		  used to compare two PANA sessions.
+		- Added more doxygen documentation.
+		- Translated some comments and debug information
+		  Spanish -> English.
+
 2011-05-09 - v0.1.0
 	* Initial version of OpenPANA.
 	* Many aspects defined in IETF RFC 5191 and 5609 are covered such as

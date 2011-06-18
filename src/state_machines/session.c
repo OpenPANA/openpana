@@ -90,7 +90,7 @@ void initSession(pana_ctx * pana_session) {
 
     //FIXME: Comprobar fallo de segm al descomentar
     //memset((char *) &(pana_session->eap_ll_dst_addr), 0, sizeof (pana_session->eap_ll_dst_addr));
-    pana_session->key_id_length = 12;
+    pana_session->key_id_length = 4;
 
     //FIXME: De momento, tanto cliente como servidor solamente tienen el prf_alg y el integrity algorithm estáticos
     // definidos aquí.
@@ -131,17 +131,33 @@ void initSession(pana_ctx * pana_session) {
     pana_session->server_ctx.PAC_FOUND = 0;
     pana_session->server_ctx.REAUTH_TIMEOUT = 0;
     pana_session->RTX_COUNTER_AAA = 0;
-    //FIXME: Se supone que es aleatoria no?
-    pana_session->SEQ_NUMBER = 41; //See client's seq_number
-
-
+    
+    //RCF 5191 11.1: Secuence numbers are randomly initialized at the
+    //beginning of the session.
+    pana_session->SEQ_NUMBER = rand(); 
+	
+	pana_session->server_ctx.global_key_id = NULL;
     eap_auth_init(&(pana_session->eap_ctx), pana_session);
-
 #endif
 }
 
 void updateSession(panaMessage *msg, pana_ctx *pana_session) {
     resetSession(pana_session);
+    
+    #ifdef ISCLIENT
+	// Update the session id to the client only in the first message from
+    // the PAA during authentication, it has to be a PAR message with
+    // S_FLAG active
+    if ((ntohs(msg->header.flags) & S_FLAG) == S_FLAG &&
+					(ntohs(msg->header.flags) & R_FLAG) == R_FLAG &&
+					ntohs(msg->header.msg_type) == PAR_MSG) {
+		pana_session->session_id = ntohl(msg->header.session_id);
+		#ifdef DEBUG
+		fprintf(stderr,"DEBUG: Client's session updated with Session Id from PAA: %d\n",pana_session->session_id);
+		#endif
+	}
+	#endif
+    
     //If the message is not valid, discard it.
     if (checkPanaMessage(msg, pana_session) == 0) {		
         return;
@@ -153,15 +169,7 @@ void updateSession(panaMessage *msg, pana_ctx *pana_session) {
 		free(pana_session->LAST_MESSAGE);
 	}
     pana_session->LAST_MESSAGE = msg;
-    
-      
-    // Update the session id to the client
-#ifdef ISCLIENT
-    pana_session->session_id = ntohl(msg->header.session_id);
-    #ifdef DEBUG
-    fprintf(stderr,"DEBUG: Sesion de cliente actualizada con el sess_id del mensaje: %d\n",pana_session->session_id);
-    #endif
-#endif
+
     // Detect message type and flags
     //FIXME: Falta detectar el result-code
     if (existAvp(msg, "PRF-Algorithm")) {

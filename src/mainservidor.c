@@ -47,6 +47,8 @@
 
 //Global variables
 
+char * global_key_id;//Key id is generated from source port and ip of the client
+
 struct pana_ctx_list* list_pana_sessions = NULL; // head of linked list of pana sessions
 struct pana_ctx_list* last_pana_sessions = NULL; // pointer to last pana session
 
@@ -91,11 +93,11 @@ void * process_receive_eap_ll_msg(void *arg) {
         pana_session->session_id = generateSessionId(ip, port);
         pana_session->socket = pana_params.sock;
         pana_session->eap_ll_dst_addr = *(pana_params.eap_ll_dst_addr);
-
+		pana_session->server_ctx.global_key_id = global_key_id;
 #ifdef DEBUG
         fprintf(stderr, "Session id: %d\n", pana_session->session_id);
 #endif
-       
+        
         pana_session->list_of_alarms = &(list_alarms);
 
         //FIXME: Debería comprobarse que pasa cuando un cliente "muere" y ese mismo vuelve a lanzar un PCI
@@ -683,6 +685,11 @@ int main(int argc, char* argv[]) {
     printf("This program comes with ABSOLUTELY NO WARRANTY.\n");
     printf("This is free software, and you are welcome to redistribute it\n");
     printf("under certain conditions, see COPYING for details.\n\n");
+
+	//Calculates a random value as global key_id value
+	generateRandomKeyID(&global_key_id);
+
+	
     //FIXME: Intentar quitar la cutrez de que la tabla de estados haya que inicializarla con un
     // contexto pana
     // Init the paa state machine

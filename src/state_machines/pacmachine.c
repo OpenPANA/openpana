@@ -312,6 +312,17 @@ int eapResultStateWaitEapResult() {
 		}
 
         if (existAvp(current_session->LAST_MESSAGE, "Key-Id")/*FIXME: existAvp(PAR, "Key-Id")*/) {
+			
+			//The comprobation of C_FLAG may be unnecesary
+			if(current_session->key_id != NULL){
+				free(current_session->key_id);
+			}
+			
+			//Copy key id in current session
+			current_session->key_id = malloc(current_session->key_id_length);
+			avp * kid_avp = getAvp(current_session->LAST_MESSAGE, KEYID_AVP);
+			memcpy(current_session->key_id,&(kid_avp->value),current_session->key_id_length);
+			
             // The C flag is added
             //Key-Id stored in the parameter
             current_session->avp_data[KEYID_AVP] = current_session->key_id;

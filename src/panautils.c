@@ -171,37 +171,13 @@ int checkPanaMessage(panaMessage *msg, pana_ctx *pana_session) {
         return 0;
     }
     
-    //Session ID Check, can be disabled in configuration file.
-    if(CHECK_SESSID == 1){
-		//The port used to generate the session id is:
-		short port=0;
-	#ifdef ISSERVER
-		//The destination port in the server
-		port = ntohs(pana_session->eap_ll_dst_addr.sin_port);
-	#endif
-	#ifdef ISCLIENT
-		//The source port in the client
-		port = SRCPORT;
-	#endif
-		
-		char * ip = inet_ntoa(pana_session->eap_ll_dst_addr.sin_addr);
-		int session_id = generateSessionId(ip, port);
-		#ifdef DEBUG
-		fprintf(stderr,"DEBUG: Puerto: %d, ip: %s\n", port, ip);
-		fprintf(stderr,"DEBUG: Comprueba los id: %d<--->%d\n", ntohl(msg->header.session_id), session_id);
-		#endif
-		if (ntohl(msg->header.session_id)!=session_id && !(ntohl(msg->header.session_id)==0 && ntohs(msg->header.msg_type))){
-				fprintf(stderr,"ERROR: The message session id is not valid. Dropping message\n");
-				return 0;
-		}
+	//Checks session-id
+	if (ntohl(msg->header.session_id)!=pana_session->session_id && !(ntohl(msg->header.session_id)==0 && ntohs(msg->header.msg_type))){
+			fprintf(stderr,"ERROR: The message session id is not valid. Dropping message\n");
+			return 0;
 	}
-	#ifdef DEBUG
-	else{
-		fprintf(stderr,"DEBUG: No se está comprobando el SessionID, mirar configuración.\n");
-	}
-	#endif
+	
     //Check sequence numbers
-    
     #ifdef DEBUG
 	fprintf(stderr, "DEBUG: Secuencia cliente: %d. Secuencia paquete: %d\n", pana_session->SEQ_NUMBER,(ntohl(msg->header.seq_number) - 1));
 	#endif
@@ -227,7 +203,7 @@ int checkPanaMessage(panaMessage *msg, pana_ctx *pana_session) {
         }
     }
 
-    //After checking the sequence numbers, the AUTH avp value is checked if found
+    //Then the AUTH avp value is checked if found
     //FIXME: Sólo comprobar si está autenticado, si no está correcto se descarta
     //Check if it contains the Auth AVP and checks it
     if (existAvp(msg, "AUTH")) {
@@ -471,6 +447,12 @@ u8 * generateAUTH(pana_ctx * session) {
         #endif
         return NULL;
     }
+    else if (session->key_id == NULL || session->key_id_length <=0){
+		#ifdef DEBUG
+        fprintf(stderr, "DEBUG: No se ha podido generar la clave. No hay Key-Id\n");
+        #endif
+        return NULL;
+	}
     #ifdef DEBUG
     fprintf(stderr, "DEBUG: Función generateAUTH, con todos los datos necesarios.\n");
     #endif
@@ -535,12 +517,12 @@ u8 * generateAUTH(pana_ctx * session) {
 	
 	
 	//Generates the Key-Id 
-	if(session->key_id != NULL){
+	/*if(session->key_id != NULL){
 		free(session->key_id);
 	}
 	session->key_id = malloc(session->key_id_length);
 	generateKeyID(session->key_id, session->key_id_length, session->msk_key, session->key_len);
-	
+	*/
     memcpy(sequence + seq_length, session->key_id, session->key_id_length);
     seq_length += session->key_id_length;
 
@@ -606,23 +588,40 @@ int isOctetString(int type){
 	return (type==AUTH_AVP || type ==EAPPAYLOAD_AVP || type == NONCE_AVP);		
 }
 
-
+//Añade 1 al valor actual del KeyId
+void increase_one(char *value, int length) {
+	
+    int i;	
+    int increased = 0;
+    for (i = length - 1; (i >= 0 && increased == 0); i--) {
+        if (value[i] != 0xff) {
+            increased = 1;
+            value[i] += 1;
+        } else {
+            value[i] = 0x00;
+        }
+    }
+    //If value is 0xfffff...
+    if (i == -1) value[length - 1] = 0x01;
+}
 int isEqual(pana_ctx* sess1, pana_ctx* sess2){
-	//FIXME: falta implementación, Pacovi: se usa alguna vez?
+	//FIXME: falta implementación
 	return 1;
 }
 
-int generateKeyID (char* key_id, int key_id_length, u8* msk_key, unsigned int msk_len) {
-    /* FIXME El el cliente, el key-id debe generarse o no? creo que hay que cogerlo del
-     * paquete que envía el PAA ya que el identificador te lo da él. Así se consigue
-     * poder utilizar implementaciones que generan el key-id de forma distinta sin problemas, no?.
-     * */
-    for (int i = 0; i <= key_id_length; i += msk_len) {
+int generateRandomKeyID (char** global_key_id) {
+    struct timeval seed;
+    gettimeofday(&seed, NULL);
+    srand(seed.tv_usec); //initialize random generator using usecs
+    int key_id_length = 12;
+    (*global_key_id) = (char *) malloc(key_id_length * (sizeof (char)));
+    for (int i = 0; i <= key_id_length; i += sizeof (int)) {
+        int random = rand();
         //If we need the whole int value
-        if ((i + msk_len) <= key_id_length) {
-            memcpy((key_id + i), msk_key, msk_len);
+        if ((i + sizeof (int)) <= key_id_length) {
+            memcpy(((*global_key_id) + i), &random, sizeof (random));
         } else { //If only a part is needed
-            memcpy((key_id + i), msk_key, (key_id_length % msk_len));
+            memcpy(((*global_key_id) + i), &random, (key_id_length % sizeof (random)));
         }
     }
     return 0;

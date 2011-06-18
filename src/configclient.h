@@ -32,8 +32,6 @@
 #define LOCALIP "127.0.0.1" // source ip
 /** PAA's IP */
 #define DESTIP "127.0.0.1"  // destination ip
-/** Allows activation of session id checking */
-#define CHECK_SESSID 1
 
 /* A duration that is associated with a PANA session. For an
 established PANA session, the session lifetime is bound to the
