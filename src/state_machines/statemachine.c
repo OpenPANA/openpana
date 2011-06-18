@@ -311,12 +311,6 @@ void rtxTimerStop() {
     }
     pana_ctx * session = get_alarm_session(current_session->list_of_alarms, current_session->session_id, RETR_ALARM);
 	
-	if (!isEqual(session, current_session)){
-	#ifdef DEBUG
-		fprintf(stderr, "DEBUG: rtxTimerStop: La sesión asociada a la alarma no es la misma que la actual\n");
-	#endif
-		return;	
-	}
 
 }
 
@@ -327,12 +321,7 @@ void sessionTimerReStart(int timeout) {
 	//Get the alarm of this session
     pana_ctx * session = get_alarm_session(current_session->list_of_alarms, current_session->session_id, SESS_ALARM);
 	
-	if (!isEqual(session, current_session)){
-	#ifdef DEBUG
-		fprintf(stderr, "DEBUG: sessionTimerReStart: La sesión asociada a la alarma no es la misma que la actual\n");
-	#endif
-		return;	
-	}
+	
 	
 	//Add the alarm with the new expiration time
 	add_alarma(current_session->list_of_alarms, current_session, timeout, SESS_ALARM);
@@ -414,12 +403,7 @@ void sessionTimerStop() {
 	//Get the alarm of this session
 	pana_ctx * session = get_alarm_session(current_session->list_of_alarms, current_session->session_id,SESS_ALARM);
 
-	if (!isEqual(session, current_session)){
-	#ifdef DEBUG
-		fprintf(stderr, "DEBUG: sessionTimerStop: La sesión asociada a la alarma no es la misma que la actual\n");
-	#endif
-		return;	
-	}
+	
 	
 #ifdef DEBUG
     fprintf(stderr, "DEBUG: sessionTimerStop: Función terminada correctamente\n"); 

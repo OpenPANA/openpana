@@ -606,12 +606,6 @@ int isOctetString(int type){
 	return (type==AUTH_AVP || type ==EAPPAYLOAD_AVP || type == NONCE_AVP);		
 }
 
-
-int isEqual(pana_ctx* sess1, pana_ctx* sess2){
-	//FIXME: falta implementación, Pacovi: se usa alguna vez?
-	return 1;
-}
-
 int generateKeyID (char* key_id, int key_id_length, u8* msk_key, unsigned int msk_len) {
     /* FIXME El el cliente, el key-id debe generarse o no? creo que hay que cogerlo del
      * paquete que envía el PAA ya que el identificador te lo da él. Así se consigue

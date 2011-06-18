@@ -84,9 +84,6 @@ avp * getAvp(panaMessage *msg, int type);
 //FIXME: Función que devuelve si un tipo de avp es octetString o no
 int isOctetString(int type);
 
-//FIXME: Función que devuelve si las dos sesiones pana son iguales
-int isEqual(pana_ctx* sess1, pana_ctx* sess2);
-
 //FIXME: Función que genera el key id y lo guarda en el parámetro
 int generateKeyID (char* key_id, int key_id_length, u8* msk_key, unsigned int msk_len);
 
