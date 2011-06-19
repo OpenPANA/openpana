@@ -106,7 +106,7 @@ struct lalarm * add_alarma(struct lalarm ** l, pana_ctx* session, time_t time, i
 struct lalarm* del_alarma(struct lalarm **l) {
     pthread_mutex_lock(mutex);
 	#ifdef DEBUG
-    fprintf(stderr, "DEBUG: Entra en del_alarma\n");
+    fprintf(stderr, "DEBUG: Function del_alarma\n");
     #endif
     struct lalarm *returnalarm;
     if ((*l) == NULL) {//Si está vacía
@@ -159,7 +159,7 @@ pana_ctx * get_alarm_session(struct lalarm** list, int id_session, int id_alarm)
     /* return the request to the caller. */
     if (session == NULL) {
 #ifdef DEBUG
-        fprintf(stderr, "DEBUG: No se ha encontrado la sesión asociada al id: %d\n", id_session);
+        fprintf(stderr, "DEBUG: Session with id %d not found.\n", id_session);
 #endif
         pthread_mutex_unlock(mutex);
         return NULL;

@@ -104,10 +104,15 @@ char * getMsgName(int msg_type);
  * */
 char * getAvpName(int avp_code);
 
-//FIXME: Extrae el NONCE
+/**
+ * Gets the NONCE AVP from a message.
+ * @param message Message to extract Nonce from.
+ * 
+ * @return Nonce AVP in u8 format.
+ * */
 u8 * extractNonce(char * message);
 
-//Poner que debe liberarse la memoria.
+//FIXME: Poner que debe liberarse la memoria.
 /** 
  * Generates the AUTH key given a PANA session.
  * 

@@ -121,7 +121,7 @@ void initPacTable() {
 int pacInitHandshake() {
     if (current_session->client_ctx.AUTH_USER) {
 #ifdef DEBUG
-        fprintf(stderr,"DEBUG: Enviando el PCI.\n");
+        fprintf(stderr,"DEBUG: Sending PCI.\n");
 #endif
 		if(current_session->retr_msg !=NULL){
 			free(current_session->retr_msg);
@@ -519,25 +519,25 @@ int sessionTermInitPacStateSessTerm() {
 
 int eapPiggyback() {
 #ifdef DEBUG
-    fprintf(stderr,"DEBUG: Funcion eapPiggyback\n"); //TODO: Falta la implementación
+    fprintf(stderr,"DEBUG: eapPiggyback function\n"); //TODO: Falta la implementación
 #endif
     return 0;
 }
 
 void altReject() {
 #ifdef DEBUG
-    fprintf(stderr,"DEBUG: Funcion altReject\n"); //TODO: Falta la implementación
+    fprintf(stderr,"DEBUG: altReject function\n"); //TODO: Falta la implementación
 #endif
 }
 
 void eapRespTimerStart() {
 #ifdef DEBUG
-    fprintf(stderr,"DEBUG: Funcion eapRespTimerStart\n"); //TODO: Falta la implementación
+    fprintf(stderr,"DEBUG: eapRespTimerStart function\n"); //TODO: Falta la implementación
 #endif
 }
 
 void eapRespTimerStop() {
 #ifdef DEBUG
-    fprintf(stderr,"DEBUG: Funcion eapRespTimerStop\n"); //TODO: Falta la implementación
+    fprintf(stderr,"DEBUG: eapRespTimerStop function\n"); //TODO: Falta la implementación
 #endif
 }

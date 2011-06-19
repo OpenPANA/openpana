@@ -220,7 +220,7 @@ int panHandling() {
 int receivingEapRequest() {
     if (eap_auth_get_eapReq(&(current_session->eap_ctx)) == TRUE) {
 #ifdef DEBUG
-        fprintf(stderr, "DEBUG: Entra en EAP_REQ.\n");
+        fprintf(stderr, "DEBUG: EAP_REQ found.\n");
 #endif
 
         struct wpabuf * packet = eap_auth_get_eapReqData(&(current_session->eap_ctx));
@@ -471,7 +471,7 @@ int ptaProcessing() {
 // Procedures
 int newKeyAvailable() {
 #ifdef DEBUG
-    fprintf(stderr, "DEBUG: Función newKeyAvailable()\n");
+    fprintf(stderr, "DEBUG: newKeyAvailable() function\n");
 #endif
 
 	int eapKeyAvailable = FALSE;

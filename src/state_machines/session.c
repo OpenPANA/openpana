@@ -188,7 +188,7 @@ void updateSession(panaMessage *msg, pana_ctx *pana_session) {
 	}
 
 #ifdef DEBUG
-    fprintf(stderr,"DEBUG: Sesión actualizada con el mensaje: \n");
+    fprintf(stderr,"DEBUG: Session updated with message: \n");
 #endif
 
     if (ntohs(msg->header.msg_type) == PCI_MSG) { // PCI

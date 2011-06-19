@@ -195,13 +195,13 @@ int transition(pana_ctx *pana_session) {
 
 void none() {
 #ifdef DEBUG
-    fprintf(stderr,"DEBUG: Funcion none \n");
+    fprintf(stderr,"DEBUG: none  function \n");
 #endif
 }
 
 void disconnect() {
 #ifdef DEBUG
-    fprintf(stderr,"DEBUG: Función disconnect \n");
+    fprintf(stderr,"DEBUG: disconnect function \n");
 #endif
 
 	if(current_session->LAST_MESSAGE !=NULL){
@@ -227,7 +227,7 @@ void disconnect() {
 	}
 	
 #ifdef ISCLIENT
-    printf("PANA: El cliente se desconecta\n");
+    printf("PANA: Client disconnected.\n");
     exit(0);
     //free(current_session->avp_data);
 #endif
@@ -246,7 +246,7 @@ int authorize() {
      * authentication (generate_pana_sa() returns TRUE), authorize()
      * procedure must return FALSE.  */
 #ifdef DEBUG
-    fprintf(stderr,"DEBUG: Función authorize \n"); //TODO: Falta la implementación
+    fprintf(stderr,"DEBUG: authorize function \n"); //TODO: Falta la implementación
 #endif
 
      #ifdef ISCLIENT// It is assumed that authorize() procedure of PaC 
@@ -259,7 +259,7 @@ int authorize() {
 
 void retransmit() {
 #ifdef DEBUG
-    fprintf(stderr,"DEBUG: Función retransmit \n");
+    fprintf(stderr,"DEBUG: retransmit function \n");
 #endif
 
     current_session->RTX_TIMEOUT = 0;
@@ -286,7 +286,7 @@ void retransmit() {
 
 void rtxTimerStart() {
 #ifdef DEBUG
-    fprintf(stderr,"DEBUG: Función rtxTimerStart \n");
+    fprintf(stderr,"DEBUG: rtxTimerStart function \n");
 #endif
 
     current_session->RTX_COUNTER = 0; // Reset retransmission's counter
@@ -300,12 +300,12 @@ void rtxTimerStart() {
 
 void rtxTimerStop() {
 #ifdef DEBUG
-    fprintf(stderr, "DEBUG: Función rtxTimerStop \n");
+    fprintf(stderr, "DEBUG:  rtxTimerStop  function\n");
 #endif
 
     if (current_session == NULL) {
 #ifdef DEBUG
-        fprintf(stderr, "DEBUG: No hay sesión asociada\n");
+        fprintf(stderr, "DEBUG: There isn't any session associated\n");
 #endif
         return;
     }
@@ -322,7 +322,7 @@ void rtxTimerStop() {
 
 void sessionTimerReStart(int timeout) {
 #ifdef DEBUG
-    fprintf(stderr,"DEBUG: Función sessionTimerReStart. Parámetro: %d \n", timeout); 
+    fprintf(stderr,"DEBUG: Función sessionTimerReStart. Timeout: %d \n", timeout); 
 #endif
 	//Get the alarm of this session
     pana_ctx * session = get_alarm_session(current_session->list_of_alarms, current_session->session_id, SESS_ALARM);
@@ -340,7 +340,7 @@ void sessionTimerReStart(int timeout) {
 
 void eapRestart() {
 #ifdef DEBUG
-    fprintf(stderr,"DEBUG: Función eapRestart\n");
+    fprintf(stderr,"DEBUG: eapRestart function\n");
 #endif
 
 	//It is necesary reset the session's variables used to generate the pana auth key
@@ -365,20 +365,20 @@ void eapRestart() {
     eap_auth_step(&(current_session->eap_ctx));
 #endif
 #ifdef DEBUG
-    fprintf(stderr, "DEBUG: eapReStart: La máquina EAP ha sido reiniciada correctamente.\n");
+    fprintf(stderr, "DEBUG: eapReStart: EAP has been properly restarted.\n");
 #endif
 
 }
 
 void txEAP() {
 #ifdef DEBUG
-    fprintf(stderr,"DEBUG: Función txEAP\n");
+    fprintf(stderr,"DEBUG: txEAP function\n");
 #endif
     //Get the EAP_Payload Avp
 
     avp * elmnt = getAvp(current_session->LAST_MESSAGE, EAPPAYLOAD_AVP);
     if (elmnt==NULL){
-		printf("txEAP: No hay un eappayload avp\n");
+		printf("txEAP: There isn't EAP Payload AVP.\n");
 		return;
 	}
 
@@ -401,14 +401,14 @@ void txEAP() {
 																		       // de eap no se cual es
 #endif
 #ifdef DEBUG
-   fprintf(stderr,"DEBUG: Terminada función txEAP\n");
+   fprintf(stderr,"DEBUG: Finished txEAP function\n");
 #endif
 }
 
 void sessionTimerStop() {
 
 #ifdef DEBUG
-    fprintf(stderr,"DEBUG: Función sessionTimerStop\n"); 
+    fprintf(stderr,"DEBUG: sessionTimerStop function\n"); 
 #endif
 
 	//Get the alarm of this session
@@ -422,13 +422,13 @@ void sessionTimerStop() {
 	}
 	
 #ifdef DEBUG
-    fprintf(stderr, "DEBUG: sessionTimerStop: Función terminada correctamente\n"); 
+    fprintf(stderr, "DEBUG: sessionTimerStop finished.\n"); 
 #endif
 }
 
 int generatePanaSa() { // See RFC 5609 Page 8
 #ifdef DEBUG
-    fprintf(stderr,"DEBUG: Función generatePanaSa\n");
+    fprintf(stderr,"DEBUG: generatePanaSa function\n");
     //FIXME: Falta la implementación
 #endif
     //TODO: Falta la implementación
@@ -464,7 +464,7 @@ int keyAvailable() {
 	
 	#ifdef DEBUG
 	if(current_session->avp_data[AUTH_AVP] == NULL)
-		fprintf(stderr,"****** KeyAvailable: CLAVE NULA AUTH");
+		fprintf(stderr,"DEBUG: KeyAvailable: AUTH KEY == NULL\n");
 	#endif
 	
 	//If the state machine already has a PANA_AUTH_KEY, it returns TRUE.
@@ -515,7 +515,7 @@ int keyAvailable() {
 				current_session->avp_data[AUTH_AVP] = new_auth_key;
 			}
 			else{
-				fprintf(stderr,"DEBUG: AUTH key generada en keyAvailable es NULA!");
+				fprintf(stderr,"DEBUG: newKeyAvailable - Generated AUTH key is NULL!");
 			}
 			//If !=NULL the key generation was successful
 			return current_session->avp_data[AUTH_AVP]!=NULL;

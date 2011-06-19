@@ -42,13 +42,13 @@ int sendPana(struct sockaddr_in destaddr, char *msg, int sock) {
 
     if (msg == NULL) { //If no message is provided
 		#ifdef DEBUG
-			fprintf(stderr,"ERROR: sendPana mensaje nulo.\n");
+			fprintf(stderr,"ERROR: sendPana NULL message parameter.\n");
 		#endif
         return -1;
     }
     if(sock == 0){
 		#ifdef DEBUG
-			fprintf(stderr,"ERROR: sendPana socket es 0.\n");
+			fprintf(stderr,"ERROR: sendPana socket it's 0.\n");
 		#endif
 		return -1;
 	}
@@ -97,8 +97,8 @@ int sendPana(struct sockaddr_in destaddr, char *msg, int sock) {
     }
 
 #ifdef DEBUG
-    fprintf(stderr,"DEBUG: Enviado a IP: %s , port %d \n", inet_ntoa(destaddr.sin_addr), ntohs(destaddr.sin_port));
-    fprintf(stderr,"Enviados %d bytes a %s\n", total, inet_ntoa(destaddr.sin_addr));
+    fprintf(stderr,"DEBUG: Sended to IP: %s , port %d \n", inet_ntoa(destaddr.sin_addr), ntohs(destaddr.sin_port));
+    fprintf(stderr,"Sended %d bytes to %s\n", total, inet_ntoa(destaddr.sin_addr));
 #endif
 
     //free(buffer); //Message already sent, memory can be freed
@@ -139,7 +139,7 @@ char * serializePana(panaMessage *msg) {
     char * buffer = NULL;
     int msg_size = ntohs(msg->header.msg_length);
 #ifdef DEBUG
-    fprintf(stderr,"DEBUG: Tamaño mensaje %d .\n", msg_size);
+    fprintf(stderr,"DEBUG: Message size %d .\n", msg_size);
 #endif
     buffer = calloc(msg_size, sizeof (char)); //Memory needed is allocated
     if (NULL == buffer) {
@@ -178,10 +178,6 @@ int checkPanaMessage(panaMessage *msg, pana_ctx *pana_session) {
 	}
 	
     //Check sequence numbers
-    #ifdef DEBUG
-	fprintf(stderr, "DEBUG: Secuencia cliente: %d. Secuencia paquete: %d\n", pana_session->SEQ_NUMBER,(ntohl(msg->header.seq_number) - 1));
-	#endif
-        
     if ((ntohs(msg->header.flags) & R_FLAG) == R_FLAG) { //Request msg
         //Si eres el cliente, compruebas que antes tenías o un 0 (del pci)
         //o un numero menos del que se ha recibido.
@@ -215,7 +211,7 @@ int checkPanaMessage(panaMessage *msg, pana_ctx *pana_session) {
 
         //Now, avp elmnt points to auth avp
         #ifdef DEBUG
-        fprintf(stderr, "DEBUG: me guardo el valor recibido del AUTH avp. \n");
+        fprintf(stderr, "DEBUG: Saving AUTH AVP value. \n");
         #endif
         size = ntohs(elmnt->avp_length);
         data = malloc(size * sizeof (char));
@@ -245,11 +241,11 @@ int checkPanaMessage(panaMessage *msg, pana_ctx *pana_session) {
 		
         if (i == size) { //If both are the same, the AUTH is correct
             #ifdef DEBUG
-            fprintf(stderr, "DEBUG: Comprobado el AUTH avp. Es correcto\n");
+            fprintf(stderr, "DEBUG: AUTH AVP checked. Correct\n");
             #endif
         } else {
         #ifdef DEBUG
-            fprintf(stderr, "DEBUG: Comprobado el AUTH avp. NO es correcto\n");
+            fprintf(stderr, "DEBUG: AUTH AVP checked. INCORRECT\n");
         #endif
             return FALSE; //Invalid, message is ignored
         }
@@ -265,7 +261,7 @@ int cryptAuth(panaMessage *msg, char* key, int key_len) {
 	u8 * serializedMessage = (u8*) serializePana(msg);
     PRF_plus(1, (u8*) key, key_len, serializedMessage, ntohs(msg->header.msg_length), (u8*)&(elmnt->value));
     #ifdef DEBUG
-    fprintf(stderr,"DEBUG: Ha encriptado el auth avp\n");
+    fprintf(stderr,"DEBUG: AUTH AVP encrypted.\n");
     #endif
 	free(serializedMessage);
     return 0; //Everything went better than expected
@@ -296,7 +292,7 @@ int generateSessionId(char * ip, short port) {
     int * point = (int *) result;
     int rc = (*point);
     #ifdef DEBUG
-    fprintf(stderr,"DEBUG: Generado session id %d, con puerto %d e ip %s\n",rc,port,ip);
+    fprintf(stderr,"DEBUG: Session Id %d generated withport %d and ip %s\n",rc,port,ip);
     #endif
     free(seed);
     free(result);
@@ -305,6 +301,7 @@ int generateSessionId(char * ip, short port) {
 
 void debug_print_avp(avp *elmnt) {
     #ifdef DEBUG
+    /*
 	char * avpname = getAvpName(ntohs(elmnt->avp_code));
 	if(avpname != NULL){
 		fprintf(stderr,"AVP Name: %s\n", avpname);
@@ -322,12 +319,13 @@ void debug_print_avp(avp *elmnt) {
 		}
 		fprintf(stderr,"|    Value:\n");
 		fprintf(stderr,"\n+-+-+-+-+-+-+-+-+\n");
-    }
+    }*/
     #endif
 }
 
 void debug_print_message(panaMessage *msg) {
     #ifdef DEBUG
+    /*
     panaHeader hdr = msg->header;
     fprintf(stderr,"Pana Message Name: %s \n", getMsgName(ntohs(hdr.msg_type)));
     fprintf(stderr," 0                   1                   2                   3\n");
@@ -351,7 +349,7 @@ void debug_print_message(panaMessage *msg) {
         debug_print_avp(elmnt);
         size = size - (4 * sizeof (short) +ntohs(elmnt->avp_length));
         offset = offset + (4 * sizeof (short) +ntohs(elmnt->avp_length));
-    }
+    }*/
     #endif
 }
 
@@ -362,7 +360,7 @@ char * getAvpName(int avp_code) {
         return avp_names[avp_code - 1];
     } else {
     #ifdef DEBUG
-        fprintf(stderr, "DEBUG: ERROR getAvpName, código de AVP (%d) incorrecto.\n",avp_code);
+        fprintf(stderr, "DEBUG: ERROR getAvpName, wrong AVP code (%d).\n",avp_code);
     #endif
         return NULL;
     }
@@ -376,7 +374,7 @@ char * getMsgName(int msg_type) {
         return pana_msg_type[msg_type - 1];
     } else {
         #ifdef DEBUG
-        fprintf(stderr, "DEBUG: ERROR getMsgName, código de mensaje (%d) incorrecto.\n",msg_type);
+        fprintf(stderr, "DEBUG: ERROR getMsgName, wrong message type (%d).\n",msg_type);
         #endif
         return NULL;
     }
@@ -423,38 +421,38 @@ u8 * generateAUTH(pana_ctx * session) {
 
     if (session->PaC_nonce == NULL) {
         #ifdef DEBUG
-        fprintf(stderr, "DEBUG: No se ha podido generar la clave. PAC_NONCE nulo\n");
+        fprintf(stderr, "DEBUG: Unable to generate AUTH. Null PAC_NONCE\n");
         #endif
         return NULL;
     } else if (session->PAA_nonce == NULL) {
         #ifdef DEBUG
-        fprintf(stderr, "DEBUG: No se ha podido generar la clave. PAA_NONCE nulo\n");
+        fprintf(stderr, "DEBUG: Unable to generate AUTH. Null PAA_NONCE\n");
         #endif
         return NULL;
     } else if (session->msk_key == NULL) {
         #ifdef DEBUG
-        fprintf(stderr, "DEBUG: No se ha podido generar la clave. Msk_key nulo\n");
+        fprintf(stderr, "DEBUG: Unable to generate AUTH. Null Msk_key\n");
         #endif
         return NULL;
     }else if (session->I_PAR == NULL) {
         #ifdef DEBUG
-        fprintf(stderr, "DEBUG: No se ha podido generar la clave. I_PAR nulo\n");
+        fprintf(stderr, "DEBUG: Unable to generate AUTH. Null I_PAR\n");
         #endif
         return NULL;
     } else if (session->I_PAN == NULL) {
         #ifdef DEBUG
-        fprintf(stderr, "DEBUG: No se ha podido generar la clave. I_PAN nulo\n");
+        fprintf(stderr, "DEBUG: Unable to generate AUTH. Null I_PAN\n");
         #endif
         return NULL;
     }
     else if (session->key_id == NULL || session->key_id_length <=0){
 		#ifdef DEBUG
-        fprintf(stderr, "DEBUG: No se ha podido generar la clave. No hay Key-Id\n");
+        fprintf(stderr, "DEBUG: Unable to generate AUTH without Key-Id\n");
         #endif
         return NULL;
 	}
     #ifdef DEBUG
-    fprintf(stderr, "DEBUG: Función generateAUTH, con todos los datos necesarios.\n");
+    fprintf(stderr, "DEBUG: Starting AUTH generation.\n");
     #endif
 
     panaHeader * msg;

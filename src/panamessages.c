@@ -36,7 +36,7 @@ void generateAvp(avpList *lista, char *avp_name, void **data) {
     //For further information see RFC 5191 section 8
     int padding = 0; //Extra memory to complete the avp packet depending on the type
 #ifdef DEBUG
-    fprintf(stderr,"\nDEBUG: generateAvp Function\nDEBUG: Readed AVP: %s\n", avp_name);
+    fprintf(stderr,"DEBUG: generateAvp Function\nDEBUG: Readed AVP: %s\n", avp_name);
 #endif
     avp * elmnt = calloc(sizeof (avp), 1);
     if (NULL == elmnt) {
@@ -244,7 +244,7 @@ void generateAvp(avpList *lista, char *avp_name, void **data) {
     }
 #ifdef DEBUG
     else {
-        fprintf(stderr,"\nDEBUG: generateAvp function, invalid AVP name %s \n", avp_name);
+        fprintf(stderr,"DEBUG: generateAvp function, invalid AVP name %s \n", avp_name);
     }
     //printf("\n\nDEBUG: Print AVP before adding it to the list.\n");
     //debug_print_avp(elmnt);
@@ -258,8 +258,8 @@ void generateAvp(avpList *lista, char *avp_name, void **data) {
     int oldsize = lista->size;
 
 #ifdef DEBUG
-    fprintf(stderr,"DEBUG: SizeAVP calculated to use in memcpy: %d bytes.\n", sizeavp);
-    fprintf(stderr,"DEBUG: OLDSIZE : %d bytes.\n", oldsize);
+    //fprintf(stderr,"DEBUG: SizeAVP calculated to use in memcpy: %d bytes.\n", sizeavp);
+    //fprintf(stderr,"DEBUG: OLDSIZE : %d bytes.\n", oldsize);
 #endif
 
     lista->size = lista->size + sizeavp; //Update the size with the new AVP
@@ -562,7 +562,7 @@ void insertAvp(panaMessage* msg, char * names, void **data) {
         //panaHeader + previous list of avps size + new list of avps size
         msg->header.msg_length = htons(sizeof (panaHeader) + used + lista->size);
 #ifdef DEBUG
-        fprintf(stderr,"DEBUG: Size updated to %d\n", ntohs(msg->header.msg_length));
+        //fprintf(stderr,"DEBUG: Size updated to %d\n", ntohs(msg->header.msg_length));
 #endif
 
         free(lista->value); //The temporal list is freed after the copy
