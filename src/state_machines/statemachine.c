@@ -515,7 +515,7 @@ int keyAvailable() {
 				current_session->avp_data[AUTH_AVP] = new_auth_key;
 			}
 			else{
-				fprintf(stderr,"DEBUG: newKeyAvailable - Generated AUTH key is NULL!");
+				fprintf(stderr,"DEBUG: newKeyAvailable - Generated AUTH key is NULL!\n");
 			}
 			//If !=NULL the key generation was successful
 			return current_session->avp_data[AUTH_AVP]!=NULL;
