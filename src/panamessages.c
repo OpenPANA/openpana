@@ -35,6 +35,7 @@ void generateAvp(avpList *lista, char *avp_name, void **data) {
 
     //For further information see RFC 5191 section 8
     int padding = 0; //Extra memory to complete the avp packet depending on the type
+
 #ifdef DEBUG
     fprintf(stderr,"DEBUG: generateAvp Function\nDEBUG: Readed AVP: %s\n", avp_name);
 #endif
@@ -44,18 +45,18 @@ void generateAvp(avpList *lista, char *avp_name, void **data) {
         exit(1);
     }
     //All AVPs defined in this document MUST have the ’V’ (Vendor) bit cleared.
-    elmnt->avp_flags = htons(0);
-    elmnt->reserved = htons(0); //They MUST be set to zero and ignored by the receiver
+    elmnt->avp_flags = 0;
+    elmnt->reserved = 0; //They MUST be set to zero and ignored by the receiver
 
     elmnt->value = NULL; //By now avp value is none
-    elmnt->avp_length = htons(0); //So it's length is set to 0
+    elmnt->avp_length = 0; //So it's length is set to 0
 
     if (strcmp(avp_name, "AUTH") == 0) {
         //The AUTH AVP (AVP Code 1) is used to integrity protect PANA messages.
         //The AVP data payload contains the Message Authentication Code encoded
         //in network byte order. The AVP length varies depending on the
         //integrity algorithm used. The AVP data is of type OctetString.
-        elmnt->avp_code = htons(AUTH_AVP);
+        elmnt->avp_code = htons(AUTH_AVP); //FIXME: Magic Number
         elmnt->avp_length = htons(20); ////To get the 160bits result key
         elmnt->value = calloc(ntohs(elmnt->avp_length), sizeof (char));
         if(elmnt->value == NULL){
@@ -81,12 +82,12 @@ void generateAvp(avpList *lista, char *avp_name, void **data) {
         const u8 * packet = wpabuf_head(aux);
 
 #ifdef DEBUG
-        fprintf(stderr,"PAQUETE EAP\n");
+        fprintf(stderr,"BEGIN EAP PACKET\n");
         unsigned int i;
         for (i = 0; i < wpabuf_len(aux); i++) {
             fprintf(stderr,"%02x", packet[i]);
         }
-        fprintf(stderr,"fin paquete EAP\n");
+        fprintf(stderr,"END EAP PACKET\n");
 #endif
 
         elmnt->avp_length = htons(wpabuf_len(aux));
@@ -111,7 +112,7 @@ void generateAvp(avpList *lista, char *avp_name, void **data) {
 		//(16 if the ’V’ bit is enabled). But with PANA, the AVP Length
 		//field DOES NOT include the header size, so size will be 
 		// 12 - panaHeader = 4.
-        elmnt->avp_length = htons(4);
+        elmnt->avp_length = htons(4); //FIXME Magic Number
         elmnt->value = calloc(ntohs(elmnt->avp_length), sizeof (char));
         if(elmnt->value == NULL){
 			fprintf(stderr,"Out of memory\n");
@@ -132,7 +133,7 @@ void generateAvp(avpList *lista, char *avp_name, void **data) {
 		//field DOES NOT include the header size, so size will be 
 		// 12 - panaHeader = 4.
         elmnt->avp_code = htons(KEYID_AVP);
-        elmnt->avp_length = htons(4);
+        elmnt->avp_length = htons(4); //FIXME Magic Number
         elmnt->value = calloc(4, sizeof (char));
         if(elmnt->value == NULL){
 			fprintf(stderr,"Out of memory\n");
@@ -148,7 +149,7 @@ void generateAvp(avpList *lista, char *avp_name, void **data) {
         //It's supposed that the PaC and the PAA each are not
         //trusted with regard to the computation of a random nonce
         //A 20 octets random value will be generated
-        elmnt->avp_length = htons(20);
+        elmnt->avp_length = htons(20); //FIXME Magic Number
 
         elmnt->value = calloc(ntohs(elmnt->avp_length), sizeof (char));
 		if(elmnt->value == NULL){
@@ -182,7 +183,7 @@ void generateAvp(avpList *lista, char *avp_name, void **data) {
 		//(16 if the ’V’ bit is enabled). But with PANA, the AVP Length
 		//field DOES NOT include the header size, so size will be 
 		// 12 - panaHeader = 4.
-        elmnt->avp_length = htons(4);
+        elmnt->avp_length = htons(4); //FIXME Magic Number
         elmnt->value = calloc(ntohs(elmnt->avp_length), sizeof (char));
         if(elmnt->value == NULL){
 			fprintf(stderr,"Out of memory\n");
@@ -199,7 +200,7 @@ void generateAvp(avpList *lista, char *avp_name, void **data) {
 		//(16 if the ’V’ bit is enabled). But with PANA, the AVP Length
 		//field DOES NOT include the header size, so size will be 
 		// 12 - panaHeader = 4.
-        elmnt->avp_length = htons(4);
+        elmnt->avp_length = htons(4); //FIXME Magic Number
         elmnt->value = calloc(ntohs(elmnt->avp_length), sizeof (char));
         if(elmnt->value == NULL){
 			fprintf(stderr,"Out of memory\n");
@@ -218,7 +219,7 @@ void generateAvp(avpList *lista, char *avp_name, void **data) {
 		//(16 if the ’V’ bit is enabled). But with PANA, the AVP Length
 		//field DOES NOT include the header size, so size will be 
 		// 12 - panaHeader = 4.
-        elmnt->avp_length = htons(4);
+        elmnt->avp_length = htons(4); //FIXME Magic Number
         elmnt->value = calloc(ntohs(elmnt->avp_length), sizeof (char));
         if(elmnt->value == NULL){
 			fprintf(stderr,"Out of memory\n");
@@ -235,7 +236,7 @@ void generateAvp(avpList *lista, char *avp_name, void **data) {
 		//(16 if the ’V’ bit is enabled). But with PANA, the AVP Length
 		//field DOES NOT include the header size, so size will be 
 		// 12 - panaHeader = 4.
-        elmnt->avp_length = htons(4);
+        elmnt->avp_length = htons(4); //FIXME Magic Number
         elmnt->value = calloc(ntohs(elmnt->avp_length), sizeof (char));
         int * valor;
         valor = (int *) elmnt->value;
@@ -475,7 +476,7 @@ char * transmissionMessage(char * msgtype, short flags, int *sequence_number, in
 	
     //If the message contains an auth avp, it must be encrypted
     if (existAvp(msg, "AUTH")) {
-        cryptAuth(msg, data[AUTH_AVP], 40); //FIXME: Porque de momento la clave es de 320 bits
+        cryptAuth(msg, data[AUTH_AVP], 40); //FIXME: Magic Number Porque de momento la clave es de 320 bits
     }
     
 #ifdef DEBUG

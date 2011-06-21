@@ -115,6 +115,12 @@ u8 * extractNonce(char * message);
 //FIXME: Poner que debe liberarse la memoria.
 /** 
  * Generates the AUTH key given a PANA session.
+ * The PANA_AUTH_KEY is derived from the available MSK, and it is used
+ * to integrity protect PANA messages. The PANA_AUTH_KEY is computed in
+ * the following way:
+ * PANA_AUTH_KEY = prf+(MSK, "IETF PANA"|I_PAR|I_PAN|PaC_nonce|PAA_nonce|Key_ID)
+ * 
+ * See RFC 5191 Section 5.3 for more information.
  * 
  * @param current_session PANA session.
  * 

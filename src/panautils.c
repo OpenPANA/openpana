@@ -160,7 +160,7 @@ int checkPanaMessage(panaMessage *msg, pana_ctx *pana_session) {
         fprintf(stderr, "ERROR: Reserved field is not set to zero. Dropping message\n");
         return 0;
     }
-    if ((ntohs(msg->header.flags) != 0 && ntohs(msg->header.flags) < 0x0400) || //The I FLAG is the smallest
+    if ((ntohs(msg->header.flags) != 0 && ntohs(msg->header.flags) < I_FLAG) || //The I FLAG is the smallest
             (ntohs(msg->header.flags) > 0xFC00)) { //0xFC00 is the result of adding all the flags.
         fprintf(stderr, "ERROR: Invalid message flags. Dropping message\n");
         return 0;
@@ -227,7 +227,7 @@ int checkPanaMessage(panaMessage *msg, pana_ctx *pana_session) {
 
         //FIXME: Aquí debería verse si el cryptauth devuelve 1
         //En ese caso el auth es erróneo directamente y se descarta?
-        cryptAuth(msg, pana_session->avp_data[1], 40);
+        cryptAuth(msg, pana_session->avp_data[AUTH_AVP], 40);
 
         //The original AUTH value is compared with the new one
         char *newAuth = (char *) &(elmnt->value);
@@ -301,7 +301,7 @@ int generateSessionId(char * ip, short port) {
 
 void debug_print_avp(avp *elmnt) {
     #ifdef DEBUG
-    /*
+    
 	char * avpname = getAvpName(ntohs(elmnt->avp_code));
 	if(avpname != NULL){
 		fprintf(stderr,"AVP Name: %s\n", avpname);
@@ -319,13 +319,13 @@ void debug_print_avp(avp *elmnt) {
 		}
 		fprintf(stderr,"|    Value:\n");
 		fprintf(stderr,"\n+-+-+-+-+-+-+-+-+\n");
-    }*/
+    }
     #endif
 }
 
 void debug_print_message(panaMessage *msg) {
     #ifdef DEBUG
-    /*
+    
     panaHeader hdr = msg->header;
     fprintf(stderr,"Pana Message Name: %s \n", getMsgName(ntohs(hdr.msg_type)));
     fprintf(stderr," 0                   1                   2                   3\n");
@@ -349,14 +349,15 @@ void debug_print_message(panaMessage *msg) {
         debug_print_avp(elmnt);
         size = size - (4 * sizeof (short) +ntohs(elmnt->avp_length));
         offset = offset + (4 * sizeof (short) +ntohs(elmnt->avp_length));
-    }*/
+    }
     #endif
 }
 
 char * getAvpName(int avp_code) {
     char * avp_names[] = {"AUTH", "EAP-PAYLOAD", "INTEGRITY ALG", "KEY-ID", "NONCE", "PRF ALG", "RESULT-CODE", "SESSION-LIFETIME", "TERMINATION-CAUSE"};
-
-    if (avp_code > 0 && avp_code < 10) {
+	
+	// All AVP codes are between AUTH and TERMINATIONCAUSE
+    if (avp_code >= AUTH_AVP && avp_code <= TERMINATIONCAUSE_AVP) {
         return avp_names[avp_code - 1];
     } else {
     #ifdef DEBUG
@@ -369,8 +370,8 @@ char * getAvpName(int avp_code) {
 char * getMsgName(int msg_type) {
     //TODO: Añadirle que reciba un short flags y devuelva si es Answer o Request.
     char *pana_msg_type[] = {"PCI", "PANA-Auth", "PANA-Termination", "PANA-Notification"};
-
-    if (msg_type > 0 && msg_type < 5) {
+	// All MSG types are between PCI and PNA
+    if (msg_type >= PCI_MSG && msg_type <= PNA_MSG) {
         return pana_msg_type[msg_type - 1];
     } else {
         #ifdef DEBUG
@@ -463,6 +464,13 @@ u8 * generateAUTH(pana_ctx * session) {
     int i_par_length; //PAR message length
     int i_pan_length; //PAN message length
     char *sequence; //Seed secuence to use in prf function
+	char ietf[10] = "IETF PANA"; //String "IETF PANA" is part of the seed
+	
+	//The PANA_AUTH_KEY is derived from the available MSK, and it is used
+	//to integrity protect PANA messages. The PANA_AUTH_KEY is computed in
+	//the following way:
+	//		PANA_AUTH_KEY = prf+(MSK, "IETF PANA"|I_PAR|I_PAN|
+	//										PaC_nonce|PAA_nonce|Key_ID)
 
     //First of all calculates the sequence's length
     u16 seq_length = 9; // The string "IETF PANA" length
@@ -496,7 +504,6 @@ u8 * generateAUTH(pana_ctx * session) {
 
     seq_length = 0; // It carries on the completed sequence's lenght 
 
-    char ietf[10] = "IETF PANA";
     memcpy(sequence, ietf, strlen(ietf)); //FIXME numero magico
 
     seq_length += strlen(ietf);
@@ -513,14 +520,7 @@ u8 * generateAUTH(pana_ctx * session) {
     memcpy(sequence + seq_length, paa_nonce, (20 * sizeof (char)));
     seq_length += (20 * sizeof (char));
 	
-	
-	//Generates the Key-Id 
-	/*if(session->key_id != NULL){
-		free(session->key_id);
-	}
-	session->key_id = malloc(session->key_id_length);
-	generateKeyID(session->key_id, session->key_id_length, session->msk_key, session->key_len);
-	*/
+	//Copies Key-Id
     memcpy(sequence + seq_length, session->key_id, session->key_id_length);
     seq_length += session->key_id_length;
 
@@ -611,7 +611,7 @@ int generateRandomKeyID (char** global_key_id) {
     struct timeval seed;
     gettimeofday(&seed, NULL);
     srand(seed.tv_usec); //initialize random generator using usecs
-    int key_id_length = 12;
+    int key_id_length = 4; //FIXME: shouldn't be here?
     (*global_key_id) = (char *) malloc(key_id_length * (sizeof (char)));
     for (int i = 0; i <= key_id_length; i += sizeof (int)) {
         int random = rand();
