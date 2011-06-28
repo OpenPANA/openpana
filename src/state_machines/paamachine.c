@@ -593,7 +593,7 @@ int newKeyAvailable() {
 			new_auth_key = generateAUTH(current_session);
 			if(new_auth_key != NULL){
 				if(current_session->avp_data[AUTH_AVP] != NULL){
-					//free(current_session->avp_data[AUTH_AVP]);
+					free(current_session->avp_data[AUTH_AVP]);
 				}
 				current_session->avp_data[AUTH_AVP] = new_auth_key;
 			}

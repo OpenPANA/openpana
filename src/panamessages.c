@@ -72,7 +72,8 @@ int AVPgenerateflags(char * avps){
 	//Get the avp lists names parameter to a local variable.
 	char * names = NULL;
 	//an extra space is required to insert an extra separation token later
-	names = malloc(strlen(avps) +2);
+	names = calloc(strlen(avps) +2,sizeof(char));
+	
 	if(NULL == names){
 		fprintf(stderr,"Out of memory.\n");
 		exit(1);
@@ -88,7 +89,8 @@ int AVPgenerateflags(char * avps){
         //avoids Segmentation Fault in
         //function strtok ahead.
 		names[strlen(avps)] = '*';        
-        char *ptr = strtok(names, sep); //Get the first avp name as a token
+        char *ptr = NULL;
+        ptr = strtok(names, sep); //Get the first avp name as a token
 		
 		//Added to the privisional result
 		result = result | AVPname2flag(ptr);
@@ -111,7 +113,7 @@ int AVPgenerateflags(char * avps){
 		//FIXME: Debería hacerse lógicamente, pero no va
 		result = (result - F_AUTH);
 	}
-	//free(names);
+	free(names);
 	
 	//fprintf(stderr,"Flags generados: 0x%x \n",result);
 	

@@ -492,7 +492,10 @@ int keyAvailable() {
 			//The key and its length must be copied into the pana context
 			pana_ctx * session = current_session;
 			session->key_len = key_len;
-
+			if(session->msk_key != NULL){
+				free(session->msk_key);
+				session->msk_key = NULL;
+			}
 			session->msk_key = calloc(1, key_len);
 			if(session->msk_key == NULL){
 				fprintf(stderr,"ERROR: Out of memory.\n");
@@ -502,10 +505,10 @@ int keyAvailable() {
 
 #ifdef DEBUG
 			//Prints the EAP MSK key for debugging purposes
-			unsigned int i;
+			/*unsigned int i;
 			for (i = 0; i < key_len; i++)
 				fprintf(stderr,"%02x", key[i]);
-			fprintf(stderr,"\n");
+			fprintf(stderr,"\n");*/
 #endif
 //FIXME: Tiene que que generar un nuevo Key-Id
 			//If an MSK is retrieved, it computes a PANA_AUTH_KEY from
@@ -514,7 +517,7 @@ int keyAvailable() {
 			new_auth_key = generateAUTH(current_session);
 			if(new_auth_key != NULL){
 				if(current_session->avp_data[AUTH_AVP] != NULL){
-					//free(current_session->avp_data[AUTH_AVP]);
+					free(current_session->avp_data[AUTH_AVP]);
 				}
 				current_session->avp_data[AUTH_AVP] = new_auth_key;
 			}

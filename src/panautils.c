@@ -195,7 +195,7 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
             if (newAuth[i] != data[i])
                 break;
         }
-		//free(data); //Once its compared, data can be freed
+		free(data); //Once its compared, data can be freed
 		
         if (i == size) { //If both are the same, the AUTH is correct
             #ifdef DEBUG
@@ -275,20 +275,16 @@ char * getMsgName(int msg_type) {
 u8 * extractNonce(char * message) {
     u8 * result = NULL;
     
-	//fprintf(stderr,"DEBUG: antes getAvp\n");
 	debug_pana((pana*)message);
 	char * elmnt = getAvp2(message, NONCE_AVP);
-	//fprintf(stderr,"DEBUG: despues getAvp\n");
-	int size = ((avp_pana*)elmnt)->length + sizeof(avp_pana);
-	//fprintf(stderr,"DEBUG: antes malloc\n");
+	int size = ntohs(((avp_pana*)elmnt)->length);
     result = malloc(size);
     
     if(result == NULL){
 		fprintf(stderr,"ERROR: Out of memory\n");
 		exit(1);
 	}
-	//fprintf(stderr,"DEBUG: antes memcpy\n");
-	memcpy(result,elmnt,size);
+	memcpy(result,elmnt + sizeof(avp_pana) ,size);
     return result;
 }
 
@@ -394,6 +390,10 @@ u8 * generateAUTH(pana_ctx * session) {
     memcpy(sequence + seq_length, paa_nonce, (20 * sizeof (char)));
     seq_length += (20 * sizeof (char));
 	
+	//It has been already used, nonces can be freed
+	free(paa_nonce);
+	free(pac_nonce);
+	
 	//Copies Key-Id
     memcpy(sequence + seq_length, session->key_id, session->key_id_length);
     seq_length += session->key_id_length;
@@ -428,7 +428,7 @@ u8 * generateAUTH(pana_ctx * session) {
     }
     #endif
     */
-    //free(sequence); //Seed's memory is freed
+    free(sequence); //Seed's memory is freed
     return result;
 }
 

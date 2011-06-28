@@ -321,8 +321,13 @@ fprintf(stderr,"DEBUG: pacmachine.c eapresultstatewaiteapresult\n");
 			}
 			
 			//Copy key id in current session
+			if(current_session->key_id != NULL){
+				free(current_session->key_id);
+				current_session->key_id = NULL;
+			}
+			
 			current_session->key_id = malloc(current_session->key_id_length);
-			avp_pana * kid_avp = getAvp(current_session->LAST_MESSAGE, KEYID_AVP);
+			avp_pana * kid_avp = (avp_pana*) getAvp(current_session->LAST_MESSAGE, KEYID_AVP);
 			memcpy(current_session->key_id,((char *) kid_avp) + sizeof(avp_pana),current_session->key_id_length);
 			
             // The C flag is added
