@@ -204,9 +204,12 @@ void disconnect() {
     fprintf(stderr,"DEBUG: disconnect function \n");
 #endif
 
+    fprintf(stderr,"DEBUG: antes free last \n");
 	if(current_session->LAST_MESSAGE !=NULL){
-		free(current_session->LAST_MESSAGE);
+		//FIXME: Hay que ponerlo
+		//free(current_session->LAST_MESSAGE);
 	}
+    fprintf(stderr,"DEBUG: free last \n");
 	if(current_session->key_id !=NULL){
 		free(current_session->key_id);
 	}
@@ -346,11 +349,11 @@ void eapRestart() {
 	//It is necesary reset the session's variables used to generate the pana auth key
 	// due to the eap conversation will be reinited
 	
-	if (current_session->msk_key != NULL) free(current_session->msk_key);
+	if (current_session->msk_key != NULL) //free(current_session->msk_key);
 	current_session->msk_key = NULL;
 	current_session->key_len = 0;
 	/*if (current_session->avp_data!=NULL){
-		free(current_session->avp_data[AUTH_AVP]);
+		//free(current_session->avp_data[AUTH_AVP]);
 		current_session->avp_data[AUTH_AVP] = NULL;
 	}*/
 	
@@ -376,7 +379,7 @@ void txEAP() {
 #endif
     //Get the EAP_Payload Avp
 
-    avp * elmnt = getAvp(current_session->LAST_MESSAGE, EAPPAYLOAD_AVP);
+    avp_pana * elmnt = getAvp(current_session->LAST_MESSAGE, EAPPAYLOAD_AVP);
     if (elmnt==NULL){
 		printf("txEAP: There isn't EAP Payload AVP.\n");
 		return;
@@ -385,16 +388,16 @@ void txEAP() {
     //The Request value of EAPsession must be set to true
 #ifdef ISCLIENT //only for PANA clients
     eap_peer_set_eapReq(&(current_session->eap_ctx), TRUE);
-    const u8 * elmntvalue = (const u8 *) &(elmnt->value);
-    eap_peer_set_eapReqData(&(current_session->eap_ctx), elmntvalue, ntohs(elmnt->avp_length));
+    const u8 * elmntvalue = (const u8 *) ((char*)elmnt)+sizeof(avp_pana);
+    eap_peer_set_eapReqData(&(current_session->eap_ctx), elmntvalue, ntohs(elmnt->length));
     eap_peer_step(&(current_session->eap_ctx));
 #endif
 
 	//The Response value of EAPsession must be set to true
 #ifdef ISSERVER //only for PANA servers
     eap_auth_set_eapResp(&(current_session->eap_ctx), TRUE);
-    const u8 * elmntvalue = (const u8 *) &(elmnt->value);
-    eap_auth_set_eapRespData(&(current_session->eap_ctx), elmntvalue, ntohs(elmnt->avp_length));
+    const u8 * elmntvalue = (const u8 *) ((char*)elmnt)+sizeof(avp_pana);
+    eap_auth_set_eapRespData(&(current_session->eap_ctx), elmntvalue, ntohs(elmnt->length));
     eap_auth_step(&(current_session->eap_ctx));
     
     add_alarma(current_session->list_of_alarms, current_session, 1, RETR_AAA); //FIXME: El tiempo de retransmsiones
@@ -504,13 +507,14 @@ int keyAvailable() {
 				fprintf(stderr,"%02x", key[i]);
 			fprintf(stderr,"\n");
 #endif
+//FIXME: Tiene que que generar un nuevo Key-Id
 			//If an MSK is retrieved, it computes a PANA_AUTH_KEY from
 			//the MSK and returns TRUE
 			u8 * new_auth_key = NULL;
 			new_auth_key = generateAUTH(current_session);
 			if(new_auth_key != NULL){
 				if(current_session->avp_data[AUTH_AVP] != NULL){
-					free(current_session->avp_data[AUTH_AVP]);
+					//free(current_session->avp_data[AUTH_AVP]);
 				}
 				current_session->avp_data[AUTH_AVP] = new_auth_key;
 			}
@@ -546,7 +550,7 @@ int reachMaxNumRt() {
 int livenessTestPeer() {
     if ((current_session->PNR.receive) && (current_session->PNR.flags & P_FLAG)) {
         char * unused = transmissionMessage("PNA", P_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, "", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
-        free(unused);
+        //free(unused);
         return NO_CHANGE;
     } else
         return ERROR;

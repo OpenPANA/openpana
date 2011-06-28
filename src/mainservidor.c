@@ -74,9 +74,9 @@ void * process_receive_eap_ll_msg(void *arg) {
 
     // Current pana session.
     pana_ctx * pana_session;
-    panaMessage * pana = pana_params.pana_msg;
+    pana * msg = pana_params.pana_msg;
 
-    if (ntohs(pana->header.msg_type) == PCI_MSG) {//If a PCI message is received
+    if (ntohs(msg->msg_type) == PCI_MSG) {//If a PCI message is received
 
 		// A session is created to make a transition but it's not saved. It tries to avoid
 		// attacks from clients (PCI flood).
@@ -111,8 +111,8 @@ void * process_receive_eap_ll_msg(void *arg) {
         
 
     }
-    else if ((ntohs(pana->header.msg_type) == PAN_MSG) && // If it is the first answer message
-            ((ntohs(pana->header.flags) & S_FLAG) == S_FLAG)) {// it is created a new session for the new client
+    else if ((ntohs(msg->msg_type) == PAN_MSG) && // If it is the first answer message
+            ((ntohs(msg->flags) & S_FLAG) == S_FLAG)) {// it is created a new session for the new client
        
         //Generate the session id asociated to client's port and ip
         short port = ntohs(pana_params.eap_ll_dst_addr->sin_port);
@@ -135,7 +135,7 @@ void * process_receive_eap_ll_msg(void *arg) {
     } 
     
     else { //If the messsage is another one
-        int id = ntohl(pana->header.session_id); 
+        int id = ntohl(msg->session_id); 
 #ifdef DEBUG
         fprintf(stderr, "DEBUG: It's gonna search id: %d\n", id);
 #endif
@@ -153,7 +153,7 @@ void * process_receive_eap_ll_msg(void *arg) {
     
 	pthread_mutex_lock(&(pana_session->mutex));
     //Use the correct session
-    updateSession(pana, pana_session);
+    updateSession((char *)msg, pana_session);
     //Check if there is some alarm
 	if (pana_params.id_alarm == RETR_ALARM)
 		pana_session->RTX_TIMEOUT=1;
@@ -510,7 +510,7 @@ void* handle_network_management() {
     int addr_size;
     struct pana_func_paramater pana_params;
     struct radius_func_parameter radius_params;
-    panaMessage *pana;
+    pana *msg;
 
     while (1) {
         FD_ZERO(&mreadset);
@@ -524,17 +524,15 @@ void* handle_network_management() {
                 addr_size = sizeof (eap_ll_dst_addr);
                 int length = recvfrom(eap_ll_sock, udp_packet, sizeof (udp_packet), 0, (struct sockaddr *) &(eap_ll_dst_addr), (socklen_t *)&(addr_size));
                 if (length > 0) {
-                    //Unserealizes the packet
-                    pana = NULL;
-                    pana = unserializePana((char *) udp_packet, length);
+                    msg = udp_packet;
                     //The message will be checked later when the session
                     //is updated
                     //Init the pana function parameters
-                    pana_params.pana_msg = pana;
+                    pana_params.pana_msg = msg;
                     pana_params.eap_ll_dst_addr = &(eap_ll_dst_addr);
                     pana_params.sock = eap_ll_sock;
 
-                    add_task(process_receive_eap_ll_msg, &pana_params, ntohl(pana->header.session_id));
+                    add_task(process_receive_eap_ll_msg, &pana_params, ntohl(msg->session_id));
                     
                 } else fprintf(stderr,"recvfrom returned ret=%d, errno=%d\n", length, errno);
             }

@@ -177,7 +177,7 @@ int main(int argc, char *argv[]) {
 
 	struct sockaddr_in eap_auth_ll_addr;
 	int addr_size=0;
-	u8 pana_packet[MAX_DATA_LEN];
+	char pana_packet[MAX_DATA_LEN];
 	
 	//Until a termination signal is received, the client must be working
     while (!signal_received) { 
@@ -207,10 +207,8 @@ int main(int argc, char *argv[]) {
 			//length is >0 when it's correctly received only
             if (length > 0) {
 
-                panaMessage *pana = NULL;
-                pana = unserializePana((char *) pana_packet, length);
                 pthread_mutex_lock(&session_mutex);
-                updateSession(pana, &pana_session);
+                updateSession(pana_packet, &pana_session);
                 pthread_mutex_unlock(&session_mutex);
 #ifdef DEBUG
                 fprintf(stderr,"DEBUG: My state to begin a transition is: %s\n", state_name[pana_session.CURRENT_STATE + 1]);
@@ -289,9 +287,7 @@ int main(int argc, char *argv[]) {
 					//length is >0 when it's correctly received only
 					if (length > 0) {
 
-						panaMessage *pana = NULL;
-						pana = unserializePana((char *) pana_packet, length);
-						updateSession(pana, &pana_session);
+						updateSession(pana_packet, &pana_session);
 			#ifdef DEBUG
 						fprintf(stderr,"DEBUG: My state to begin a transition is: %s\n", state_name[pana_session.CURRENT_STATE + 1]);
 			#endif
@@ -304,6 +300,7 @@ int main(int argc, char *argv[]) {
         }//If current_state == OPEN
         else{ //Current_state != OPEN
 			//Free memory used
+			//fprintf(stderr,"DEBUG: maincliente.c");
 			disconnect();
 		}
 
