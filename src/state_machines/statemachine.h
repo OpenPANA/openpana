@@ -46,9 +46,6 @@
  */
 #define PANA_AUTHORIZATION_REJECTED		2
 
-
-#define PRF_HMAC_SHA1	2
-#define AUTH_HMAC_SHA1_160	7
 // Values of a termination cause avp
 /**
  * The client initiated a disconnect.

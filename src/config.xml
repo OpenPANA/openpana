@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding='ISO-8859-1'?>
+<?xml-stylesheet href="parser_client.xsl" type="text/xsl"?>
+<?xml-stylesheet href="parser_server.xsl" type="text/xsl"?>
+<!DOCTYPE CONFIG [
+<!ELEMENT CONFIG (PAC, PAA)>
+<!ELEMENT PAC (IP, PORT, SESSION, ALGORITHMS)>
+<!ELEMENT PAA  (IP, PORT, SESSION, ALGORITHMS, TIMEOUT_CLIENT, WORKERS, TIME_ANSWER)>
+<!ELEMENT IP (#PCDATA)>
+<!ELEMENT PORT (#PCDATA)>
+<!ELEMENT SESSION (TIMEOUT)>
+<!ELEMENT TIMEOUT (#PCDATA)>
+<!ELEMENT ALGORITHMS (PRF, INTEGRITY)>
+<!ELEMENT PRF (#PCDATA)>
+<!ELEMENT INTEGRITY (#PCDATA)>
+<!ELEMENT TIMEOUT_CLIENT (#PCDATA)>
+<!ELEMENT WORKERS (#PCDATA)>
+<!ELEMENT TIME_ANSWER (#PCDATA)>
+]>
+
+<CONFIG>
+	<PAC> <!-- PaC configuration data -->
+		<IP>127.0.0.1</IP> 
+		<PORT>5333</PORT>
+		<SESSION> 
+			<TIMEOUT>150</TIMEOUT> <!-- Time necessary to do the authentication. -->
+		</SESSION>
+		<ALGORITHMS> <!-- This tag must be set with the numbers of algorithms supported -->
+		
+			<PRF>2</PRF> <!-- PRF ALGORITHM
+								1 PRF_HMAC_MD5
+								2 PRF_HMAC_SHA1
+								3 PRF_HMAC_TIGER
+								4 PRF_AES128_XCBC -->
+								
+			<INTEGRITY>7</INTEGRITY> <!-- INTEGRITY ALGORITHM
+											1 AUTH_HMAC_MD5_96
+											2 AUTH_HMAC_SHA1_96
+											3 AUTH_DES_MAC
+											4 AUTH_KPDK_MD5
+											5 AUTH_AES_XCBC_96
+											6 AUTH_HMAC_MD5_128
+											7 AUTH_HMAC_SHA1_160-->
+	</ALGORITHMS>
+	</PAC>
+	
+	<PAA> <!-- PAA configuration data -->
+		<IP>127.0.0.1</IP>
+		<PORT>716</PORT>
+		<SESSION>
+			<TIMEOUT>100</TIMEOUT> <!-- Timeout for expiring a session in the server -->
+		</SESSION>
+		<TIMEOUT_CLIENT>3</TIMEOUT_CLIENT> <!-- Timeout for expiring client session -->
+		<ALGORITHMS><!-- This tag must be set with the numbers of algorithms supported -->
+			<PRF>2</PRF> <!-- PRF ALGORITHM
+								1 PRF_HMAC_MD5
+								2 PRF_HMAC_SHA1
+								3 PRF_HMAC_TIGER
+								4 PRF_AES128_XCBC -->
+			<INTEGRITY>7</INTEGRITY> <!-- INTEGRITY ALGORITHM
+											1 AUTH_HMAC_MD5_96
+											2 AUTH_HMAC_SHA1_96
+											3 AUTH_DES_MAC
+											4 AUTH_KPDK_MD5
+											5 AUTH_AES_XCBC_96
+											6 AUTH_HMAC_MD5_128
+											7 AUTH_HMAC_SHA1_160-->
+	</ALGORITHMS>
+	<WORKERS>3</WORKERS> <!-- Number of threads used to service requests -->
+	<TIME_ANSWER>3</TIME_ANSWER> <!-- Time while a session is on the server without answer -->
+	</PAA>
+
+	
+</CONFIG>
+

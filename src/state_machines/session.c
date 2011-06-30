@@ -90,7 +90,7 @@ void initSession(pana_ctx * pana_session) {
 
     //FIXME: Comprobar fallo de segm al descomentar
     //memset((char *) &(pana_session->eap_ll_dst_addr), 0, sizeof (pana_session->eap_ll_dst_addr));
-    pana_session->key_id_length = 4;
+    pana_session->key_id_length = 4; //FIXME: Ver este número mágico por qué está aquí
 
     //FIXME: De momento, tanto cliente como servidor solamente tienen el prf_alg y el integrity algorithm estáticos
     // definidos aquí.
@@ -116,7 +116,7 @@ void initSession(pana_ctx * pana_session) {
     pana_session->SEQ_NUMBER = 0;
     pana_session->session_id = 0;
 
-    //Inicia el usuario eap
+    //Init EAP user
     eap_peer_init(&(pana_session->eap_ctx), pana_session);
 
 #endif

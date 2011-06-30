@@ -1,9 +1,12 @@
-/*
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:output method = "text" />
+<xsl:template match='/'>/*
  *  configserver.h
  *  
  * 	Configurable values to set server's options.
  *
- *  Copyright (C) Pedro Moreno Sánchez & Francisco Vidal Meca on 18/03/11.
+ *  Copyright (C) Pedro Moreno Sánchez and Francisco Vidal Meca on 18/03/11.
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +19,7 @@
  *  GNU General Public License for more details.
 
  *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *  along with this program.  If not, see "http://www.gnu.org/licenses/"
  *  
  *  
  *  https://sourceforge.net/projects/openpana/
@@ -25,7 +28,7 @@
 #ifndef CONFIGSERVER_H
 #define CONFIGSERVER_H
 
-#define SRCPORT 716 //PANAPORT
+#define SRCPORT <xsl:value-of select="CONFIG/PAA/PORT"/> //PANAPORT
 
 /* A duration that is associated with a PANA session. For an
 established PANA session, the session lifetime is bound to the
@@ -36,16 +39,21 @@ established, the lifetime SHOULD be set to a value that allows the
 PaC to detect a failed session in a reasonable amount of time.
 */
 /**Timeout for expiring a session in the server*/
-#define LIFETIME_SESSION_TIMEOUT_CONFIG 100
+#define LIFETIME_SESSION_TIMEOUT_CONFIG <xsl:value-of select="CONFIG/PAA/SESSION/TIMEOUT"/>
 /**Timeout for expiring client session*/
-#define LIFETIME_SESSION_CLIENT_TIMEOUT_CONFIG 3
+#define LIFETIME_SESSION_CLIENT_TIMEOUT_CONFIG <xsl:value-of select="CONFIG/PAA/TIMEOUT_CLIENT"/>
 /** Number of threads used to service requests */
-#define NUM_WORKERS 3
+#define NUM_WORKERS <xsl:value-of select="CONFIG/PAA/WORKERS"/>
 /**Time while a session is on the server without answer*/
-#define TIME_PCI 3 			
+#define TIME_PCI <xsl:value-of select="CONFIG/PAA/TIME_ANSWER"/>			
 
-
-#define PRF_HMAC_SHA1	2
-#define AUTH_HMAC_SHA1_160	7
+/** PRF ALGORITHM identifier*/
+#define PRF_HMAC_SHA1	<xsl:value-of select="CONFIG/PAA/ALGORITHMS/PRF"/>
+/** INTEGRITY ALGORITHM identifier*/
+#define AUTH_HMAC_SHA1_160	<xsl:value-of select="CONFIG/PAA/ALGORITHMS/INTEGRITY"/>
 
 #endif
+
+
+</xsl:template>
+</xsl:stylesheet>
