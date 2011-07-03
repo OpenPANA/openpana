@@ -113,10 +113,7 @@ int AVPgenerateflags(char * avps){
 		//FIXME: Debería hacerse lógicamente, pero no va
 		result = (result - F_AUTH);
 	}
-	free(names);
-	
-	//fprintf(stderr,"Flags generados: 0x%x \n",result);
-	
+	free(names);	
 	return result;
 }
 
@@ -273,14 +270,10 @@ char * transmissionMessage(char * msgtype, short flags, int *sequence_number, in
     msg->seq_number = htonl(*sequence_number);
     msg->msg_length = htons(sizeof (pana)); //At the moment there's only the PANA header size
 	
-	//FIXME qué es el comentario de abajo?
-    if (keyAvailable()) { //Is more efficient to only call "insertAvp" in thepana_session.SENDING_PORT end
+    if (keyAvailable()) { 
 		avpsflags = avpsflags | F_AUTH ;
     }
     
-	//fprintf(stderr,"Flags generados: 0x%x \n",avpsflags);
-
-	//fprintf(stderr,"DEBUG: transmissionMessage despues keyAvailable\n");
     insertAvps(message, avpsflags, data); //The AVPs are inserted on the message
 	msg =(pana*) *message; //Update from insertAvps parameter 
 
@@ -334,7 +327,11 @@ int existAvp(char * message, char *avp_name) {
 #endif
         return FALSE;
     }
-    if(getAvp2(message,type)==NULL){
+    #ifdef DEBUG
+    fprintf(stderr,"\nDEBUG: existAvp function, AVP name %s, AVP CODE:%d \n***\n***\nMENSAJE PANA COMPLETO:\n", avp_name,type);
+    debug_pana(msg);
+    #endif
+    if(getAvp(message,type)==NULL){
 		return FALSE;
 	}
 	else{
@@ -513,7 +510,6 @@ int insertAvps(char** message, int avps, void **data) {
 		elmnt->length =htons(avpsize - sizeof(avp_pana));
         elmnt->code = htons(PRFALG_AVP);
 
-        //FIXME: De momento el servidor siempre manda el hmac_sha1. Ver como se manda una lista de varios
         int option = ntohl((int) data[PRFALG_AVP]);
         memcpy(position + sizeof(avp_pana), &option, sizeof (int));
         //debug_avp(elmnt);
@@ -717,13 +713,9 @@ int insertAvps(char** message, int avps, void **data) {
 		//In order to get the complete message to hash, the size value
 		//must be updated
 		((pana *)msg)->msg_length = htons(totalsize);
-		//FIXME: Firmar el mensaje
-		//If the message contains an auth avp, it must be encrypted
-        hashAuth(msg, data[AUTH_AVP], 40); //FIXME: Magic Number Porque de momento la clave es de 320 bits
-    
 		
-        //debug_avp(elmnt);
-        //Update message values
+		//If the message contains an auth avp, it must be hashed
+        hashAuth(msg, data[AUTH_AVP], 40); //FIXME: Magic Number Porque de momento la clave es de 320 bits
         //stride += avpsize+padding;//No more avps, it's unnecesary to update this value
 	}
     

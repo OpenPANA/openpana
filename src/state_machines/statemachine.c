@@ -203,41 +203,57 @@ void disconnect() {
 #ifdef DEBUG
     fprintf(stderr,"DEBUG: disconnect function \n");
 #endif
-
-    fprintf(stderr,"DEBUG: antes free last \n");
+#ifdef ISCLIENT
 	if(current_session->LAST_MESSAGE !=NULL){
-		//FIXME: Hay que ponerlo
+		//FIXME: Hay que ponerlo? creo que no hace falta
 		//free(current_session->LAST_MESSAGE);
 	}
-    fprintf(stderr,"DEBUG: free last \n");
 	if(current_session->key_id !=NULL){
+		#ifdef DEBUG
+		fprintf(stderr,"DEBUG: freeing key_id \n");
+		#endif
 		free(current_session->key_id);
 	}
     if(current_session->msk_key !=NULL){
+		#ifdef DEBUG
+		fprintf(stderr,"DEBUG: freeing msk_key \n");
+		#endif
 		free(current_session->msk_key);
 	}
     if(current_session->I_PAR !=NULL){
+		#ifdef DEBUG
+		fprintf(stderr,"DEBUG: freeing I_PAR \n");
+		#endif
 		free(current_session->I_PAR);
 	}
-    if(current_session->I_PAN !=NULL){
+    if(current_session->I_PAN !=NULL){	
+		#ifdef DEBUG
+		fprintf(stderr,"DEBUG: freeing I_PAN \n");
+		#endif
 		free(current_session->I_PAN);
 	}
     if(current_session->PAA_nonce !=NULL){
+		#ifdef DEBUG
+		fprintf(stderr,"DEBUG: freeing PAA_Nonce \n");
+		#endif
 		free(current_session->PAA_nonce);
 	}
     if(current_session->PaC_nonce !=NULL){
+		#ifdef DEBUG
+		fprintf(stderr,"DEBUG: freeing PaC_nonce \n");
+		#endif
 		free(current_session->PaC_nonce);
 	}
 	
-#ifdef ISCLIENT
+
     printf("PANA: Client disconnected.\n");
     exit(0);
     //free(current_session->avp_data);
 #endif
 
-/*#ifdef ISSERVER
-    free(current_session);
-#endif*/
+#ifdef ISSERVER
+    //free(current_session);
+#endif
 }
 
 int authorize() {
@@ -263,6 +279,8 @@ int authorize() {
 void retransmit() {
 #ifdef DEBUG
     fprintf(stderr,"DEBUG: retransmit function \n");
+    fprintf(stderr,"DEBUG: Message to retransmit: \n");
+    debug_pana(current_session->retr_msg);
 #endif
 
     current_session->RTX_TIMEOUT = 0;
@@ -313,14 +331,6 @@ void rtxTimerStop() {
         return;
     }
     pana_ctx * session = get_alarm_session(current_session->list_of_alarms, current_session->session_id, RETR_ALARM);
-	
-	if (!isEqual(session, current_session)){
-	#ifdef DEBUG
-		fprintf(stderr, "DEBUG: rtxTimerStop: La sesión asociada a la alarma no es la misma que la actual\n");
-	#endif
-		return;	
-	}
-
 }
 
 void sessionTimerReStart(int timeout) {
@@ -329,13 +339,6 @@ void sessionTimerReStart(int timeout) {
 #endif
 	//Get the alarm of this session
     pana_ctx * session = get_alarm_session(current_session->list_of_alarms, current_session->session_id, SESS_ALARM);
-	
-	if (!isEqual(session, current_session)){
-	#ifdef DEBUG
-		fprintf(stderr, "DEBUG: sessionTimerReStart: La sesión asociada a la alarma no es la misma que la actual\n");
-	#endif
-		return;	
-	}
 	
 	//Add the alarm with the new expiration time
 	add_alarma(current_session->list_of_alarms, current_session, timeout, SESS_ALARM);
@@ -417,12 +420,7 @@ void sessionTimerStop() {
 	//Get the alarm of this session
 	pana_ctx * session = get_alarm_session(current_session->list_of_alarms, current_session->session_id,SESS_ALARM);
 
-	if (!isEqual(session, current_session)){
-	#ifdef DEBUG
-		fprintf(stderr, "DEBUG: sessionTimerStop: La sesión asociada a la alarma no es la misma que la actual\n");
-	#endif
-		return;	
-	}
+	//FIXME: Unfinished! how do we stop the timer?
 	
 #ifdef DEBUG
     fprintf(stderr, "DEBUG: sessionTimerStop finished.\n"); 
@@ -467,7 +465,7 @@ int keyAvailable() {
 	
 	#ifdef DEBUG
 	if(current_session->avp_data[AUTH_AVP] == NULL)
-		fprintf(stderr,"DEBUG: KeyAvailable: AUTH KEY == NULL\n");
+		fprintf(stderr,"DEBUG: KeyAvailable: AUTH KEY equals NULL\n");
 	#endif
 	
 	//If the state machine already has a PANA_AUTH_KEY, it returns TRUE.
@@ -552,8 +550,9 @@ int reachMaxNumRt() {
 
 int livenessTestPeer() {
     if ((current_session->PNR.receive) && (current_session->PNR.flags & P_FLAG)) {
+		//FIXME retransmission message should be updated?
         char * unused = transmissionMessage("PNA", P_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, "", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
-        //free(unused);
+        free(unused);
         return NO_CHANGE;
     } else
         return ERROR;

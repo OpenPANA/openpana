@@ -466,7 +466,7 @@ void* handle_worker(void* data) {
 void* handle_network_management() {
     
     int radius_sock=0; //Init it to a non-valid value
-    int eap_ll_sock;
+    int eap_ll_sock=0;
     struct sockaddr_in sa;
     fd_set mreadset; /*master read set*/
 
@@ -531,7 +531,7 @@ void* handle_network_management() {
                     pana_params.pana_msg = msg;
                     pana_params.eap_ll_dst_addr = &(eap_ll_dst_addr);
                     pana_params.sock = eap_ll_sock;
-
+					pana_params.id_alarm = -1;
                     add_task(process_receive_eap_ll_msg, &pana_params, ntohl(msg->session_id));
                     
                 } else fprintf(stderr,"recvfrom returned ret=%d, errno=%d\n", length, errno);

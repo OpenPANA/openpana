@@ -98,6 +98,12 @@ void initSession(pana_ctx * pana_session) {
     pana_session->avp_data[PRFALG_AVP] = (void*) PRF_HMAC_SHA1; //see rfc4306 page 50
     pana_session->avp_data[INTEGRITYALG_AVP] = (void*) AUTH_HMAC_SHA1_160; //see rfc4306 page 50
     pana_session->avp_data[AUTH_AVP] = NULL;
+    pana_session->avp_data[EAPPAYLOAD_AVP] = NULL;
+    pana_session->avp_data[KEYID_AVP] = NULL;
+    pana_session->avp_data[RESULTCODE_AVP] = NULL;
+    pana_session->avp_data[NONCE_AVP] = NULL;
+    pana_session->avp_data[SESSIONLIFETIME_AVP] = NULL;
+    pana_session->avp_data[TERMINATIONCAUSE_AVP] = NULL;
     pthread_mutex_init(&(pana_session->mutex), NULL);
 
     // Init client's variables
@@ -202,9 +208,11 @@ void updateSession(char *message, pana_ctx *pana_session) {
     } else if (type == PAR_MSG) { //Authentication type Message, it could also be PAN_MSG
 		debug_pana(msg);
         //Check if it contains the Nonce AVP and update its value
+        fprintf(stderr,"DEBUG: Pana Authentication Message detected, sequence number: %#X.\n",ntohl(msg->seq_number));
         if (existAvp(message, "Nonce")) { //Depending if you are server or client
         //FIXME Habría que copiarlo para evitar perder memoria, luego liberarlo también
 #ifdef ISSERVER
+			fprintf(stderr,"DEBUG: Server's detected a Nonce AVP.\n");
 			if(pana_session->PaC_nonce != NULL){
 				free(pana_session->PaC_nonce);
 			}
@@ -219,6 +227,11 @@ void updateSession(char *message, pana_ctx *pana_session) {
 			memcpy(pana_session->PAA_nonce,message,(ntohs(((pana*)message)->msg_length)));
 #endif
         }
+        #ifdef DEBUG
+        else{
+			fprintf(stderr,"DEBUG: There isn't any Nonce AVP in the message.\n");
+		}
+		#endif
 
         if (flags & R_FLAG) { //PAR
             pana_session->PAR.receive = TRUE;

@@ -75,16 +75,6 @@ char * getMsgName(int msg_type);
  * */
 char * getAvpName(int avp_code);
 
-/**
- * Gets the NONCE AVP from a message. It makes a copy so the message
- * can be freed later.
- * 
- * @param message PANA Message to extract Nonce from.
- * 
- * @return Nonce AVP in u8 format.
- * */
-u8 * extractNonce(char * message);
-
 //FIXME: Poner que debe liberarse la memoria.
 /** 
  * Generates the AUTH key given a PANA session.
@@ -117,9 +107,6 @@ int isOctetString(int type);
  * */
 void increase_one (char *value, int length);
 
-//FIXME: Función que devuelve si las dos sesiones pana son iguales
-int isEqual(pana_ctx* sess1, pana_ctx* sess2);
-
 /**
  * Generates a Random Key Id and stores it in the parameter.
  * 
@@ -144,7 +131,6 @@ int paddingOctetString(int size);
  * 
  * @return Pointer to the AVP.
  * */
-char * getAvp2(char *msg, int type);
 char * getAvp(char *msg, int type);
 /** Hashes the AUTH AVP given a key.
  * 

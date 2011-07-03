@@ -22,8 +22,6 @@
 #ifndef PANAMESSAGE
 #define PANAMESSAGE
 #include <arpa/inet.h>
-int asprintf(char **strp, const char *fmt, ...); //FIXME: como solucionar esto?
-#define _GNU_SOURCE //To avoid implicit declaration warning on asprintf
 
 //Flag definition: See RFC 5191 6.2
 /** PANA message flag definition. If set, the message is a request.

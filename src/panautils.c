@@ -109,13 +109,8 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
     short msg_type = ntohs(msg->msg_type);
 	int session_id = ntohl(msg->session_id);
 	
-    /*if ((flags != 0 && flags < I_FLAG) || //The I FLAG is the smallest
-            flags > 0xFC00) { //0xFC00 is the result of adding all the flags. FIXME
-        fprintf(stderr, "ERROR: Invalid message flags. Dropping message.\n");
-        return 0;
-    }*/
     if ((ntohs(msg->flags) != 0 && ntohs(msg->flags) < I_FLAG) || //The I FLAG is the smallest
-            (ntohs(msg->flags) > 0xFC00)) { //0xFC00 is the result of adding all the flags.
+            (ntohs(msg->flags) > (I_FLAG | R_FLAG | S_FLAG | C_FLAG | A_FLAG | P_FLAG))) { //0xFC00 is the result of adding all the flags.
         fprintf(stderr, "ERROR: Invalid message flags. Dropping message\n");
         return 0;
     }
@@ -132,7 +127,7 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
 	}
 	
     //Check sequence numbers
-    int seq_number = ntohl(msg->seq_number);
+ /*   int seq_number = ntohl(msg->seq_number);
     if (flags & R_FLAG) { //Request msg
         //Si eres el cliente, compruebas que antes tenías o un 0 (del pci)
         //o un numero menos del que se ha recibido.
@@ -156,7 +151,7 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
     //Then the AUTH avp value is checked if found
     //FIXME: Sólo comprobar si está autenticado, si no está correcto se descarta
     //Check if it contains the Auth AVP and checks it
-	char * avpbytes = getAvp2((char*)msg, AUTH_AVP);
+	char * avpbytes = getAvp((char*)msg, AUTH_AVP);
     if (avpbytes != NULL) {//if existsAvp(AUTH)
 		if (existAvp((char*)msg, "Result-Code")) return TRUE; //FIXME: Hay que comprobar que sea un eap-success 
         char *data; //It will contain the auth avp value
@@ -182,7 +177,7 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
         //again to see if it fits
         memset(avpbytes + sizeof(avp_pana), 0, size); //Auth value set to 0
 
-        //FIXME: Aquí debería verse si el cryptauth devuelve 1
+        //FIXME: Aquí debería verse si el hashauth devuelve 1
         //En ese caso el auth es erróneo directamente y se descarta?
         hashAuth((char*)msg, pana_session->avp_data[AUTH_AVP], 40);
 
@@ -207,7 +202,7 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
         #endif
             return FALSE; //Invalid, message is ignored
         }
-    }
+    }*/
     return TRUE;
 }
 
@@ -258,8 +253,6 @@ char * getAvpName(int avp_code) {
 }
 
 char * getMsgName(int msg_type) {
-    //TODO: Añadirle que reciba un short flags y devuelva si es Answer o Request.
-    // Pacovi: no sería necesario en absoluto no? luego se ve el flag ya está no?
     char *pana_msg_type[] = {"PCI", "PANA-Auth", "PANA-Termination", "PANA-Notification"};
 	// All MSG types are between PCI and PNA
     if (msg_type >= PCI_MSG && msg_type <= PNA_MSG) {
@@ -270,22 +263,6 @@ char * getMsgName(int msg_type) {
         #endif
         return NULL;
     }
-}
-
-u8 * extractNonce(char * message) {
-    u8 * result = NULL;
-    
-	debug_pana((pana*)message);
-	char * elmnt = getAvp2(message, NONCE_AVP);
-	int size = ntohs(((avp_pana*)elmnt)->length);
-    result = malloc(size);
-    
-    if(result == NULL){
-		fprintf(stderr,"ERROR: Out of memory\n");
-		exit(1);
-	}
-	memcpy(result,elmnt + sizeof(avp_pana) ,size);
-    return result;
 }
 
 u8 * generateAUTH(pana_ctx * session) {
@@ -324,6 +301,24 @@ u8 * generateAUTH(pana_ctx * session) {
 	}
     #ifdef DEBUG
     fprintf(stderr, "DEBUG: Starting AUTH generation.\n");
+    fprintf(stderr, "DEBUG: PaC Nonce:\n");
+    debug_pana(session->PaC_nonce);
+    fprintf(stderr, "DEBUG: PAA Nonce:\n");
+    debug_pana(session->PAA_nonce);
+    fprintf(stderr, "DEBUG: MSK Key:\n");
+    for(unsigned int i =0; i< session->key_len;i++){
+		fprintf(stderr,"%02X",session->msk_key[i]);
+	}
+    fprintf(stderr,"\n");
+    fprintf(stderr, "DEBUG: I_PAN:\n");
+    debug_pana(session->I_PAN);
+    fprintf(stderr, "DEBUG: I_PAR:\n");
+    debug_pana(session->I_PAR);
+    fprintf(stderr, "DEBUG: Key-ID:\n");
+    for(unsigned int i =0; i< session->key_id_length;i++){
+		fprintf(stderr,"%02X",session->key_id[i]);
+	}
+    
     #endif
 
     pana * msg;
@@ -353,15 +348,13 @@ u8 * generateAUTH(pana_ctx * session) {
     i_pan_length = ntohs(msg->msg_length);
     seq_length += i_pan_length; // The I_PAN length
 	
-	//fprintf(stderr,"DEBUG: antes de extraer Nonces\n");
-    //Get both nonce avps
-    //FIXME: Guardar el NONCE como el Key-Id, no haria falta tanto recorrido
-    pac_nonce = extractNonce(session->PaC_nonce);
-    paa_nonce = extractNonce(session->PAA_nonce);
-
-    //FIXME: Quitar el numero magico 20
-    seq_length += (20 * sizeof (char)); //pac_nonce length
-    seq_length += (20 * sizeof (char)); //paa_nonce length
+    pac_nonce = getAvp(session->PaC_nonce,NONCE_AVP);
+    paa_nonce = getAvp(session->PAA_nonce,NONCE_AVP);
+    int paa_nonce_length = ntohs(((avp_pana*)pac_nonce)->length);
+    int pac_nonce_length = ntohs(((avp_pana*)paa_nonce)->length);
+    
+    seq_length += pac_nonce_length; 
+    seq_length += paa_nonce_length;
 
     seq_length += session->key_id_length;
 	//fprintf(stderr,"DEBUG: antes malloc seq_length\n");
@@ -370,12 +363,12 @@ u8 * generateAUTH(pana_ctx * session) {
 		fprintf(stderr,"ERROR: Out of memory\n");
 		exit(1);
 	}
+	
     //Once the memory is correctly reserved and allocated, we start copying
     //The values to form the seed's secuence
-
     seq_length = 0; // It carries on the completed sequence's lenght 
 
-    memcpy(sequence, ietf, strlen(ietf)); //FIXME numero magico
+    memcpy(sequence, ietf, strlen(ietf));
 
     seq_length += strlen(ietf);
 
@@ -384,40 +377,33 @@ u8 * generateAUTH(pana_ctx * session) {
     memcpy(sequence + seq_length, session->I_PAN, i_pan_length);
     seq_length += i_pan_length;
 
-    //FIXME El tamaño del nonce puede no ser 20?
-    memcpy(sequence + seq_length, pac_nonce, (20 * sizeof (char)));
-    seq_length += (20 * sizeof (char));
-    memcpy(sequence + seq_length, paa_nonce, (20 * sizeof (char)));
-    seq_length += (20 * sizeof (char));
-	
-	//It has been already used, nonces can be freed
-	free(paa_nonce);
-	free(pac_nonce);
+	//Copies the value of the Nonces
+    memcpy(sequence + seq_length, pac_nonce + sizeof(avp_pana), pac_nonce_length);
+    seq_length += pac_nonce_length;
+    memcpy(sequence + seq_length, paa_nonce + sizeof(avp_pana), paa_nonce_length);
+    seq_length += paa_nonce_length;
 	
 	//Copies Key-Id
     memcpy(sequence + seq_length, session->key_id, session->key_id_length);
     seq_length += session->key_id_length;
 
-
     if (result != NULL) free(result);
-	//fprintf(stderr,"MALLOC del panautils");
     result = malloc(40); //To get the 320bits result key
 	if(result == NULL){
 		fprintf(stderr,"ERROR: Out of memory\n");
 		exit(1);
 	}
 	
-	/*
 	#ifdef DEBUG
 	fprintf(stderr,"DEBUG: PRF Seed is: \n");
 	for (int j=0; j<seq_length; j++){
 		fprintf(stderr, "%02x ", sequence[j]);
 	}
 	#endif
-	*/
+	
     PRF_plus(2, session->msk_key, session->key_len, (u8*) sequence, seq_length, result);
     
-    /*#ifdef DEBUG
+    #ifdef DEBUG
     if (result != NULL) {
         fprintf(stderr,"DEBUG: Generated PANA_AUTH_KEY.\n");
     }
@@ -427,14 +413,14 @@ u8 * generateAUTH(pana_ctx * session) {
         fprintf(stderr, "%02x ", (u8) result[i]);
     }
     #endif
-    */
+
     free(sequence); //Seed's memory is freed
     return result;
 }
 
 int hashAuth(char *msg, char* key, int key_len) {
 	//The AVP code (AUTH) to compare with the one in the panaMessage
-    char * elmnt = getAvp2(msg, AUTH_AVP);
+    char * elmnt = getAvp(msg, AUTH_AVP);
     //debug_avp((avp_pana*)elmnt);
     #ifdef DEBUG
 	fprintf(stderr,"DEBUG: Key to use: ");
@@ -452,10 +438,8 @@ int hashAuth(char *msg, char* key, int key_len) {
     #endif
     return 0; //Everything went better than expected
 }
-char * getAvp(char *msg, int type){
-	return getAvp2(msg, type);
-}
-char * getAvp2(char *msg, int type) {
+
+char * getAvp(char *msg, int type) {
     char * elmnt = NULL;
 
     int size = ntohs(((pana*)msg)->msg_length) - sizeof (pana);
@@ -499,10 +483,6 @@ void increase_one(char *value, int length) {
     }
     //If value is 0xfffff...
     if (i == -1) value[length - 1] = 0x01;
-}
-int isEqual(pana_ctx* sess1, pana_ctx* sess2){
-	//FIXME: falta implementación
-	return 1;
 }
 
 int generateRandomKeyID (char** global_key_id) {
@@ -551,9 +531,9 @@ void debug_pana(pana *hdr){
     fprintf(stderr,"%s",(flags & I_FLAG)?"I":"-");
     fprintf(stderr,"         |       MessageType: %d            |\n",  ntohs(hdr->msg_type));
     fprintf(stderr,"+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
-    fprintf(stderr,"|                     Session Identifier: %d            |\n", ntohl(hdr->session_id));
+    fprintf(stderr,"|                     Session Identifier: %#X            |\n", ntohl(hdr->session_id));
     fprintf(stderr,"+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
-    fprintf(stderr,"|                     Sequence Number: %d                |\n", ntohl(hdr->seq_number));
+    fprintf(stderr,"|                     Sequence Number: %#X               |\n", ntohl(hdr->seq_number));
     fprintf(stderr,"+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
 
     int size = ntohs(hdr->msg_length) - sizeof (pana);

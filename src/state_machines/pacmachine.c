@@ -191,7 +191,7 @@ int panaResult() {
 	int par_result_code=0;
 	avp_pana * elmnt =(avp_pana*) getAvp(current_session->LAST_MESSAGE, RESULTCODE_AVP);
 	if (elmnt != NULL && elmnt->length != 0){
-		par_result_code = ntohs((short)  *( ((char*) elmnt) + sizeof(avp_pana) )  ); //FIXME: Esto no debería ser ntohs creo
+		par_result_code = ntohs((short)  *( ((char*) elmnt) + sizeof(avp_pana) )  );
 		fprintf(stderr,"DEBUG: **************************** PAR RESULT CODE: %d\n",par_result_code);
 		debug_avp(elmnt);
 	}
@@ -519,7 +519,7 @@ int sessionTermInitPaaStateWaitPnaPing() {
 
 int sessionTermInitPacStateSessTerm() {
     if (current_session->PTA.receive) {
-		fprintf(stderr,"DEBUG: pacmachine.c initpacstatesessterm");
+		fprintf(stderr,"DEBUG: pacmachine.c initpacstatesessterm\n");
         disconnect();
         return CLOSED;
     } else return ERROR;
