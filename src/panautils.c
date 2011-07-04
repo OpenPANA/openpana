@@ -100,6 +100,10 @@ int sendPana(struct sockaddr_in destaddr, char *msg, int sock) {
 }
 
 int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
+	/*#ifdef DEBUG
+	fprintf(stderr, "DEBUG: MESSAGE TO BE CHECKED\n");
+	debug_pana(msg);
+	#endif*/
     //Checks pana header fields.
     if (msg->reserved != 0) {
         fprintf(stderr, "ERROR: Reserved field is not set to zero. Dropping message\n");
@@ -125,12 +129,12 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
 			fprintf(stderr,"ERROR: The message session id is not valid. Dropping message\n");
 			return 0;
 	}
-	
-    //Check sequence numbers
- /*   int seq_number = ntohl(msg->seq_number);
+	//FIXME no debería actualizarse el seq-number hasta comprobar auth
+	//Check sequence numbers
+	int seq_number = ntohl(msg->seq_number);
     if (flags & R_FLAG) { //Request msg
-        //Si eres el cliente, compruebas que antes tenías o un 0 (del pci)
-        //o un numero menos del que se ha recibido.
+        //Si es un request, compruebas qué antes tenías o un 0 (del pci)
+        //o un número menos del que se ha recibido.
         //Aunque en el servidor no se va a dar nunca el 0, puede suceder con el PCI en el cliente
         
         if (pana_session->SEQ_NUMBER != 0 && pana_session->SEQ_NUMBER != ( seq_number - 1)) {
@@ -138,7 +142,6 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
             return 0;
         }
         //Si recibes un request válido, hay que actualizar el número de secuencia para el answer
-        //FIXME: Esto se haría después del AUTH?
         pana_session->SEQ_NUMBER = seq_number;
     } else if (msg_type != PCI_MSG) { //No es PCI, es un Answer
 		
@@ -147,7 +150,7 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
             return 0;
         }
     }
-
+    
     //Then the AUTH avp value is checked if found
     //FIXME: Sólo comprobar si está autenticado, si no está correcto se descarta
     //Check if it contains the Auth AVP and checks it
@@ -202,7 +205,10 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
         #endif
             return FALSE; //Invalid, message is ignored
         }
-    }*/
+    }
+    
+    
+    
     return TRUE;
 }
 
@@ -233,8 +239,8 @@ int generateSessionId(char * ip, short port) {
     #ifdef DEBUG
     fprintf(stderr,"DEBUG: Session Id %d generated withport %d and ip %s\n",rc,port,ip);
     #endif
-    //free(seed);
-    //free(result);
+    free(seed);
+    free(result);
     return rc;
 }
 

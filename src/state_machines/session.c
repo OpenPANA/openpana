@@ -149,6 +149,11 @@ void initSession(pana_ctx * pana_session) {
 }
 
 void updateSession(char *message, pana_ctx *pana_session) {
+	#ifdef DEBUG
+	fprintf(stderr,"DEBUG: Update session with message:\n");
+	debug_pana((pana*) message);
+	#endif
+	
     resetSession(pana_session);
     pana * msg = (pana*) message;
     short flags = ntohs(msg->flags);
@@ -206,7 +211,7 @@ void updateSession(char *message, pana_ctx *pana_session) {
         fprintf(stderr,"DEBUG: PCI \n");
 #endif
     } else if (type == PAR_MSG) { //Authentication type Message, it could also be PAN_MSG
-		debug_pana(msg);
+		//debug_pana(msg);
         //Check if it contains the Nonce AVP and update its value
         fprintf(stderr,"DEBUG: Pana Authentication Message detected, sequence number: %#X.\n",ntohl(msg->seq_number));
         if (existAvp(message, "Nonce")) { //Depending if you are server or client

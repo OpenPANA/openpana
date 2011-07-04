@@ -327,10 +327,10 @@ int existAvp(char * message, char *avp_name) {
 #endif
         return FALSE;
     }
-    #ifdef DEBUG
+    /*#ifdef DEBUG
     fprintf(stderr,"\nDEBUG: existAvp function, AVP name %s, AVP CODE:%d \n***\n***\nMENSAJE PANA COMPLETO:\n", avp_name,type);
     debug_pana(msg);
-    #endif
+    #endif*/
     if(getAvp(message,type)==NULL){
 		return FALSE;
 	}
