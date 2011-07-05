@@ -29,7 +29,8 @@
 #include "../panautils.h"
 
 void initSession(pana_ctx * pana_session) {
-
+//FIXME No iniciar las variables que se inician en la máquina de estados
+// ya que se estaría reinicializando y es inútil.
     // Init common
     pana_session->RTX_TIMEOUT = 0;
     pana_session->RTX_COUNTER = 0;
@@ -89,8 +90,6 @@ void initSession(pana_ctx * pana_session) {
     pana_session->MRT = REQ_MAX_RT; //See rfc 3315
     pana_session->MRD = 0; //See rfc 3315
 
-    //FIXME: Comprobar fallo de segm al descomentar
-    //memset((char *) &(pana_session->eap_ll_dst_addr), 0, sizeof (pana_session->eap_ll_dst_addr));
     pana_session->key_id_length = 4;
 
     //FIXME: De momento, tanto cliente como servidor solamente tienen el prf_alg y el integrity algorithm estáticos
@@ -182,8 +181,11 @@ void updateSession(char *message, pana_ctx *pana_session) {
 		//free(pana_session->LAST_MESSAGE);
 	}
     pana_session->LAST_MESSAGE = message;
-	fprintf(stderr,"despues de liberar lastmessage\n");
+    #ifdef DEBUG
+		fprintf(stderr,"DEBUG: Last message freed.\n");
+	#endif
     // Detect message type and flags
+    //FIXME Falta comprobar que sea el primer mensaje (flagS) o ponerlo en la maquina de estados
     //FIXME: Falta detectar el result-code
     char * attribute = getAvp(message, PRFALG_AVP);
     if (attribute != NULL) {
@@ -215,7 +217,6 @@ void updateSession(char *message, pana_ctx *pana_session) {
         //Check if it contains the Nonce AVP and update its value
         fprintf(stderr,"DEBUG: Pana Authentication Message detected, sequence number: %#X.\n",ntohl(msg->seq_number));
         if (existAvp(message, "Nonce")) { //Depending if you are server or client
-        //FIXME Habría que copiarlo para evitar perder memoria, luego liberarlo también
 #ifdef ISSERVER
 			fprintf(stderr,"DEBUG: Server's detected a Nonce AVP.\n");
 			if(pana_session->PaC_nonce != NULL){
@@ -339,7 +340,6 @@ void resetSession(pana_ctx *pana_session) {
     pana_session->TERMINATE = 0;
     pana_session->PANA_PING = 0;
     pana_session->SESS_TIMEOUT = 0;
-    //pana_session->LIFETIME_SESS_TIMEOUT = 33; //FIXME: debería estar en el fichero de conf.
     pana_session->ANY = 0;
     pana_session->PNR.flags = 0;
     pana_session->PNR.receive = 0;
@@ -366,7 +366,6 @@ void resetSession(pana_ctx *pana_session) {
 
     // Init client's variables
 #ifdef ISCLIENT //Include session variables only for PANA clients
-    //pana_session->client_ctx.FAILED_SESS_TIMEOUT = 10; //FIXME: Los valores son arbitrarios. Poner los correctos.
     pana_session->client_ctx.AUTH_USER = 0;
 #endif
 

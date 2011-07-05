@@ -99,9 +99,6 @@ void * process_receive_eap_ll_msg(void *arg) {
         pana_session->socket = pana_params->sock;
         pana_session->eap_ll_dst_addr = *(pana_params->eap_ll_dst_addr);
 		pana_session->server_ctx.global_key_id = global_key_id;
-#ifdef DEBUG
-        fprintf(stderr, "Session id: %d\n", pana_session->session_id);
-#endif
         
         pana_session->list_of_alarms = &(list_alarms);
 
@@ -698,9 +695,6 @@ int main(int argc, char* argv[]) {
 	//Calculates a random value as global key_id value
 	generateRandomKeyID(&global_key_id);
 
-	
-    //FIXME: Intentar quitar la cutrez de que la tabla de estados haya que inicializarla con un
-    // contexto pana
     // Init the paa state machine
     pana_ctx * current_pana_ctx = NULL;
     pana_ctx pana_session;

@@ -192,8 +192,6 @@ int panaResult() {
 	avp_pana * elmnt =(avp_pana*) getAvp(current_session->LAST_MESSAGE, RESULTCODE_AVP);
 	if (elmnt != NULL && elmnt->length != 0){
 		par_result_code = ntohs((short)  *( ((char*) elmnt) + sizeof(avp_pana) )  );
-		fprintf(stderr,"DEBUG: **************************** PAR RESULT CODE: %d\n",par_result_code);
-		debug_avp(elmnt);
 	}
     if ((current_session->PAR.receive && (current_session->PAR.flags & C_FLAG)) && par_result_code == PANA_SUCCESS) {
         txEAP();
@@ -313,7 +311,7 @@ fprintf(stderr,"DEBUG: pacmachine.c eapresultstatewaiteapresult\n");
 			//free(current_session->retr_msg);
 		}
 
-        if (existAvp(current_session->LAST_MESSAGE, "Key-Id")/*FIXME: existAvp(PAR, "Key-Id")*/) {
+        if (existAvp(current_session->LAST_MESSAGE, "Key-Id")/*FIXME: Comprobar que sea PAR*/) {
 			
 			//The comprobation of C_FLAG may be unnecesary
 			if(current_session->retr_msg !=NULL){

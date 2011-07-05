@@ -232,20 +232,6 @@ typedef struct {
  */
 char * transmissionMessage(char * msgtype, short flags, int *sequence_number, int sess_id, char * avps, struct sockaddr_in destaddr, void **data, int sock);
 
-/**
- * A procedure to insert AVPs for each specified AVP name in the list
- * of AVP names in the PANA message. When an AVP name ends with "*",
- * zero, one, or more AVPs are inserted; otherwise, one AVP is
- * inserted. \n\n See RFC 5609 as 
- * void PANA_MESSAGE_NAME.insertAvp("AVP_NAME1","AVP_NAME2",...).
- * 
- * @param *msg PANA message to insert the AVPs.
- * 
- * @param *names AVP names to be inserted in the message.
- * 
- * @param **data AVP data to use during their generation.
- */
-//void insertAvp(panaMessage* msg, char * names, void **data);
 int AVPgenerateflags(char * avps);
 int AVPname2flag(char * avp_name);
 /**

@@ -280,7 +280,7 @@ void retransmit() {
 #ifdef DEBUG
     fprintf(stderr,"DEBUG: retransmit function \n");
     fprintf(stderr,"DEBUG: Message to retransmit: \n");
-    debug_pana(current_session->retr_msg);
+    debug_pana((pana*)current_session->retr_msg);
 #endif
 
     current_session->RTX_TIMEOUT = 0;
@@ -382,7 +382,7 @@ void txEAP() {
 #endif
     //Get the EAP_Payload Avp
 
-    avp_pana * elmnt = getAvp(current_session->LAST_MESSAGE, EAPPAYLOAD_AVP);
+    avp_pana * elmnt = (avp_pana *) getAvp(current_session->LAST_MESSAGE, EAPPAYLOAD_AVP);
     if (elmnt==NULL){
 		printf("txEAP: There isn't EAP Payload AVP.\n");
 		return;
@@ -416,12 +416,8 @@ void sessionTimerStop() {
 #ifdef DEBUG
     fprintf(stderr,"DEBUG: sessionTimerStop function\n"); 
 #endif
-
 	//Get the alarm of this session
 	pana_ctx * session = get_alarm_session(current_session->list_of_alarms, current_session->session_id,SESS_ALARM);
-
-	//FIXME: Unfinished! how do we stop the timer?
-	
 #ifdef DEBUG
     fprintf(stderr, "DEBUG: sessionTimerStop finished.\n"); 
 #endif
@@ -508,9 +504,21 @@ int keyAvailable() {
 				fprintf(stderr,"%02x", key[i]);
 			fprintf(stderr,"\n");*/
 #endif
-//FIXME: Tiene que que generar un nuevo Key-Id
 			//If an MSK is retrieved, it computes a PANA_AUTH_KEY from
 			//the MSK and returns TRUE
+			
+			//First, the Key-Id of the new MSK is generated (only in server)
+			//by increasing the global key_id.
+			/*#ifdef ISSERVER
+			if(session->key_id != NULL){
+				free(session->key_id);
+			}
+			session->key_id = malloc(session->key_id_length);
+			
+			increase_one(session->server_ctx.global_key_id, session->key_id_length);
+			memcpy(session->key_id, session->server_ctx.global_key_id, session->key_id_length);
+			#endif*/
+			//Afterwards we generate the PANA_AUTH_KEY
 			u8 * new_auth_key = NULL;
 			new_auth_key = generateAUTH(current_session);
 			if(new_auth_key != NULL){
@@ -550,7 +558,6 @@ int reachMaxNumRt() {
 
 int livenessTestPeer() {
     if ((current_session->PNR.receive) && (current_session->PNR.flags & P_FLAG)) {
-		//FIXME retransmission message should be updated?
         char * unused = transmissionMessage("PNA", P_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, "", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
         free(unused);
         return NO_CHANGE;

@@ -430,7 +430,7 @@ int insertAvps(char** message, int avps, void **data) {
         // AVP Integer32: (RFC 3588 4.2 )
         //				32 bit signed value, in network byte order. 
         elmnt->code = htons(KEYID_AVP);
-		//FIXME comprobar el data que halla algo
+		//FIXME comprobar el data que haya algo
 		memcpy(position + sizeof(avp_pana), data[KEYID_AVP], avpsize - sizeof(avp_pana));
         //debug_avp(elmnt);
         //Update message values
@@ -547,7 +547,6 @@ int insertAvps(char** message, int avps, void **data) {
 		elmnt->length =htons(avpsize - sizeof(avp_pana));
         elmnt->code = htons(RESULTCODE_AVP);
 
-        //FIXME: De momento el servidor siempre manda el hmac_sha1. Ver como se manda una lista de varios
         int option = ntohl((int) data[RESULTCODE_AVP]);
         memcpy(position + sizeof(avp_pana), &option, sizeof (int));
         //debug_avp(elmnt);
@@ -640,14 +639,14 @@ int insertAvps(char** message, int avps, void **data) {
         struct wpabuf * aux = (struct wpabuf *) data[EAPPAYLOAD_AVP];
         const u8 * packet = wpabuf_head(aux);
 
-		#ifdef DEBUG
+		/*#ifdef DEBUG
         fprintf(stderr,"BEGIN EAP PACKET\n");
         unsigned int i;
         for (i = 0; i < wpabuf_len(aux); i++) {
             fprintf(stderr,"%02x", packet[i]);
         }
         fprintf(stderr,"END EAP PACKET\n");
-		#endif
+		#endif*/
         
 		avpsize = sizeof(avp_pana) + wpabuf_len(aux); //FIXME Magic Number? not magic!
 		int padding = paddingOctetString((avpsize - sizeof(avp_pana)));

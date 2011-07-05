@@ -34,7 +34,7 @@ void initPaaTable(pana_ctx *pana_session) {
     // Initialization Action
     
     //FIXME: A esta variable hay que ponerle el valor set/unset
-    //Sacar a la configuración
+    //Sacar a la configuración cuando esté hecho
     pana_session->server_ctx.OPTIMIZED_INIT = UNSET;
     // dependiendo de lo que queramos
     pana_session->NONCE_SENT = UNSET;
@@ -214,10 +214,10 @@ int panHandling() {
     int rc; //Result code
 
     rc = current_session->PAN.receive && (current_session->PAN.flags & S_FLAG);
-    rc = rc && ((current_session->server_ctx.OPTIMIZED_INIT == UNSET) || (existAvp(current_session->LAST_MESSAGE, "EAP-Payload"))); /*|| (existAvp(PAN, "EAP-Payload")) FIXME: de donde se saca el PAN??*/
+    rc = rc && ((current_session->server_ctx.OPTIMIZED_INIT == UNSET) || (existAvp(current_session->LAST_MESSAGE, "EAP-Payload")));
 
     if (rc) {
-        if (existAvp(current_session->LAST_MESSAGE, "EAP-Payload")/*existAvp(PAN, "EAP-Payload") FIXME: de donde se saca el PAN?*/) {
+        if (existAvp(current_session->LAST_MESSAGE, "EAP-Payload")) {
             txEAP();
         } else {
             eapRestart();
@@ -225,7 +225,7 @@ int panHandling() {
             //sessionTimerReStart(FAILED_SESS_TIMEOUT);
         }
         return WAIT_EAP_MSG;
-    } else if (current_session->PAN.receive && (current_session->PAN.flags & S_FLAG) && ((current_session->server_ctx.OPTIMIZED_INIT == SET) && !existAvp(current_session->LAST_MESSAGE, "EAP-Payload")/*FIXME: && !existAvp(PAN,"EAP-Payload") */)) {
+    } else if (current_session->PAN.receive && (current_session->PAN.flags & S_FLAG) && ((current_session->server_ctx.OPTIMIZED_INIT == SET) && !existAvp(current_session->LAST_MESSAGE, "EAP-Payload"))) {
         none();
         return WAIT_PAN_OR_PAR;
     } else return ERROR;
@@ -268,7 +268,6 @@ int rxEapSuccessFailure() {
 		#ifdef DEBUG
 		fprintf(stderr,"DEBUG: EAP_FAILURE = TRUE.\n");
 		#endif
-        //FIXME: PAR.RESULT_CODE = PANA_AUTHENTICATION_REJECTED; Como vamos a hacer esto? Pacovi: está ya solucionado?
         current_session->avp_data[RESULTCODE_AVP] = (void *) PANA_AUTHENTICATION_REJECTED;
         //The C flag is added
         struct wpabuf * eap_packet = eap_auth_get_eapReqData(&(current_session->eap_ctx));
@@ -285,7 +284,6 @@ int rxEapSuccessFailure() {
 		#ifdef DEBUG
 		fprintf(stderr,"DEBUG: EAP_SUCCESS && Authorize() .\n");
 		#endif
-        //FIXME: PAR.RESULT_CODE = PANA_SUCCESS; Como vamos a hacer esto? Pacovi: está ya solucionado?
         current_session->avp_data[RESULTCODE_AVP] = (void*) PANA_SUCCESS;
         current_session->avp_data[SESSIONLIFETIME_AVP] = (void*) LIFETIME_SESSION_CLIENT_TIMEOUT_CONFIG;
         struct wpabuf * eap_packet = eap_auth_get_eapReqData(&(current_session->eap_ctx));
@@ -314,7 +312,6 @@ int rxEapSuccessFailure() {
 		#ifdef DEBUG
 		fprintf(stderr,"DEBUG: EAP_SUCCESS && !Authorize() .\n");
 		#endif
-        //FIXME: PAR.RESULT_CODE = PANA_AUTHORIZATION_REJECTED; Como vamos a hacer esto?Pacovi: está ya solucionado?
         current_session->avp_data[RESULTCODE_AVP] = (void*) PANA_AUTHORIZATION_REJECTED;
         struct wpabuf * eap_packet = eap_auth_get_eapReqData(&(current_session->eap_ctx));
         current_session->avp_data[EAPPAYLOAD_AVP] = eap_packet;
@@ -474,7 +471,7 @@ int parProcessing() {
 }
 
 int passEapRespToEapAuth() {
-    if ((current_session->PAN.receive) && (existAvp(current_session->LAST_MESSAGE, "EAP-Payload"))) { /*&& (existAvp(PAN,"EAP-Payload"))*///FIXME: de donde se saca PAN??;
+    if ((current_session->PAN.receive) && (existAvp(current_session->LAST_MESSAGE, "EAP-Payload"))) { 
         txEAP();
         rtxTimerStop();
         return WAIT_EAP_MSG;
@@ -482,7 +479,7 @@ int passEapRespToEapAuth() {
 }
 
 int panWithoutEapResponse() {
-    if ((current_session->PAN.receive) && (!existAvp(current_session->LAST_MESSAGE, "EAP-Payload"))) { /*&& (!existAvp(PAN,"EAP-Payload"))*///FIXME: de donde se saca PAN??;
+    if ((current_session->PAN.receive) && (!existAvp(current_session->LAST_MESSAGE, "EAP-Payload"))) {
         rtxTimerStop();
         return WAIT_PAN_OR_PAR;
     } else return ERROR;
@@ -567,14 +564,14 @@ int newKeyAvailable() {
 				exit(1);
 			}
 			memcpy(session->msk_key, key, key_len);
-
+/*
 #ifdef DEBUG
 			//Prints the EAP MSK key for debugging purposes
 			unsigned int i;
 			for (i = 0; i < key_len; i++)
 				fprintf(stderr,"%02x", key[i]);
 			fprintf(stderr,"\n");
-#endif
+#endif*/
 			//If an MSK is retrieved, it computes a PANA_AUTH_KEY from
 			//the MSK and returns TRUE
 			

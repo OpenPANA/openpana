@@ -80,8 +80,6 @@ struct lalarm * add_alarma(struct lalarm ** l, pana_ctx* session, time_t time, i
                 
             } else { //Inserta en un lugar que es intermedio.
                 anterior->sig = malloc(sizeof (struct lalarm));
-                //FIXME: PREGUNTAR PEDRO cambiado comentario por la linea de abajo
-                //(*l)->pana_session = session;
                 anterior->sig->pana_session = session;
                 anterior->sig->tmp = tiempo; //Guardo el tiempo de la alarma
                 anterior->sig->id = iden;

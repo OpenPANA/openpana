@@ -5,11 +5,13 @@ Next - v0.1.1
 		- Key-Id generation fixed.
 		- First sequence number is a random value.
 		- Session Id only generated on PAA.
-		- Some unused functions deleted such as isEqual
+		- Some unused functions deleted such as extractNonce or isEqual
 		  used to compare two PANA sessions.
 		- Added more doxygen documentation.
 		- Translated the entire output (including debug information)
 		  to English and some comments.
+		- Changed PANA messages and AVPs structs and message treatment simplified.
+		- Fixed some memory leaks.
 
 2011-05-09 - v0.1.0
 	* Initial version of OpenPANA.

@@ -92,7 +92,7 @@ int sendPana(struct sockaddr_in destaddr, char *msg, int sock) {
 
 #ifdef DEBUG
     fprintf(stderr,"DEBUG: Sended to IP: %s , port %d \n", inet_ntoa(destaddr.sin_addr), ntohs(destaddr.sin_port));
-    fprintf(stderr,"Sended %d bytes to %s\n", total, inet_ntoa(destaddr.sin_addr));
+    fprintf(stderr,"PANA: Sended %d bytes to %s\n", total, inet_ntoa(destaddr.sin_addr));
 #endif
 
     if (n == -1) return -1;
@@ -152,7 +152,7 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
     }
     
     //Then the AUTH avp value is checked if found
-    //FIXME: Sólo comprobar si está autenticado, si no está correcto se descarta
+    //FIXME: Sólo comprobar si está autenticado (hay una PANA SA), si no está correcto se descarta
     //Check if it contains the Auth AVP and checks it
 	char * avpbytes = getAvp((char*)msg, AUTH_AVP);
     if (avpbytes != NULL) {//if existsAvp(AUTH)
@@ -180,9 +180,10 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
         //again to see if it fits
         memset(avpbytes + sizeof(avp_pana), 0, size); //Auth value set to 0
 
-        //FIXME: Aquí debería verse si el hashauth devuelve 1
-        //En ese caso el auth es erróneo directamente y se descarta?
-        hashAuth((char*)msg, pana_session->avp_data[AUTH_AVP], 40);
+        //If the AUTH value cannot be hashed, its an error
+        if(hashAuth((char*)msg, pana_session->avp_data[AUTH_AVP], 40)){
+			return FALSE; //Auth AVP not found
+		}
 
         //The original AUTH value is compared with the new one
         char *newAuth = avpbytes + sizeof(avp_pana);
@@ -308,20 +309,20 @@ u8 * generateAUTH(pana_ctx * session) {
     #ifdef DEBUG
     fprintf(stderr, "DEBUG: Starting AUTH generation.\n");
     fprintf(stderr, "DEBUG: PaC Nonce:\n");
-    debug_pana(session->PaC_nonce);
+    debug_pana((pana*)session->PaC_nonce);
     fprintf(stderr, "DEBUG: PAA Nonce:\n");
-    debug_pana(session->PAA_nonce);
+    debug_pana((pana*)session->PAA_nonce);
     fprintf(stderr, "DEBUG: MSK Key:\n");
     for(unsigned int i =0; i< session->key_len;i++){
 		fprintf(stderr,"%02X",session->msk_key[i]);
 	}
     fprintf(stderr,"\n");
     fprintf(stderr, "DEBUG: I_PAN:\n");
-    debug_pana(session->I_PAN);
+    debug_pana((pana*)session->I_PAN);
     fprintf(stderr, "DEBUG: I_PAR:\n");
-    debug_pana(session->I_PAR);
+    debug_pana((pana*)session->I_PAR);
     fprintf(stderr, "DEBUG: Key-ID:\n");
-    for(unsigned int i =0; i< session->key_id_length;i++){
+    for(int i =0; i< session->key_id_length;i++){
 		fprintf(stderr,"%02X",session->key_id[i]);
 	}
     
@@ -354,8 +355,8 @@ u8 * generateAUTH(pana_ctx * session) {
     i_pan_length = ntohs(msg->msg_length);
     seq_length += i_pan_length; // The I_PAN length
 	
-    pac_nonce = getAvp(session->PaC_nonce,NONCE_AVP);
-    paa_nonce = getAvp(session->PAA_nonce,NONCE_AVP);
+    pac_nonce = (u8*) getAvp(session->PaC_nonce,NONCE_AVP);
+    paa_nonce = (u8*) getAvp(session->PAA_nonce,NONCE_AVP);
     int paa_nonce_length = ntohs(((avp_pana*)pac_nonce)->length);
     int pac_nonce_length = ntohs(((avp_pana*)paa_nonce)->length);
     
