@@ -80,7 +80,7 @@ struct lalarm * add_alarma(struct lalarm ** l, pana_ctx* session, time_t time, i
                 
             } else { //Inserta en un lugar que es intermedio.
                 anterior->sig = malloc(sizeof (struct lalarm));
-                (*l)->pana_session = session;
+                anterior->sig->pana_session = session;
                 anterior->sig->tmp = tiempo; //Guardo el tiempo de la alarma
                 anterior->sig->id = iden;
                 anterior->sig->sig = aux;
@@ -118,7 +118,7 @@ struct lalarm* del_alarma(struct lalarm **l) {
 
     //Como la primera alarma no va a ser utilizada se libera su memoria
     returnalarm->sig = NULL;
-    //free(l);
+    free(l);
     
     pthread_mutex_unlock(mutex);
     return returnalarm;
@@ -190,7 +190,7 @@ struct lalarm * get_next_alarm(struct lalarm** list, time_t time) {
 
 void remove_alarm(struct lalarm** list, int id_session){
 	pthread_mutex_lock(mutex);
-    struct lalarm* session = NULL;
+    //struct lalarm* session = NULL;
     struct lalarm* anterior = NULL;
     struct lalarm* aux = NULL;
     if (list == NULL) {
@@ -203,7 +203,7 @@ void remove_alarm(struct lalarm** list, int id_session){
 			anterior = aux;
 			aux = aux->sig;
 			anterior->sig = NULL;
-			//free(anterior);//fixme: cuidado al poner este free. Hay que verlo con el de remove_session(mainservidor.c)
+			free(anterior);//fixme: cuidado al poner este free. Hay que verlo con el de remove_session(mainservidor.c)
 		}
 			
     }

@@ -35,24 +35,6 @@
 //FIXME: Hace un envío normal y corriente, se podría eliminar la función?
 int sendPana(struct sockaddr_in destaddr, char *msg, int sock);
 
-/**
- * Serializes (marshall) a panaMessage struct in a char * UDP PANA packet ready to be sended.
- * @param *msg PANA Message to be serialized.
- * @return The PANA Message serialized, it must be freed after used.
- */
-char * serializePana(panaMessage *msg);
-
-/**
- * Unserializes (unmarshall) a char * buffer containing an UDP PANA packet into
- * a panaMessage Struct.
- *
- * @param buf Buffer to be unserialized.
- * @param numbytes Size of the buffer in bytes.
- *
- * @return panaMessage
- */
-panaMessage * unserializePana(char * buf, int numbytes);
-
  /** 
   * Returns if a PANA message is correct. Checks the header (flags, reserved field, messages types),
   * sequence numbers, session identificators and AUTH value if any. 
@@ -63,18 +45,7 @@ panaMessage * unserializePana(char * buf, int numbytes);
   * @return 0 If the message is incorrect. 
   * @return 1 If the message is correct.
   * */
-int checkPanaMessage(panaMessage *msg, pana_ctx *pana_session);
-
-/** Encrypts the AUTH AVP given a key.
- * 
- * @param msg PANA message.
- * @param key Key to use during encryption.
- * @param key_len Key's length.
- * 
- * @return 0 The encryption was successful.
- * @return 1 No AUTH AVP was found in the PANA message.
- * */
-int cryptAuth(panaMessage *msg, char* key, int key_len);
+int checkPanaMessage(pana *msg, pana_ctx *pana_session);
 
 /** 
  * Generates a Session ID from an IP and port given.
@@ -104,14 +75,6 @@ char * getMsgName(int msg_type);
  * */
 char * getAvpName(int avp_code);
 
-/**
- * Gets the NONCE AVP from a message.
- * @param message Message to extract Nonce from.
- * 
- * @return Nonce AVP in u8 format.
- * */
-u8 * extractNonce(char * message);
-
 //FIXME: Poner que debe liberarse la memoria.
 /** 
  * Generates the AUTH key given a PANA session.
@@ -127,16 +90,6 @@ u8 * extractNonce(char * message);
  * @return AUTH key generated.
  * */
 u8 * generateAUTH(pana_ctx * current_session);
-
-/** 
- * Returns the pointer to a given AVP in a message.
- * 
- * @param msg PANA message.
- * @param type AVP code to get.
- * 
- * @return Pointer to the AVP.
- * */
-avp * getAvp(panaMessage *msg, int type);
 
 /**
  * Returns if an AVP is OctetString or not.
@@ -154,9 +107,6 @@ int isOctetString(int type);
  * */
 void increase_one (char *value, int length);
 
-//FIXME: Función que devuelve si las dos sesiones pana son iguales
-int isEqual(pana_ctx* sess1, pana_ctx* sess2);
-
 /**
  * Generates a Random Key Id and stores it in the parameter.
  * 
@@ -173,15 +123,34 @@ int isEqual(pana_ctx* sess1, pana_ctx* sess2);
  */
 int paddingOctetString(int size);
 
+/** 
+ * Returns the pointer to a given AVP in a message.
+ * 
+ * @param msg PANA message.
+ * @param type AVP code to get.
+ * 
+ * @return Pointer to the AVP.
+ * */
+char * getAvp(char *msg, int type);
+/** Hashes the AUTH AVP given a key.
+ * 
+ * @param msg PANA message.
+ * @param key Key to use during hashing.
+ * @param key_len Key's length.
+ * 
+ * @return 0 The hash was successful.
+ * @return 1 No AUTH AVP was found in the PANA message.
+ * */
+int hashAuth(char *msg, char* key, int key_len);
+
 //Debugging functions
 /** Debug function, shows in a friendly way the information contained in
- * an AVP struct.
- * @param *elmnt AVP to be shown. */
-void debug_print_avp(avp *elmnt);
+ * a PANA message (includes AVPs in the value area).
+ * @param *hdr panaMessage to be shown. */
+void debug_pana(pana *hdr);
 
 /** Debug function, shows in a friendly way the information contained in
- * a PANA message struct (includes AVPs in the value area).
- * @param *msg panaMessage to be shown. */
-void debug_print_message(panaMessage *msg);
-
+ * an AVP.
+ * @param *datos AVP to be shown. */
+void debug_avp(avp_pana * datos);
 #endif

@@ -22,7 +22,6 @@
 #ifndef STATEMACHINE
 #define STATEMACHINE
 #include "session.h"
-#define _GNU_SOURCE //To avoid implicit declaration warning on asprintf
 
 //FIXME: Esto debería ir en un include.h???
 #define SET		1

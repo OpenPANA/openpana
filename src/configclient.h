@@ -26,7 +26,7 @@
 #define CONFIGCLIENT_H
 
 
-#define SRCPORT 5333
+#define SRCPORT 5360
 #define DSTPORT	716 //PANAPORT
 /** PaC's IP */
 #define LOCALIP "127.0.0.1" // source ip

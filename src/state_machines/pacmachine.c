@@ -139,19 +139,21 @@ int paaInitHandshake() {
     if (((current_session->PAR.receive = 1) && (current_session->PAR.flags & S_FLAG)) && !(existAvp(current_session->LAST_MESSAGE, "EAP-Payload"))) {
         eapRestart();
         sessionTimerReStart(current_session->client_ctx.FAILED_SESS_TIMEOUT);
-        if(current_session->I_PAN != NULL){
-			free(current_session->I_PAN);
-		}
 		if(current_session->retr_msg !=NULL){
 			free(current_session->retr_msg);
 		}
         if (generatePanaSa()) { //The initial PAN must be saved
-            current_session->I_PAN = transmissionMessage("PAN", S_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, "PRF-Algorithm*Integrity-Algorithm", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
-            current_session->retr_msg = current_session->I_PAN;
+            current_session->retr_msg = transmissionMessage("PAN", S_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, "PRF-Algorithm*Integrity-Algorithm", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
         } else {
-            current_session->I_PAN = transmissionMessage("PAN", S_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, "", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
-            current_session->retr_msg = current_session->I_PAN;
+            current_session->retr_msg = transmissionMessage("PAN", S_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, "", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
         }
+        
+        if(current_session->I_PAN != NULL){
+				free(current_session->I_PAN);
+		}
+		current_session->I_PAN = malloc(ntohs(((pana *)current_session->retr_msg)->msg_length));
+		memcpy(current_session->I_PAN,current_session->retr_msg,ntohs(((pana *)current_session->retr_msg)->msg_length));
+        
         return WAIT_PAA;
     } else return ERROR;
     /* FIXME: Esta es la versión optimizada. Ver si dejamos esta o la otra
@@ -187,16 +189,14 @@ int paaInitHandshake() {
 
 int panaResult() {
 	int par_result_code=0;
-	avp * elmnt = getAvp(current_session->LAST_MESSAGE, RESULTCODE_AVP);
-	if (elmnt != NULL){
-		if (elmnt->value != NULL){
-			par_result_code = ntohs((int)elmnt->value); //FIXME: Esto no debería ser ntohs creo
-		}
+	avp_pana * elmnt =(avp_pana*) getAvp(current_session->LAST_MESSAGE, RESULTCODE_AVP);
+	if (elmnt != NULL && elmnt->length != 0){
+		par_result_code = ntohs((short)  *( ((char*) elmnt) + sizeof(avp_pana) )  );
 	}
-    if ((current_session->PAR.receive && (current_session->PAR.flags & C_FLAG)==C_FLAG) && par_result_code == PANA_SUCCESS) {
+    if ((current_session->PAR.receive && (current_session->PAR.flags & C_FLAG)) && par_result_code == PANA_SUCCESS) {
         txEAP();
         return WAIT_EAP_RESULT;
-    } else if ((current_session->PAR.receive && (current_session->PAR.flags & C_FLAG)==C_FLAG) &&  par_result_code != PANA_SUCCESS) {
+    } else if ((current_session->PAR.receive && (current_session->PAR.flags & C_FLAG)) &&  par_result_code != PANA_SUCCESS) {
         if (existAvp(current_session->LAST_MESSAGE, "EAP-Payload")) {
             txEAP();
         } else {
@@ -207,23 +207,23 @@ int panaResult() {
 }
 
 int parPanExchange() {
-    if (current_session->PAR.receive && ((current_session->PAR.flags & R_FLAG) == R_FLAG) && !eapPiggyback()) {
+    if (current_session->PAR.receive && (current_session->PAR.flags & R_FLAG) && !eapPiggyback()) {
         rtxTimerStop();
         txEAP();
         eapRespTimerStart();
-        //FIXME memoria compartida con los mensajes necesarios para el AUTH?
-		/*if(current_session->retr_msg !=NULL){
+        if(current_session->retr_msg !=NULL){
 			free(current_session->retr_msg);
-		}*/
-		
+		}
         if (current_session->NONCE_SENT == UNSET) {
             current_session->NONCE_SENT = SET;
             if(current_session->PaC_nonce != NULL){
 				free(current_session->PaC_nonce);
 			}
             //The nonce value must be saved 
-            current_session->PaC_nonce = transmissionMessage("PAN", 0, &(current_session->SEQ_NUMBER), current_session->session_id, "Nonce", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
-            current_session->retr_msg = current_session->PaC_nonce;
+            current_session->retr_msg = transmissionMessage("PAN", 0, &(current_session->SEQ_NUMBER), current_session->session_id, "Nonce", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
+            int size = ntohs(((pana*)(current_session->retr_msg))->msg_length);
+            current_session->PaC_nonce = malloc(size);
+            memcpy(current_session->PaC_nonce,current_session->retr_msg,size);
         } else {
             current_session->retr_msg = transmissionMessage("PAN", 0, &(current_session->SEQ_NUMBER), current_session->session_id, "", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
         }
@@ -253,10 +253,11 @@ int returnPanParFromEap() {
 			if(current_session->PaC_nonce != NULL){
 				free(current_session->PaC_nonce);
 			}
-			
             //The nonce value must be saved 
-            current_session->PaC_nonce = transmissionMessage("PAN", 0, &(current_session->SEQ_NUMBER), current_session->session_id, "EAP-Payload*Nonce", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
-            current_session->retr_msg = current_session->PaC_nonce;
+            current_session->retr_msg = transmissionMessage("PAN", 0, &(current_session->SEQ_NUMBER), current_session->session_id, "EAP-Payload*Nonce", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
+            int size = ntohs(((pana*)(current_session->retr_msg))->msg_length);
+            current_session->PaC_nonce = malloc(size);
+            memcpy(current_session->PaC_nonce,current_session->retr_msg,size);
             current_session->NONCE_SENT = SET;
         } else {
             current_session->retr_msg = transmissionMessage("PAN", 0, &(current_session->SEQ_NUMBER), current_session->session_id, "EAP-Payload", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
@@ -272,11 +273,9 @@ int returnPanParFromEap() {
             fprintf(stderr,"DEBUG: ERROR? returnPanParFromEap con eap_packet NULO.\n");
         }
 #endif
-		/*if(current_session->retr_msg !=NULL){
+		if(current_session->retr_msg !=NULL){
 			free(current_session->retr_msg);
-		}*/
-		//FIXME da violacion de segmento
-		
+		}		
         current_session->retr_msg = transmissionMessage("PAR", 0, &(current_session->SEQ_NUMBER), current_session->session_id, "EAP-Payload", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
         rtxTimerStart();
         eap_peer_set_eapResp(&(current_session->eap_ctx), FALSE);
@@ -293,6 +292,7 @@ int returnPanParFromEap() {
 		}
         current_session->retr_msg = transmissionMessage("PAN", 0, &(current_session->SEQ_NUMBER), current_session->session_id, "", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
         sessionTimerStop();
+        fprintf(stderr,"DEBUG: pacmachine.c returnpanparfromeap");
         disconnect();
         return CLOSED;
     } else if (eap_peer_get_eapFail(&(current_session->eap_ctx)) == TRUE || (/*current_session->client_ctx.EAP_DISCARD && */!eapPiggyback())) {//Fixme el discard?
@@ -304,24 +304,29 @@ int returnPanParFromEap() {
 }
 
 int eapResultStateWaitEapResult() {
-
+fprintf(stderr,"DEBUG: pacmachine.c eapresultstatewaiteapresult\n");
     if (eap_peer_get_eapSuccess(&(current_session->eap_ctx)) == TRUE) {
 
 		if(current_session->retr_msg !=NULL){
-			free(current_session->retr_msg);
+			//free(current_session->retr_msg);
 		}
 
-        if (existAvp(current_session->LAST_MESSAGE, "Key-Id")/*FIXME: existAvp(PAR, "Key-Id")*/) {
+        if (existAvp(current_session->LAST_MESSAGE, "Key-Id")/*FIXME: Comprobar que sea PAR*/) {
 			
 			//The comprobation of C_FLAG may be unnecesary
-			if(current_session->key_id != NULL){
-				free(current_session->key_id);
+			if(current_session->retr_msg !=NULL){
+				free(current_session->retr_msg);
 			}
 			
 			//Copy key id in current session
+			if(current_session->key_id != NULL){
+				free(current_session->key_id);
+				current_session->key_id = NULL;
+			}
+			
 			current_session->key_id = malloc(current_session->key_id_length);
-			avp * kid_avp = getAvp(current_session->LAST_MESSAGE, KEYID_AVP);
-			memcpy(current_session->key_id,&(kid_avp->value),current_session->key_id_length);
+			avp_pana * kid_avp = (avp_pana*) getAvp(current_session->LAST_MESSAGE, KEYID_AVP);
+			memcpy(current_session->key_id,((char *) kid_avp) + sizeof(avp_pana),current_session->key_id_length);
 			
             // The C flag is added
             //Key-Id stored in the parameter
@@ -343,6 +348,7 @@ int eapResultStateWaitEapResult() {
         // The C flag is added
         current_session->retr_msg = transmissionMessage("PAN", C_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, "", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
         sessionTimerStop();
+        fprintf(stderr,"DEBUG: pacmachine.c waiteapresult");
         disconnect();
         eap_peer_set_eapFail(&(current_session->eap_ctx), FALSE);
         return CLOSED;
@@ -364,6 +370,7 @@ int eapResultStateWaitEapResultClose() {
             current_session->retr_msg = transmissionMessage("PAN", C_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, "", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
         }
         sessionTimerStop();
+        fprintf(stderr,"DEBUG: pacmachine.c resultclose");
         disconnect();
 
         if (eap_peer_get_eapSuccess(&(current_session->eap_ctx)) == TRUE) {
@@ -407,7 +414,6 @@ int reauthInitPaaStateOpen() {
         eapRespTimerStart();
         txEAP();
         if (!eapPiggyback()) {
-			
 			if(current_session->retr_msg !=NULL){
 				free(current_session->retr_msg);
 			}
@@ -428,6 +434,7 @@ int sessionTermInitPaaStateOpen() {
         current_session->retr_msg = transmissionMessage("PTA", 0, &(current_session->SEQ_NUMBER), current_session->session_id, "", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
 
         sessionTimerStop();
+        fprintf(stderr,"DEBUG: pacmachine.c initpaastateopen");
         disconnect();
         return CLOSED;
     } else return ERROR;
@@ -462,6 +469,7 @@ int sessionTermInitPaaStateWaitPnaReauth() {
 		}
 		current_session->retr_msg = transmissionMessage("PTA", 0, &(current_session->SEQ_NUMBER), current_session->session_id, "", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
         sessionTimerStop();
+        fprintf(stderr,"DEBUG: pacmachine.c waitpnareauth");
         disconnect();
         return CLOSED;
     } else return ERROR;
@@ -497,10 +505,11 @@ int sessionTermInitPaaStateWaitPnaPing() {
     if (current_session->PTR.receive) {
         rtxTimerStop();
         if(current_session->retr_msg !=NULL){
-				free(current_session->retr_msg);
-			}
+			free(current_session->retr_msg);
+		}
 		current_session->retr_msg  = transmissionMessage("PTA", 0, &(current_session->SEQ_NUMBER), current_session->session_id, "", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
         sessionTimerStop();
+        fprintf(stderr,"DEBUG: pacmachine.c waitpnaping");
         disconnect();
         return CLOSED;
     } else return ERROR;
@@ -508,6 +517,7 @@ int sessionTermInitPaaStateWaitPnaPing() {
 
 int sessionTermInitPacStateSessTerm() {
     if (current_session->PTA.receive) {
+		fprintf(stderr,"DEBUG: pacmachine.c initpacstatesessterm\n");
         disconnect();
         return CLOSED;
     } else return ERROR;

@@ -58,9 +58,9 @@ struct task_list {
 
 
 /**Struct of process_receive_eap_ll_msg function's parameter*/
-struct pana_func_paramater {
+struct pana_func_parameter {
     struct sockaddr_in* eap_ll_dst_addr;
-    panaMessage * pana_msg;
+    pana * pana_msg;
     int sock;
     int id_alarm;
 };

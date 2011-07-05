@@ -46,7 +46,7 @@
 
 
 //Global variables
-
+static int fin = FALSE;
 char * global_key_id;//Key id is generated from source port and ip of the client
 
 struct pana_ctx_list* list_pana_sessions = NULL; // head of linked list of pana sessions
@@ -65,18 +65,23 @@ pthread_mutexattr_t request_mutex_attr; //Needed to set attributes to pthread_mu
 /* global condition variable for our program. assignment initializes it. */
 sem_t got_task; //Semaphore used to wait for new tasks by workers
 
+void signal_handler(int sig) {
+    printf("\nStopping server, signal: %d\n", sig);
+    fin = 1;
+}
+
 void * process_receive_eap_ll_msg(void *arg) {
-    struct pana_func_paramater pana_params = *((struct pana_func_paramater*) arg);
-
-#ifdef DEBUG
-    fprintf(stderr, "DEBUG: PANA message treatment started \n");
-#endif
-
+    struct pana_func_parameter * pana_params = (struct pana_func_parameter*) arg;
     // Current pana session.
     pana_ctx * pana_session;
-    panaMessage * pana = pana_params.pana_msg;
+    pana * msg = pana_params->pana_msg;
+   /* #ifdef DEBUG
+    fprintf(stderr, "DEBUG: PANA message treatment started \n");
+    fprintf(stderr, "DEBUG: process_receive_eap_ll_msg Message from parameters: \n");
+    debug_pana(msg);
+	#endif */
 
-    if (ntohs(pana->header.msg_type) == PCI_MSG) {//If a PCI message is received
+    if (ntohs(msg->msg_type) == PCI_MSG) {//If a PCI message is received
 
 		// A session is created to make a transition but it's not saved. It tries to avoid
 		// attacks from clients (PCI flood).
@@ -88,15 +93,12 @@ void * process_receive_eap_ll_msg(void *arg) {
         initSession(pana_session); 
 		
         //Update variables depends on server
-        short port = ntohs(pana_params.eap_ll_dst_addr->sin_port);
-        char * ip = inet_ntoa(pana_params.eap_ll_dst_addr->sin_addr);
+        short port = ntohs(pana_params->eap_ll_dst_addr->sin_port);
+        char * ip = inet_ntoa(pana_params->eap_ll_dst_addr->sin_addr);
         pana_session->session_id = generateSessionId(ip, port);
-        pana_session->socket = pana_params.sock;
-        pana_session->eap_ll_dst_addr = *(pana_params.eap_ll_dst_addr);
+        pana_session->socket = pana_params->sock;
+        pana_session->eap_ll_dst_addr = *(pana_params->eap_ll_dst_addr);
 		pana_session->server_ctx.global_key_id = global_key_id;
-#ifdef DEBUG
-        fprintf(stderr, "Session id: %d\n", pana_session->session_id);
-#endif
         
         pana_session->list_of_alarms = &(list_alarms);
 
@@ -111,12 +113,12 @@ void * process_receive_eap_ll_msg(void *arg) {
         
 
     }
-    else if ((ntohs(pana->header.msg_type) == PAN_MSG) && // If it is the first answer message
-            ((ntohs(pana->header.flags) & S_FLAG) == S_FLAG)) {// it is created a new session for the new client
+    else if ((ntohs(msg->msg_type) == PAN_MSG) && // If it is the first answer message
+            ((ntohs(msg->flags) & S_FLAG) == S_FLAG)) {// it is created a new session for the new client
        
         //Generate the session id asociated to client's port and ip
-        short port = ntohs(pana_params.eap_ll_dst_addr->sin_port);
-        char * ip = inet_ntoa(pana_params.eap_ll_dst_addr->sin_addr);
+        short port = ntohs(pana_params->eap_ll_dst_addr->sin_port);
+        char * ip = inet_ntoa(pana_params->eap_ll_dst_addr->sin_addr);
         int session_id = generateSessionId(ip, port); 
 #ifdef DEBUG
         fprintf(stderr, "DEBUG: Session-Id added to the list is: %d\n", session_id);
@@ -135,7 +137,7 @@ void * process_receive_eap_ll_msg(void *arg) {
     } 
     
     else { //If the messsage is another one
-        int id = ntohl(pana->header.session_id); 
+        int id = ntohl(msg->session_id); 
 #ifdef DEBUG
         fprintf(stderr, "DEBUG: It's gonna search id: %d\n", id);
 #endif
@@ -153,9 +155,9 @@ void * process_receive_eap_ll_msg(void *arg) {
     
 	pthread_mutex_lock(&(pana_session->mutex));
     //Use the correct session
-    updateSession(pana, pana_session);
+    updateSession((char *)msg, pana_session);
     //Check if there is some alarm
-	if (pana_params.id_alarm == RETR_ALARM)
+	if (pana_params->id_alarm == RETR_ALARM)
 		pana_session->RTX_TIMEOUT=1;
     transition(pana_session);
     check_eap_status(pana_session);
@@ -425,7 +427,7 @@ void* handle_worker(void* data) {
 #endif
 
     /* do forever.... */
-    while (1) {
+    while (!fin) {
 #ifdef DEBUG
         fprintf(stderr, "DEBUG: thread '%d' tries to get a task.\n", thread_id);
 #endif
@@ -465,8 +467,12 @@ void* handle_worker(void* data) {
 
 void* handle_network_management() {
     
+    //To handle exit signals
+    signal(SIGINT, signal_handler);
+    signal(SIGQUIT, signal_handler);
+    
     int radius_sock=0; //Init it to a non-valid value
-    int eap_ll_sock;
+    int eap_ll_sock=0;
     struct sockaddr_in sa;
     fd_set mreadset; /*master read set*/
 
@@ -508,11 +514,12 @@ void* handle_network_management() {
     u8 udp_packet[MAX_DATA_LEN];
     struct sockaddr_in eap_ll_dst_addr, radius_dst_addr;
     int addr_size;
-    struct pana_func_paramater pana_params;
+    //fixme debería hacerse lo mismo para radius que para pana?
+    struct pana_func_parameter *pana_params;
     struct radius_func_parameter radius_params;
-    panaMessage *pana;
+    pana *msg;
 
-    while (1) {
+    while (!fin) {
         FD_ZERO(&mreadset);
         FD_SET(radius_sock, &mreadset);
         FD_SET(eap_ll_sock, &mreadset);
@@ -524,17 +531,19 @@ void* handle_network_management() {
                 addr_size = sizeof (eap_ll_dst_addr);
                 int length = recvfrom(eap_ll_sock, udp_packet, sizeof (udp_packet), 0, (struct sockaddr *) &(eap_ll_dst_addr), (socklen_t *)&(addr_size));
                 if (length > 0) {
-                    //Unserealizes the packet
-                    pana = NULL;
-                    pana = unserializePana((char *) udp_packet, length);
+                    //FIXME: Cuándo se libera esto
+                    msg = calloc(length,1);
+                    memcpy(msg,udp_packet,length);
                     //The message will be checked later when the session
                     //is updated
                     //Init the pana function parameters
-                    pana_params.pana_msg = pana;
-                    pana_params.eap_ll_dst_addr = &(eap_ll_dst_addr);
-                    pana_params.sock = eap_ll_sock;
-
-                    add_task(process_receive_eap_ll_msg, &pana_params, ntohl(pana->header.session_id));
+                    //FIXME: Cuándo se libera esto
+                    pana_params = calloc(sizeof(struct pana_func_parameter),1);
+                    pana_params->pana_msg = msg;
+                    pana_params->eap_ll_dst_addr = &(eap_ll_dst_addr);
+                    pana_params->sock = eap_ll_sock;
+					pana_params->id_alarm = -1;
+                    add_task(process_receive_eap_ll_msg, pana_params, ntohl(msg->session_id));
                     
                 } else fprintf(stderr,"recvfrom returned ret=%d, errno=%d\n", length, errno);
             }
@@ -569,7 +578,7 @@ void* handle_network_management() {
 
 void* handle_alarm_management(void* none) {
 
-    while (1){
+    while (!fin){
 		struct retr_func_parameter retrans_params;
 		struct timeval tv;
 		gettimeofday(&tv,NULL);
@@ -668,13 +677,10 @@ void* process_retr(void *arg){
 int main(int argc, char* argv[]) {
 
     // Variables needed to use threads
-    int num_threads = NUM_WORKERS +1; /* Workers & network manager */
-    int i; /* loop counter          */
-    int thr_id[num_threads]; /* thread IDs            */
-    pthread_t p_threads[num_threads]; /* thread's structures   */
-    
-    //Signal for the alarm manager
-    //signal(SIGALRM, handle_alarm_management);
+    int num_threads = NUM_WORKERS +1; // Workers & network manager
+    int i; //loop counter
+    int thr_id[num_threads]; // thread IDs
+    pthread_t p_threads[num_threads]; // thread's structures
 
 	printf("\n");
 	printf(PACKAGE_NAME);
@@ -689,9 +695,6 @@ int main(int argc, char* argv[]) {
 	//Calculates a random value as global key_id value
 	generateRandomKeyID(&global_key_id);
 
-	
-    //FIXME: Intentar quitar la cutrez de que la tabla de estados haya que inicializarla con un
-    // contexto pana
     // Init the paa state machine
     pana_ctx * current_pana_ctx = NULL;
     pana_ctx pana_session;
@@ -729,6 +732,84 @@ int main(int argc, char* argv[]) {
 	handle_network_management();
     printf("PANA: The server has stopped.\n");
 
+// TODO : Before ending:
+// - Send PTR to all clients if needed
+// - Free al memory allocated
+	free(global_key_id);
+	
+	//Free possible remaining alarms
+	#ifdef DEBUG
+	fprintf(stderr,"DEBUG: Going to free alarms.\n");
+	#endif
+	/*pthread_mutex_lock(&alarm_list_mutex);
+	struct lalarm * alarm_actual = list_alarms;
+	while(alarm_actual != NULL){
+		#ifdef DEBUG
+		fprintf(stderr,"DEBUG: Freeing alarm: %d.\n",alarm_actual->id);
+		#endif
+		struct lalarm * last = alarm_actual;
+		alarm_actual = last->sig;
+		free(last);
+	}
+	pthread_mutex_unlock(&alarm_list_mutex);*/
+	
+	//Free remaining tasks
+	#ifdef DEBUG
+	fprintf(stderr,"DEBUG: Going to free tasks.\n");
+	#endif
+	/*list_tasks_mutex;
+	pthread_mutex_lock(&list_tasks_mutex);
+	struct task_list * actual = list_alarms;
+	while(actual != NULL){
+		#ifdef DEBUG
+		fprintf(stderr,"DEBUG: Freeing task of session: %d.\n",actual->id_session);
+		#endif
+		struct task_list * last = actual;
+		actual = last->next;
+		//free(last);
+	}
+	pthread_mutex_unlock(&list_tasks_mutex);*/
+	
+	//Free PANA sessions
+	#ifdef DEBUG
+	fprintf(stderr,"DEBUG: Going to free sessions.\n");
+	#endif
+	pthread_mutex_lock(&list_sessions_mutex);
+	struct pana_ctx_list * ses_actual = list_pana_sessions;
+	while ( ses_actual != NULL ){
+		#ifdef DEBUG
+		fprintf(stderr,"DEBUG: Freeing session: %d.\n",ses_actual->pana_session->session_id);
+		#endif
+		if(ses_actual->pana_session->key_id!=NULL){
+			free(ses_actual->pana_session->key_id);
+		}
+		if(ses_actual->pana_session->key_id!=NULL){
+			free(ses_actual->pana_session->retr_msg);
+		}
+		if(ses_actual->pana_session->I_PAR!=NULL){
+			free(ses_actual->pana_session->I_PAR);
+		}
+		if(ses_actual->pana_session->I_PAN!=NULL){
+			free(ses_actual->pana_session->I_PAN);
+		}
+		if(ses_actual->pana_session->PaC_nonce!=NULL){
+			free(ses_actual->pana_session->PaC_nonce);
+		}
+		if(ses_actual->pana_session->PAA_nonce!=NULL){
+			free(ses_actual->pana_session->PAA_nonce);
+		}
+		if(ses_actual->pana_session->msk_key!=NULL){
+			free(ses_actual->pana_session->msk_key);
+		}
+		/* char *LAST_MESSAGE;*/
+		
+		eap_auth_deinit(&(ses_actual->pana_session->eap_ctx));
+		struct pana_ctx_list * last = ses_actual;
+		ses_actual = last->next;
+		free(last);
+	}
+	pthread_mutex_unlock(&list_sessions_mutex);
+	
     return 0;
 }
 

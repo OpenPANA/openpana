@@ -203,38 +203,57 @@ void disconnect() {
 #ifdef DEBUG
     fprintf(stderr,"DEBUG: disconnect function \n");
 #endif
-
+#ifdef ISCLIENT
 	if(current_session->LAST_MESSAGE !=NULL){
-		free(current_session->LAST_MESSAGE);
+		//FIXME: Hay que ponerlo? creo que no hace falta
+		//free(current_session->LAST_MESSAGE);
 	}
 	if(current_session->key_id !=NULL){
+		#ifdef DEBUG
+		fprintf(stderr,"DEBUG: freeing key_id \n");
+		#endif
 		free(current_session->key_id);
 	}
     if(current_session->msk_key !=NULL){
+		#ifdef DEBUG
+		fprintf(stderr,"DEBUG: freeing msk_key \n");
+		#endif
 		free(current_session->msk_key);
 	}
     if(current_session->I_PAR !=NULL){
+		#ifdef DEBUG
+		fprintf(stderr,"DEBUG: freeing I_PAR \n");
+		#endif
 		free(current_session->I_PAR);
 	}
-    if(current_session->I_PAN !=NULL){
+    if(current_session->I_PAN !=NULL){	
+		#ifdef DEBUG
+		fprintf(stderr,"DEBUG: freeing I_PAN \n");
+		#endif
 		free(current_session->I_PAN);
 	}
     if(current_session->PAA_nonce !=NULL){
+		#ifdef DEBUG
+		fprintf(stderr,"DEBUG: freeing PAA_Nonce \n");
+		#endif
 		free(current_session->PAA_nonce);
 	}
     if(current_session->PaC_nonce !=NULL){
+		#ifdef DEBUG
+		fprintf(stderr,"DEBUG: freeing PaC_nonce \n");
+		#endif
 		free(current_session->PaC_nonce);
 	}
 	
-#ifdef ISCLIENT
+
     printf("PANA: Client disconnected.\n");
     exit(0);
     //free(current_session->avp_data);
 #endif
 
-/*#ifdef ISSERVER
-    free(current_session);
-#endif*/
+#ifdef ISSERVER
+    //free(current_session);
+#endif
 }
 
 int authorize() {
@@ -260,6 +279,8 @@ int authorize() {
 void retransmit() {
 #ifdef DEBUG
     fprintf(stderr,"DEBUG: retransmit function \n");
+    fprintf(stderr,"DEBUG: Message to retransmit: \n");
+    debug_pana((pana*)current_session->retr_msg);
 #endif
 
     current_session->RTX_TIMEOUT = 0;
@@ -310,14 +331,6 @@ void rtxTimerStop() {
         return;
     }
     pana_ctx * session = get_alarm_session(current_session->list_of_alarms, current_session->session_id, RETR_ALARM);
-	
-	if (!isEqual(session, current_session)){
-	#ifdef DEBUG
-		fprintf(stderr, "DEBUG: rtxTimerStop: La sesión asociada a la alarma no es la misma que la actual\n");
-	#endif
-		return;	
-	}
-
 }
 
 void sessionTimerReStart(int timeout) {
@@ -326,13 +339,6 @@ void sessionTimerReStart(int timeout) {
 #endif
 	//Get the alarm of this session
     pana_ctx * session = get_alarm_session(current_session->list_of_alarms, current_session->session_id, SESS_ALARM);
-	
-	if (!isEqual(session, current_session)){
-	#ifdef DEBUG
-		fprintf(stderr, "DEBUG: sessionTimerReStart: La sesión asociada a la alarma no es la misma que la actual\n");
-	#endif
-		return;	
-	}
 	
 	//Add the alarm with the new expiration time
 	add_alarma(current_session->list_of_alarms, current_session, timeout, SESS_ALARM);
@@ -346,11 +352,11 @@ void eapRestart() {
 	//It is necesary reset the session's variables used to generate the pana auth key
 	// due to the eap conversation will be reinited
 	
-	if (current_session->msk_key != NULL) free(current_session->msk_key);
+	if (current_session->msk_key != NULL) //free(current_session->msk_key);
 	current_session->msk_key = NULL;
 	current_session->key_len = 0;
 	/*if (current_session->avp_data!=NULL){
-		free(current_session->avp_data[AUTH_AVP]);
+		//free(current_session->avp_data[AUTH_AVP]);
 		current_session->avp_data[AUTH_AVP] = NULL;
 	}*/
 	
@@ -376,7 +382,7 @@ void txEAP() {
 #endif
     //Get the EAP_Payload Avp
 
-    avp * elmnt = getAvp(current_session->LAST_MESSAGE, EAPPAYLOAD_AVP);
+    avp_pana * elmnt = (avp_pana *) getAvp(current_session->LAST_MESSAGE, EAPPAYLOAD_AVP);
     if (elmnt==NULL){
 		printf("txEAP: There isn't EAP Payload AVP.\n");
 		return;
@@ -385,16 +391,16 @@ void txEAP() {
     //The Request value of EAPsession must be set to true
 #ifdef ISCLIENT //only for PANA clients
     eap_peer_set_eapReq(&(current_session->eap_ctx), TRUE);
-    const u8 * elmntvalue = (const u8 *) &(elmnt->value);
-    eap_peer_set_eapReqData(&(current_session->eap_ctx), elmntvalue, ntohs(elmnt->avp_length));
+    const u8 * elmntvalue = (const u8 *) ((char*)elmnt)+sizeof(avp_pana);
+    eap_peer_set_eapReqData(&(current_session->eap_ctx), elmntvalue, ntohs(elmnt->length));
     eap_peer_step(&(current_session->eap_ctx));
 #endif
 
 	//The Response value of EAPsession must be set to true
 #ifdef ISSERVER //only for PANA servers
     eap_auth_set_eapResp(&(current_session->eap_ctx), TRUE);
-    const u8 * elmntvalue = (const u8 *) &(elmnt->value);
-    eap_auth_set_eapRespData(&(current_session->eap_ctx), elmntvalue, ntohs(elmnt->avp_length));
+    const u8 * elmntvalue = (const u8 *) ((char*)elmnt)+sizeof(avp_pana);
+    eap_auth_set_eapRespData(&(current_session->eap_ctx), elmntvalue, ntohs(elmnt->length));
     eap_auth_step(&(current_session->eap_ctx));
     
     add_alarma(current_session->list_of_alarms, current_session, 1, RETR_AAA); //FIXME: El tiempo de retransmsiones
@@ -410,17 +416,8 @@ void sessionTimerStop() {
 #ifdef DEBUG
     fprintf(stderr,"DEBUG: sessionTimerStop function\n"); 
 #endif
-
 	//Get the alarm of this session
 	pana_ctx * session = get_alarm_session(current_session->list_of_alarms, current_session->session_id,SESS_ALARM);
-
-	if (!isEqual(session, current_session)){
-	#ifdef DEBUG
-		fprintf(stderr, "DEBUG: sessionTimerStop: La sesión asociada a la alarma no es la misma que la actual\n");
-	#endif
-		return;	
-	}
-	
 #ifdef DEBUG
     fprintf(stderr, "DEBUG: sessionTimerStop finished.\n"); 
 #endif
@@ -464,7 +461,7 @@ int keyAvailable() {
 	
 	#ifdef DEBUG
 	if(current_session->avp_data[AUTH_AVP] == NULL)
-		fprintf(stderr,"DEBUG: KeyAvailable: AUTH KEY == NULL\n");
+		fprintf(stderr,"DEBUG: KeyAvailable: AUTH KEY equals NULL\n");
 	#endif
 	
 	//If the state machine already has a PANA_AUTH_KEY, it returns TRUE.
@@ -489,7 +486,10 @@ int keyAvailable() {
 			//The key and its length must be copied into the pana context
 			pana_ctx * session = current_session;
 			session->key_len = key_len;
-
+			if(session->msk_key != NULL){
+				free(session->msk_key);
+				session->msk_key = NULL;
+			}
 			session->msk_key = calloc(1, key_len);
 			if(session->msk_key == NULL){
 				fprintf(stderr,"ERROR: Out of memory.\n");
@@ -499,13 +499,26 @@ int keyAvailable() {
 
 #ifdef DEBUG
 			//Prints the EAP MSK key for debugging purposes
-			unsigned int i;
+			/*unsigned int i;
 			for (i = 0; i < key_len; i++)
 				fprintf(stderr,"%02x", key[i]);
-			fprintf(stderr,"\n");
+			fprintf(stderr,"\n");*/
 #endif
 			//If an MSK is retrieved, it computes a PANA_AUTH_KEY from
 			//the MSK and returns TRUE
+			
+			//First, the Key-Id of the new MSK is generated (only in server)
+			//by increasing the global key_id.
+			/*#ifdef ISSERVER
+			if(session->key_id != NULL){
+				free(session->key_id);
+			}
+			session->key_id = malloc(session->key_id_length);
+			
+			increase_one(session->server_ctx.global_key_id, session->key_id_length);
+			memcpy(session->key_id, session->server_ctx.global_key_id, session->key_id_length);
+			#endif*/
+			//Afterwards we generate the PANA_AUTH_KEY
 			u8 * new_auth_key = NULL;
 			new_auth_key = generateAUTH(current_session);
 			if(new_auth_key != NULL){

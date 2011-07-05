@@ -119,7 +119,7 @@ typedef struct {
     /**
      * This event variable is set with the last Pana Message received
      */
-    panaMessage *LAST_MESSAGE;
+    char *LAST_MESSAGE;
     /**
      * This event variable is set to TRUE when the specified PANA message
      * is received from its peering PANA entity. The "flag" contains a
@@ -245,7 +245,7 @@ typedef struct {
 /** Initializes the pana_ctx structure refered to a new PANA session. */
 void initSession(pana_ctx * pana_session);
 /** Updates the session given a PANA message.*/
-void updateSession(panaMessage *msg, pana_ctx *pana_session);
+void updateSession(char *message, pana_ctx *pana_session);
 /** Resets the PANA session. */ 
 void resetSession();
 #endif
