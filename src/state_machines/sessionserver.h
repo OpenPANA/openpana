@@ -22,7 +22,17 @@
 #ifndef SESSIONSERVER
 #define SESSIONSERVER
 
-#include "../configserver.h"
+
+/** Configurable values loaded from xml configuration file (config.xml)
+ *
+ */
+extern int PRF_HMAC_SHA1;
+extern int AUTH_HMAC_SHA1_160;
+extern int SRCPORT;
+extern int LIFETIME_SESSION_TIMEOUT_CONFIG;
+extern int LIFETIME_SESSION_CLIENT_TIMEOUT_CONFIG;
+extern int TIME_PCI;
+extern int NUM_WORKERS;
 /**
  * PANA context only for PAAs.
  * */

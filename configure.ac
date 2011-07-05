@@ -53,6 +53,10 @@ AC_CHECK_LIB([pthread], [pthread_mutex_lock])
 AC_CHECK_LIB([readline], [main])
 # FIXME: Replace `main' with a function in `-lssl':
 AC_CHECK_LIB([ssl], [main])
+AC_CHECK_LIB([xml2], [xmlCleanupParser],[],[
+        echo "Error! You need to have xml2 around."
+        exit -1
+        ])
 
 # Checks for header files.
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h inttypes.h netdb.h netinet/in.h stddef.h stdint.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h syslog.h unistd.h])
