@@ -17,7 +17,8 @@ PAA_SOURCES               =	state_machines/session.c \
 				panamessages.c \
 				lalarm.c \
 				panautils.c \
-				mainservidor.c
+				mainservidor.c \
+				xsltproc.c
 PAA_CPPFLAGS =		$(AM_CPPFLAGS) -D ISSERVER
 
 ### library dependencies ###
@@ -34,7 +35,8 @@ PaC_SOURCES               =	state_machines/session.c \
 				panamessages.c \
 				lalarm.c \
 				panautils.c \
-				maincliente.c
+				maincliente.c \
+				xsltproc.c
 PaC_CPPFLAGS =		$(AM_CPPFLAGS) -D ISCLIENT
 
 ### library dependencies ###

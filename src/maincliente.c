@@ -39,6 +39,7 @@
 #include "./libeapstack/eap_peer_interface.h"
 #include "maincliente.h"
 #include "lalarm.h"
+#include "xsltproc.h"
 
 
 static int signal_received = FALSE;
@@ -93,6 +94,10 @@ void* handle_alarm_management(void* none) {
 }
 
 int main(int argc, char *argv[]) {
+
+
+	//First of all, the config must be set.
+	create_client_config();
 
     struct sockaddr_in eap_peer_ll_sockaddr, eap_auth_ll_sockaddr;
     fd_set readfds, exceptfds; //FD sets to use with select

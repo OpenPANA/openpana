@@ -3,7 +3,7 @@
  *  
  * 	Configurable values to set client's options.
  *
- *  Copyright (C) Pedro Moreno Sánchez & Francisco Vidal Meca on 18/03/11.
+ *  Copyright (C) Pedro Moreno Sánchez and Francisco Vidal Meca on 18/03/11.
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  *  GNU General Public License for more details.
 
  *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *  along with this program.  If not, see "http://www.gnu.org/licenses/"
  *  
  *  
  *  https://sourceforge.net/projects/openpana/
@@ -42,9 +42,15 @@ established, the lifetime SHOULD be set to a value that allows the
 PaC to detect a failed session in a reasonable amount of time.
 */
 /** Time necessary to do the authentication. */
-#define FAILED_SESS_TIMEOUT_CONFIG 150
+#define FAILED_SESS_TIMEOUT_CONFIG 150 
 
+/** PRF ALGORITHM identifier*/
 #define PRF_HMAC_SHA1	2
+/** INTEGRITY ALGORITHM identifier*/
 #define AUTH_HMAC_SHA1_160	7
 
+
+
 #endif
+
+
