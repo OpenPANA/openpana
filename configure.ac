@@ -51,10 +51,12 @@ AC_CHECK_LIB([pcsclite], [main])
 AC_CHECK_LIB([pthread], [pthread_mutex_lock])
 # FIXME: Replace `main' with a function in `-lreadline':
 AC_CHECK_LIB([readline], [main])
-# FIXME: Replace `main' with a function in `-lssl':
-AC_CHECK_LIB([ssl], [main])
+AC_CHECK_LIB([ssl], [HMAC],[],[
+        echo "Error! You need to have ssl to continue."
+        exit -1
+        ])
 AC_CHECK_LIB([xml2], [xmlCleanupParser],[],[
-        echo "Error! You need to have xml2 around."
+        echo "Error! You need to have xml2 to continue."
         exit -1
         ])
 
