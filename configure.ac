@@ -124,10 +124,10 @@ else
 fi
 
 ##########################################################################
-
 AC_SUBST([AM_CFLAGS])
 # Set the preprocessor flags for the entire project
-AC_SUBST(AM_CPPFLAGS, " -L./state_machines -L./libeapstack -I./wpa_supplicant/src -I./wpa_supplicant/src/utils  -I./wpa_supplicant/src -I./wpa_supplicant/src/utils")
+XML_FLAGS=$(xml2-config --cflags) # Adds the includes needed to build using xml2
+AC_SUBST(AM_CPPFLAGS, " -L./state_machines -L./libeapstack -I./wpa_supplicant/src -I./wpa_supplicant/src/utils  -I./wpa_supplicant/src -I./wpa_supplicant/src/utils $XML_FLAGS ")
 
 ##To include empty targets on libeapstack, in order to allow distribution
 AC_CONFIG_FILES(src/libeapstack/Makefile)
