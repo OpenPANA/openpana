@@ -43,12 +43,10 @@ parse_xml_client(xmlNode * a_node)
     for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
         if (cur_node->type == XML_ELEMENT_NODE) {
 			if (strcmp(cur_node->name, "PAC")==0) {
-				printf("He encontrado al cliente\n");
 				paa=0;
 				pac=1;
 			}
 			else if (strcmp(cur_node->name, "PAA")==0) {
-				printf("Aqui tengo que coger todos los valores del PAA\n");
 				paa=1;
 				pac=0;
 			}
@@ -57,75 +55,34 @@ parse_xml_client(xmlNode * a_node)
 
 					DESTIP = malloc(16*sizeof(char));
 					sprintf(DESTIP, "%s", xmlNodeGetContent(cur_node));
-					printf("Esta es la ip del servidor: %s \n", xmlNodeGetContent(cur_node));
 				}
 				else if (pac) {
 					LOCALIP = malloc(16*sizeof(char));
 					sprintf(LOCALIP, "%s", xmlNodeGetContent(cur_node));
-					printf("Esta es la ip del cliente: %s \n", xmlNodeGetContent(cur_node));
 				}
 			}
 			else if (strcmp(cur_node->name, "PORT")==0){
 				if (paa){
 
 					sscanf(xmlNodeGetContent(cur_node), "%d", &DSTPORT);
-					printf("Esta es el puerto del servidor: %s \n", xmlNodeGetContent(cur_node));
 				}
 				else if (pac) {
 					sscanf(xmlNodeGetContent(cur_node), "%d", &SRCPORT);
-					printf("Esta es el puerto del cliente: %s \n", xmlNodeGetContent(cur_node));
 				}
 			}
 			else if (strcmp(cur_node->name, "TIMEOUT")==0){
-				if (paa){
-					printf("Esta es el timeout del servidor: %s \n", xmlNodeGetContent(cur_node));
-				}
-				else if (pac) {
+				if (pac) {
 					sscanf(xmlNodeGetContent(cur_node), "%d", &FAILED_SESS_TIMEOUT_CONFIG);
-					printf("Esta es el timeout del cliente: %s \n", xmlNodeGetContent(cur_node));
 				}
 			}
 			else if (strcmp(cur_node->name, "PRF")==0){
-				if (paa){
-					printf("Esta es el prf del servidor: %s \n", xmlNodeGetContent(cur_node));
-				}
-				else if (pac) {
+				if (pac) {
 					sscanf(xmlNodeGetContent(cur_node), "%d", &PRF_HMAC_SHA1);
-					printf("Esta es el prf del cliente: %s \n", xmlNodeGetContent(cur_node));
 				}
 			}
 			else if (strcmp(cur_node->name, "INTEGRITY")==0){
-				if (paa){
-					printf("Esta es el integrity del servidor: %s \n", xmlNodeGetContent(cur_node));
-				}
-				else if (pac) {
+				if (pac) {
 					sscanf(xmlNodeGetContent(cur_node), "%d", &AUTH_HMAC_SHA1_160);
-					printf("Esta es el integrity del cliente: %s \n", xmlNodeGetContent(cur_node));
-				}
-			}
-			else if (strcmp(cur_node->name, "TIMEOUT_CLIENT")==0){
-				if (paa){
-					printf("Esta es el timeout_client del servidor: %s \n", xmlNodeGetContent(cur_node));
-				}
-				else if (pac) {
-					printf("Este valor no debería ser leído: %s \n", xmlNodeGetContent(cur_node));
-				}
-			}
-			else if (strcmp(cur_node->name, "WORKERS")==0){
-				if (paa){
-					printf("Esta es el workers del servidor: %s \n", xmlNodeGetContent(cur_node));
-				}
-				else if (pac) {
-					printf("Este valor no debería ser leído: %s \n", xmlNodeGetContent(cur_node));
-				}
-			}
-			
-			else if (strcmp(cur_node->name, "TIME_ANSWER")==0){
-				if (paa){
-					printf("Esta es el time_answer del servidor: %s \n", xmlNodeGetContent(cur_node));
-				}
-				else if (pac) {
-					printf("Este valor no debería ser leído: %s \n", xmlNodeGetContent(cur_node));
 				}
 			}
         }
@@ -153,85 +110,47 @@ parse_xml_server(xmlNode * a_node)
     for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
         if (cur_node->type == XML_ELEMENT_NODE) {
 			if (strcmp(cur_node->name, "PAC")==0) {
-				printf("He encontrado al cliente\n");
 				paa=0;
 				pac=1;
 			}
 			else if (strcmp(cur_node->name, "PAA")==0) {
-				printf("Aqui tengo que coger todos los valores del PAA\n");
 				paa=1;
 				pac=0;
-			}
-			else if (strcmp(cur_node->name, "IP")==0){
-				if (paa){
-					printf("Esta es la ip del servidor: %s \n", xmlNodeGetContent(cur_node));
-				}
-				else if (pac) {
-					printf("Esta es la ip del cliente: %s \n", xmlNodeGetContent(cur_node));
-				}
 			}
 			else if (strcmp(cur_node->name, "PORT")==0){
 				if (paa){
 					sscanf(xmlNodeGetContent(cur_node), "%d", &SRCPORT);
-					printf("Esta es el puerto del servidor: %s \n", xmlNodeGetContent(cur_node));
-				}
-				else if (pac) {
-					printf("Esta es el puerto del cliente: %s \n", xmlNodeGetContent(cur_node));
 				}
 			}
 			else if (strcmp(cur_node->name, "TIMEOUT")==0){
 				if (paa){
 					sscanf(xmlNodeGetContent(cur_node), "%d", &LIFETIME_SESSION_TIMEOUT_CONFIG);
-					printf("Esta es el timeout del servidor: %s \n", xmlNodeGetContent(cur_node));
-				}
-				else if (pac) {
-					printf("Esta es el timeout del cliente: %s \n", xmlNodeGetContent(cur_node));
 				}
 			}
 			else if (strcmp(cur_node->name, "PRF")==0){
 				if (paa){
 					sscanf(xmlNodeGetContent(cur_node), "%d", &PRF_HMAC_SHA1);
-					printf("Esta es el prf del servidor: %s \n", xmlNodeGetContent(cur_node));
-				}
-				else if (pac) {
-					printf("Esta es el prf del cliente: %s \n", xmlNodeGetContent(cur_node));
 				}
 			}
 			else if (strcmp(cur_node->name, "INTEGRITY")==0){
 				if (paa){
 					sscanf(xmlNodeGetContent(cur_node), "%d", &AUTH_HMAC_SHA1_160);
-					printf("Esta es el integrity del servidor: %s \n", xmlNodeGetContent(cur_node));
-				}
-				else if (pac) {
-					printf("Esta es el integrity del cliente: %s \n", xmlNodeGetContent(cur_node));
 				}
 			}
 			else if (strcmp(cur_node->name, "TIMEOUT_CLIENT")==0){
 				if (paa){
 					sscanf(xmlNodeGetContent(cur_node), "%d", &LIFETIME_SESSION_CLIENT_TIMEOUT_CONFIG);
-					printf("Esta es el timeout_client del servidor: %s \n", xmlNodeGetContent(cur_node));
-				}
-				else if (pac) {
-					printf("Este valor no debería ser leído: %s \n", xmlNodeGetContent(cur_node));
 				}
 			}
 			else if (strcmp(cur_node->name, "WORKERS")==0){
 				if (paa){
 					sscanf(xmlNodeGetContent(cur_node), "%d", &NUM_WORKERS);
-					printf("Esta es el workers del servidor: %s \n", xmlNodeGetContent(cur_node));
-				}
-				else if (pac) {
-					printf("Este valor no debería ser leído: %s \n", xmlNodeGetContent(cur_node));
 				}
 			}
 			
 			else if (strcmp(cur_node->name, "TIME_ANSWER")==0){
 				if (paa){
 					sscanf(xmlNodeGetContent(cur_node), "%d", &TIME_PCI);
-					printf("Esta es el time_answer del servidor: %s \n", xmlNodeGetContent(cur_node));
-				}
-				else if (pac) {
-					printf("Este valor no debería ser leído: %s \n", xmlNodeGetContent(cur_node));
 				}
 			}
         }
