@@ -32,6 +32,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <math.h>
 
 #include "panautils.h"
 #include "prf_plus.h"
@@ -597,4 +598,17 @@ void debug_avp(avp_pana * datos){
 		fprintf(stderr,"\n+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
     }
     #endif
+}
+
+int Hex2Dec (char * value, int length) {
+	int res = 0;
+	int j=0;
+	int number;
+
+	for (int i =(length-1); i>=0; i--){
+		number = (int)value[i];
+		res = res + number * ((int) pow(16,j));
+		j++;
+	}
+	return res;
 }

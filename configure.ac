@@ -53,6 +53,10 @@ AC_CHECK_LIB([pthread], [pthread_mutex_lock])
 AC_CHECK_LIB([readline], [main])
 # FIXME: Replace `main' with a function in `-lssl':
 AC_CHECK_LIB([ssl], [main])
+AC_CHECK_LIB([xml2], [xmlCleanupParser],[],[
+        echo "Error! You need to have xml2 around."
+        exit -1
+        ])
 
 # Checks for header files.
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h inttypes.h netdb.h netinet/in.h stddef.h stdint.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h syslog.h unistd.h])
@@ -120,10 +124,10 @@ else
 fi
 
 ##########################################################################
-
 AC_SUBST([AM_CFLAGS])
 # Set the preprocessor flags for the entire project
-AC_SUBST(AM_CPPFLAGS, " -L./state_machines -L./libeapstack -I./wpa_supplicant/src -I./wpa_supplicant/src/utils  -I./wpa_supplicant/src -I./wpa_supplicant/src/utils")
+XML_FLAGS=$(xml2-config --cflags) # Adds the includes needed to build using xml2
+AC_SUBST(AM_CPPFLAGS, " -L./state_machines -L./libeapstack -I./wpa_supplicant/src -I./wpa_supplicant/src/utils  -I./wpa_supplicant/src -I./wpa_supplicant/src/utils $XML_FLAGS ")
 
 ##To include empty targets on libeapstack, in order to allow distribution
 AC_CONFIG_FILES(src/libeapstack/Makefile)

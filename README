@@ -49,15 +49,28 @@ o STANDARD REFERENCES
 
 o Install
 
- 1. OpenPANA probably requires following libraries:
+ 1. OpenPANA probably requires the following libraries:
 
   - OpennSSL library
     http://wwww.openssl.org
 
+  - Libxml2
+    http://xmlsoft.org/
+
  2. Configuring OpenPANA:
-    In order to change the default settings, you can modify the following files:
-  	./src/configclient.h
-  	./src/configserver.h
+
+    Default settings can be changed by modifying the ./src/config.xml file.
+    - Common Settings:
+	- IP <IP>
+	- Port <PORT>
+	- Session Timeout: Lifetime of the session. <SESSION><TIMEOUT>
+	- PRF Algorithms: Supported PRF Algorithms. <ALGORITHMS><PRF>
+	- Integrity Algorithms: Supported Integrity Algorithms. <ALGORITHMS><INTEGRITY>
+
+    - PAA's Settings <PAA>
+	- Client's Timeout: Seconds before client's session expires. <TIMEOUT_CLIENT>
+	- Threads to use: Number of threads used to manage tasks on server. <WORKERS>
+    	- PCI expire time: Time while a session is on the server without answer for the first PAR message. <TIME_ANSWER>
 
  3. Building the OpenPANA softwares:
 
@@ -67,7 +80,7 @@ o Install
     OpenPANA will require the following certificate files in ./src application's folder:
     	- ca.pem 
     	- client.pem
-    	- client.pk8 (Can be obtained from client.key using: openssl pkcs8 -topk8 -in client.key -out client.pk8 -nocrypt
+    	- client.pk8 (Can be obtained from client.key using: openssl pkcs8 -topk8 -in client.key -out client.pk8 -nocrypt )
   
    An example of certificates and a working eap.conf (to use with freeRadius) can be found in radius_conf folder of svn root.
    
@@ -89,8 +102,7 @@ o Contact Points
 o  License 
 
  Basically this software suites follows the GNU GPL v3 license.
- In short, the code is freely available but with
- no warranty.
+ In short, the code is freely available but with no warranty.
 
 
 o Initial Authors

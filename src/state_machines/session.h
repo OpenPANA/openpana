@@ -23,17 +23,40 @@
 #define SESSION
 
 #include <pthread.h>
+#include <stdlib.h>
+#include <stdio.h>
 #ifdef ISCLIENT //Include session variables only for PANA clients
 #include "sessionclient.h"
 #include "../libeapstack/eap_peer_interface.h"
+/**
+ * Declaration of client configurable variables
+ * */
+int PRF_HMAC_SHA1;
+int AUTH_HMAC_SHA1_160;
+int FAILED_SESS_TIMEOUT_CONFIG;
+short SRCPORT;
+short DSTPORT;
+char* DESTIP;
+char* LOCALIP;
 #endif
 
 #ifdef ISSERVER //Include session variables only for PANA servers
 #include "sessionserver.h"
 #include "../libeapstack/eap_auth_interface.h"
+/**
+ * Declaration of client configurable variables
+ * */
+int PRF_HMAC_SHA1;
+int AUTH_HMAC_SHA1_160;
+int SRCPORT;
+int LIFETIME_SESSION_TIMEOUT_CONFIG;
+int LIFETIME_SESSION_CLIENT_TIMEOUT_CONFIG;
+int TIME_PCI;
+int NUM_WORKERS;
 #endif
 
 #include "../panamessages.h"
+#include "../loadconfig.h"
 
 /** Max Request retry attempts. See rfc 3315*/
 #define REQ_MAX_RC	10 

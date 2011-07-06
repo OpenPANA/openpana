@@ -143,6 +143,9 @@ char * getAvp(char *msg, int type);
  * */
 int hashAuth(char *msg, char* key, int key_len);
 
+//FIXME: Falta documentación. Pasa una cadena a número entero.
+int Hex2Dec (char * value, int length) ;
+
 //Debugging functions
 /** Debug function, shows in a friendly way the information contained in
  * a PANA message (includes AVPs in the value area).
@@ -153,4 +156,6 @@ void debug_pana(pana *hdr);
  * an AVP.
  * @param *datos AVP to be shown. */
 void debug_avp(avp_pana * datos);
+
+
 #endif
