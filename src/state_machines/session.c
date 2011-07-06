@@ -209,18 +209,34 @@ void updateSession(char *message, pana_ctx *pana_session) {
     //FIXME: Falta detectar el result-code
     char * attribute = getAvp(message, PRFALG_AVP);
     if (attribute != NULL) {
-        pana_session->prf_alg = (int) (*(attribute + sizeof(avp_pana)));
+		char* value =(((char*)attribute) + sizeof(avp_pana));
+
+		int number = Hex2Dec(value, 4);//FIXME: Magic number (4 porque es el tamaño del campo value)
+		if (number != PRF_HMAC_SHA1) {
+			fprintf(stderr, "ERROR: The prf algorithm specified: %d, is not supported\n", PRF_HMAC_SHA1);
+			exit(0);
+		}
+        pana_session->prf_alg = number;
     }
 	
 	attribute = getAvp(message, INTEGRITYALG_AVP);
     if (attribute != NULL) {
-        pana_session->integ_alg = (int) (*(attribute + sizeof(avp_pana)));
+		char* value =(((char*)attribute) + sizeof(avp_pana));
+
+		int number = Hex2Dec(value, 4);//FIXME: Magic number (4 porque es el tamaño del campo value)
+		if (number != AUTH_HMAC_SHA1_160) {
+			fprintf(stderr, "ERROR: The integrity algorithm specified: %d, is not supported\n", AUTH_HMAC_SHA1_160);
+			exit(0);
+		}
+        pana_session->integ_alg = number;
     }
     
     attribute = getAvp(message, SESSIONLIFETIME_AVP);
     if (attribute != NULL) {
-		
-        pana_session->LIFETIME_SESS_TIMEOUT = (int) *(attribute + sizeof(avp_pana));
+		char* value =(((char*)attribute) + sizeof(avp_pana));
+
+		int number = Hex2Dec(value, 4);//FIXME: Magic number (4 porque es el tamaño del campo value)
+        pana_session->LIFETIME_SESS_TIMEOUT = number;
 	}
 
 #ifdef DEBUG
