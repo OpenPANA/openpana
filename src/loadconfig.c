@@ -1,14 +1,27 @@
-/**
- * section: Tree
- * synopsis: Navigates a tree to print element names
- * purpose: Parse a file to a tree, use xmlDocGetRootElement() to
- *          get the root element, then walk the document and print
- *          all the element name in document order.
- * usage: tree1 filename_or_URL
- * test: tree1 test2.xml > tree1.tmp ; diff tree1.tmp tree1.res ; rm tree1.tmp
- * author: Dodji Seketeli
- * copy: see Copyright for the status of this software.
+/*
+ *  loadconfig.c
+ *  
+ * 	Contains functions wich performs the parser xml file for the PaC and PAA.
+ *
+ *  Copyright (C) Pedro Moreno Sánchez & Francisco Vidal Meca on 06/07/10.
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *  
+ *  
+ *  https://sourceforge.net/projects/openpana/
  */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -42,47 +55,47 @@ parse_xml_client(xmlNode * a_node)
 
     for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
         if (cur_node->type == XML_ELEMENT_NODE) {
-			if (strcmp(cur_node->name, "PAC")==0) {
+			if (strcmp((char*) cur_node->name, "PAC")==0) {
 				paa=0;
 				pac=1;
 			}
-			else if (strcmp(cur_node->name, "PAA")==0) {
+			else if (strcmp((char *)cur_node->name, "PAA")==0) {
 				paa=1;
 				pac=0;
 			}
-			else if (strcmp(cur_node->name, "IP")==0){
+			else if (strcmp((char *)cur_node->name, "IP")==0){
 				if (paa){
 
 					DESTIP = malloc(16*sizeof(char));
-					sprintf(DESTIP, "%s", xmlNodeGetContent(cur_node));
+					sprintf(DESTIP, "%s", (char*) xmlNodeGetContent(cur_node));
 				}
 				else if (pac) {
 					LOCALIP = malloc(16*sizeof(char));
 					sprintf(LOCALIP, "%s", xmlNodeGetContent(cur_node));
 				}
 			}
-			else if (strcmp(cur_node->name, "PORT")==0){
+			else if (strcmp((char *)cur_node->name, "PORT")==0){
 				if (paa){
 
-					sscanf(xmlNodeGetContent(cur_node), "%d", &DSTPORT);
+					sscanf((char *)xmlNodeGetContent(cur_node), "%hd", &DSTPORT);
 				}
 				else if (pac) {
-					sscanf(xmlNodeGetContent(cur_node), "%d", &SRCPORT);
+					sscanf((char *)xmlNodeGetContent(cur_node), "%hd", &SRCPORT);
 				}
 			}
-			else if (strcmp(cur_node->name, "TIMEOUT")==0){
+			else if (strcmp((char *)cur_node->name, "TIMEOUT")==0){
 				if (pac) {
-					sscanf(xmlNodeGetContent(cur_node), "%d", &FAILED_SESS_TIMEOUT_CONFIG);
+					sscanf((char *)xmlNodeGetContent(cur_node), "%d", &FAILED_SESS_TIMEOUT_CONFIG);
 				}
 			}
-			else if (strcmp(cur_node->name, "PRF")==0){
+			else if (strcmp((char *)cur_node->name, "PRF")==0){
 				if (pac) {
-					sscanf(xmlNodeGetContent(cur_node), "%d", &PRF_HMAC_SHA1);
+					sscanf((char *)xmlNodeGetContent(cur_node), "%d", &PRF_HMAC_SHA1);
 				}
 			}
-			else if (strcmp(cur_node->name, "INTEGRITY")==0){
+			else if (strcmp((char *)cur_node->name, "INTEGRITY")==0){
 				if (pac) {
-					sscanf(xmlNodeGetContent(cur_node), "%d", &AUTH_HMAC_SHA1_160);
+					sscanf((char *)xmlNodeGetContent(cur_node), "%d", &AUTH_HMAC_SHA1_160);
 				}
 			}
         }
@@ -105,52 +118,52 @@ static void
 parse_xml_server(xmlNode * a_node)
 {
 #ifdef ISSERVER
-    xmlNode *cur_node = NULL;
+    xmlNode *cur_node = a_node;
 
     for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
         if (cur_node->type == XML_ELEMENT_NODE) {
-			if (strcmp(cur_node->name, "PAC")==0) {
+			if (strcmp((char *)cur_node->name, "PAC")==0) {
 				paa=0;
 				pac=1;
 			}
-			else if (strcmp(cur_node->name, "PAA")==0) {
+			else if (strcmp((char *)cur_node->name, "PAA")==0) {
 				paa=1;
 				pac=0;
 			}
-			else if (strcmp(cur_node->name, "PORT")==0){
+			else if (strcmp((char *)cur_node->name, "PORT")==0){
 				if (paa){
-					sscanf(xmlNodeGetContent(cur_node), "%d", &SRCPORT);
+					sscanf((char *)xmlNodeGetContent(cur_node), "%d", &SRCPORT);
 				}
 			}
-			else if (strcmp(cur_node->name, "TIMEOUT")==0){
+			else if (strcmp((char *)cur_node->name, "TIMEOUT")==0){
 				if (paa){
-					sscanf(xmlNodeGetContent(cur_node), "%d", &LIFETIME_SESSION_TIMEOUT_CONFIG);
+					sscanf((char *)xmlNodeGetContent(cur_node), "%d", &LIFETIME_SESSION_TIMEOUT_CONFIG);
 				}
 			}
-			else if (strcmp(cur_node->name, "PRF")==0){
+			else if (strcmp((char *)cur_node->name, "PRF")==0){
 				if (paa){
-					sscanf(xmlNodeGetContent(cur_node), "%d", &PRF_HMAC_SHA1);
+					sscanf((char *)xmlNodeGetContent(cur_node), "%d", &PRF_HMAC_SHA1);
 				}
 			}
-			else if (strcmp(cur_node->name, "INTEGRITY")==0){
+			else if (strcmp((char *)cur_node->name, "INTEGRITY")==0){
 				if (paa){
-					sscanf(xmlNodeGetContent(cur_node), "%d", &AUTH_HMAC_SHA1_160);
+					sscanf((char *)xmlNodeGetContent(cur_node), "%d", &AUTH_HMAC_SHA1_160);
 				}
 			}
-			else if (strcmp(cur_node->name, "TIMEOUT_CLIENT")==0){
+			else if (strcmp((char *)cur_node->name, "TIMEOUT_CLIENT")==0){
 				if (paa){
-					sscanf(xmlNodeGetContent(cur_node), "%d", &LIFETIME_SESSION_CLIENT_TIMEOUT_CONFIG);
+					sscanf((char *)xmlNodeGetContent(cur_node), "%d", &LIFETIME_SESSION_CLIENT_TIMEOUT_CONFIG);
 				}
 			}
-			else if (strcmp(cur_node->name, "WORKERS")==0){
+			else if (strcmp((char *)cur_node->name, "WORKERS")==0){
 				if (paa){
-					sscanf(xmlNodeGetContent(cur_node), "%d", &NUM_WORKERS);
+					sscanf((char *)xmlNodeGetContent(cur_node), "%d", &NUM_WORKERS);
 				}
 			}
 			
-			else if (strcmp(cur_node->name, "TIME_ANSWER")==0){
+			else if (strcmp((char *)cur_node->name, "TIME_ANSWER")==0){
 				if (paa){
-					sscanf(xmlNodeGetContent(cur_node), "%d", &TIME_PCI);
+					sscanf((char *)xmlNodeGetContent(cur_node), "%d", &TIME_PCI);
 				}
 			}
         }

@@ -1,10 +1,37 @@
 <?xml version="1.0" encoding='ISO-8859-1'?>
+
+<!--
+ *  config.xml
+ *  
+ * 	Contains configurable values needed in the execution of
+ *  OpenPANA's software
+ *
+ *  Copyright (C) Pedro Moreno Sánchez & Francisco Vidal Meca on 06/07/2011.
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *  
+ *  
+ *  https://sourceforge.net/projects/openpana/
+-->
+
+
 <!DOCTYPE CONFIG SYSTEM "dtd.xml">
 
 <CONFIG>
 	<PAC> <!-- PaC configuration data -->
 		<IP>127.0.0.1</IP> 
-		<PORT>7777</PORT>
+		<PORT>7334</PORT>
 		<SESSION> 
 			<TIMEOUT>150</TIMEOUT> <!-- Time necessary to do the authentication. -->
 		</SESSION>
@@ -33,7 +60,6 @@
 		<SESSION>
 			<TIMEOUT>100</TIMEOUT> <!-- Timeout for expiring a session in the server -->
 		</SESSION>
-		<TIMEOUT_CLIENT>7</TIMEOUT_CLIENT> <!-- Timeout for expiring client session -->
 		<ALGORITHMS><!-- This tag must be set with the numbers of algorithms supported -->
 			<PRF>2</PRF> <!-- PRF ALGORITHM
 								1 PRF_HMAC_MD5
@@ -49,6 +75,7 @@
 											6 AUTH_HMAC_MD5_128
 											7 AUTH_HMAC_SHA1_160-->
 	</ALGORITHMS>
+	<TIMEOUT_CLIENT>7</TIMEOUT_CLIENT> <!-- Timeout for expiring client session -->
 	<WORKERS>3</WORKERS> <!-- Number of threads used to service requests -->
 	<TIME_ANSWER>3</TIME_ANSWER> <!-- Time while a session is on the server without answer for the first PAR message -->
 	</PAA>

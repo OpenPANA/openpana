@@ -1,6 +1,8 @@
 ChangeLog for OpenPANA
 
 Next - v0.1.1
+	* Developed a xml configuration file
+		- File ./src/config.xml contains configurable variables
 	* Minor bugfixes and deleted useless code:
 		- Key-Id generation fixed.
 		- First sequence number is a random value.
