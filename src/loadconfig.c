@@ -67,35 +67,49 @@ parse_xml_client(xmlNode * a_node)
 				if (paa){
 
 					DESTIP = malloc(16*sizeof(char));
-					sprintf(DESTIP, "%s", (char*) xmlNodeGetContent(cur_node));
+					xmlChar * value = (char *)xmlNodeGetContent(cur_node);
+					sprintf(DESTIP, "%s", value);
+					xmlFree(value);
 				}
 				else if (pac) {
 					LOCALIP = malloc(16*sizeof(char));
-					sprintf(LOCALIP, "%s", xmlNodeGetContent(cur_node));
+					xmlChar * value = (char *)xmlNodeGetContent(cur_node);
+					sprintf(LOCALIP, "%s", value);
+					xmlFree (value);
 				}
 			}
 			else if (strcmp((char *)cur_node->name, "PORT")==0){
 				if (paa){
-
-					sscanf((char *)xmlNodeGetContent(cur_node), "%hd", &DSTPORT);
+					char * value = (char *)xmlNodeGetContent(cur_node);
+					sscanf(value, "%hd", &DSTPORT);
+					xmlFree(value);
 				}
 				else if (pac) {
-					sscanf((char *)xmlNodeGetContent(cur_node), "%hd", &SRCPORT);
+					
+					xmlChar * value = (char *)xmlNodeGetContent(cur_node);
+					sscanf(value, "%hd", &SRCPORT);
+					xmlFree(value);
 				}
 			}
 			else if (strcmp((char *)cur_node->name, "TIMEOUT")==0){
 				if (pac) {
-					sscanf((char *)xmlNodeGetContent(cur_node), "%d", &FAILED_SESS_TIMEOUT_CONFIG);
+					char * value = (char *)xmlNodeGetContent(cur_node);
+					sscanf(value, "%d", &FAILED_SESS_TIMEOUT_CONFIG);
+					xmlFree(value);
 				}
 			}
 			else if (strcmp((char *)cur_node->name, "PRF")==0){
 				if (pac) {
-					sscanf((char *)xmlNodeGetContent(cur_node), "%d", &PRF_HMAC_SHA1);
+					char * value = (char *)xmlNodeGetContent(cur_node);
+					sscanf(value, "%d", &PRF_HMAC_SHA1);
+					xmlFree(value);
 				}
 			}
 			else if (strcmp((char *)cur_node->name, "INTEGRITY")==0){
 				if (pac) {
-					sscanf((char *)xmlNodeGetContent(cur_node), "%d", &AUTH_HMAC_SHA1_160);
+					char * value = (char *)xmlNodeGetContent(cur_node);
+					sscanf(value , "%d", &AUTH_HMAC_SHA1_160);
+					xmlFree(value);
 				}
 			}
         }
@@ -132,38 +146,52 @@ parse_xml_server(xmlNode * a_node)
 			}
 			else if (strcmp((char *)cur_node->name, "PORT")==0){
 				if (paa){
-					sscanf((char *)xmlNodeGetContent(cur_node), "%d", &SRCPORT);
+					char * value = (char *)xmlNodeGetContent(cur_node);
+					sscanf(value, "%d", &SRCPORT);
+					xmlFree(value);
 				}
 			}
 			else if (strcmp((char *)cur_node->name, "TIMEOUT")==0){
 				if (paa){
-					sscanf((char *)xmlNodeGetContent(cur_node), "%d", &LIFETIME_SESSION_TIMEOUT_CONFIG);
+					char * value = (char *)xmlNodeGetContent(cur_node);
+					sscanf(value, "%d", &LIFETIME_SESSION_TIMEOUT_CONFIG);
+					xmlFree(value);
 				}
 			}
 			else if (strcmp((char *)cur_node->name, "PRF")==0){
 				if (paa){
-					sscanf((char *)xmlNodeGetContent(cur_node), "%d", &PRF_HMAC_SHA1);
+					char * value = (char *)xmlNodeGetContent(cur_node);
+					sscanf(value, "%d", &PRF_HMAC_SHA1);
+					xmlFree(value);
 				}
 			}
 			else if (strcmp((char *)cur_node->name, "INTEGRITY")==0){
 				if (paa){
-					sscanf((char *)xmlNodeGetContent(cur_node), "%d", &AUTH_HMAC_SHA1_160);
+					char * value = (char *)xmlNodeGetContent(cur_node);
+					sscanf(value, "%d", &AUTH_HMAC_SHA1_160);
+					xmlFree(value);
 				}
 			}
 			else if (strcmp((char *)cur_node->name, "TIMEOUT_CLIENT")==0){
 				if (paa){
-					sscanf((char *)xmlNodeGetContent(cur_node), "%d", &LIFETIME_SESSION_CLIENT_TIMEOUT_CONFIG);
+					char * value = (char *)xmlNodeGetContent(cur_node);
+					sscanf(value, "%d", &LIFETIME_SESSION_CLIENT_TIMEOUT_CONFIG);
+					xmlFree(value);
 				}
 			}
 			else if (strcmp((char *)cur_node->name, "WORKERS")==0){
 				if (paa){
-					sscanf((char *)xmlNodeGetContent(cur_node), "%d", &NUM_WORKERS);
+					char * value = (char *)xmlNodeGetContent(cur_node);
+					sscanf(value, "%d", &NUM_WORKERS);
+					xmlFree(value);
 				}
 			}
 			
 			else if (strcmp((char *)cur_node->name, "TIME_ANSWER")==0){
 				if (paa){
-					sscanf((char *)xmlNodeGetContent(cur_node), "%d", &TIME_PCI);
+					char * value = (char *)xmlNodeGetContent(cur_node);
+					sscanf(value, "%d", &TIME_PCI);
+					xmlFree(value);
 				}
 			}
         }

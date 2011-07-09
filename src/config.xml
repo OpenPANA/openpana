@@ -31,7 +31,7 @@
 <CONFIG>
 	<PAC> <!-- PaC configuration data -->
 		<IP>172.0.0.1</IP> 
-		<PORT>7777</PORT>
+		<PORT>7766</PORT>
 		<SESSION> 
 			<TIMEOUT>150</TIMEOUT> <!-- Time necessary to do the authentication. -->
 		</SESSION>
@@ -75,7 +75,7 @@
 											6 AUTH_HMAC_MD5_128
 											7 AUTH_HMAC_SHA1_160-->
 	</ALGORITHMS>
-	<TIMEOUT_CLIENT>7</TIMEOUT_CLIENT> <!-- Timeout for expiring client session -->
+	<TIMEOUT_CLIENT>10</TIMEOUT_CLIENT> <!-- Timeout for expiring client session -->
 	<WORKERS>3</WORKERS> <!-- Number of threads used to service requests -->
 	<TIME_ANSWER>3</TIME_ANSWER> <!-- Time while a session is on the server without answer for the first PAR message -->
 	</PAA>

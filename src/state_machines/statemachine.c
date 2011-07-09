@@ -244,7 +244,6 @@ void disconnect() {
 		#endif
 		free(current_session->PaC_nonce);
 	}
-	
 
     printf("PANA: Client disconnected.\n");
     exit(0);
