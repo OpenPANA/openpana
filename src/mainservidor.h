@@ -51,7 +51,7 @@ struct task_list {
     /** Data of the task.*/
     void* data;
     /** Id session of the task.*/
-    int id_session;
+    //int id_session;
     /**Pointer to the next task of the list.*/
     struct task_list * next;
 };
@@ -73,13 +73,13 @@ struct retr_func_parameter {
 
 /**Struct of process_receive_radius_msg function's parameter*/
 struct radius_func_parameter {
-    struct eap_auth_ctx * context_eap;
+    //struct eap_auth_ctx * context_eap;
     struct radius_msg *radius_msg;
-    struct radius_client_data *rad_data;
+    //struct radius_client_data *rad_data;
 };
 
 void add_session(pana_ctx * session);
-void add_task(func funcion, void* arg, int session_id);
+void add_task(func funcion, void* arg/*, int session_id*/);
 void check_eap_status(pana_ctx *pana_session);
 int generateSessionId(char * ip, short port);
 pana_ctx* get_sesssion(int id);

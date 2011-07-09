@@ -30,8 +30,8 @@
 
 <CONFIG>
 	<PAC> <!-- PaC configuration data -->
-		<IP>127.0.0.1</IP> 
-		<PORT>7334</PORT>
+		<IP>172.0.0.1</IP> 
+		<PORT>7777</PORT>
 		<SESSION> 
 			<TIMEOUT>150</TIMEOUT> <!-- Time necessary to do the authentication. -->
 		</SESSION>
