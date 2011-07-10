@@ -58,7 +58,7 @@
 		<IP>127.0.0.1</IP>
 		<PORT>716</PORT>
 		<SESSION>
-			<TIMEOUT>10</TIMEOUT> <!-- Timeout for expiring a session in the server -->
+			<TIMEOUT>100</TIMEOUT> <!-- Timeout for expiring a session in the server -->
 		</SESSION>
 		<ALGORITHMS><!-- This tag must be set with the numbers of algorithms supported -->
 			<PRF>2</PRF> <!-- PRF ALGORITHM
@@ -75,7 +75,7 @@
 											6 AUTH_HMAC_MD5_128
 											7 AUTH_HMAC_SHA1_160-->
 	</ALGORITHMS>
-	<TIMEOUT_CLIENT>1</TIMEOUT_CLIENT> <!-- Timeout for expiring client session -->
+	<TIMEOUT_CLIENT>7</TIMEOUT_CLIENT> <!-- Timeout for expiring client session -->
 	<WORKERS>3</WORKERS> <!-- Number of threads used to service requests -->
 	<TIME_ANSWER>3</TIME_ANSWER> <!-- Time while a session is on the server without answer for the first PAR message -->
 	</PAA>
