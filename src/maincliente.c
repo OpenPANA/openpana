@@ -94,7 +94,7 @@ void* handle_alarm_management(void* none) {
 
 int main(int argc, char *argv[]) {
 
-    struct sockaddr_in eap_peer_ll_sockaddr, eap_auth_ll_sockaddr;
+    struct sockaddr_in eap_auth_ll_sockaddr;
     fd_set readfds, exceptfds; //FD sets to use with select
     int pana_sock;//PANA's socket
 	
@@ -149,18 +149,6 @@ int main(int argc, char *argv[]) {
     if (setsockopt(pana_sock, SOL_SOCKET, SO_REUSEADDR, &b, 4)) {
         perror("setsockopt");
         return 0;
-    }
-    
-    memset((char *) &eap_peer_ll_sockaddr, 0, sizeof (eap_peer_ll_sockaddr));
-    eap_peer_ll_sockaddr.sin_family = AF_INET;
-    eap_peer_ll_sockaddr.sin_port = htons(pana_session.src_port);
-    eap_peer_ll_sockaddr.sin_addr.s_addr = inet_addr(DESTIP);
-
-	//Avoid's a warning, bind expects the "const ptr" type
-    const struct sockaddr * ll_sockaddr = (struct sockaddr *) &eap_peer_ll_sockaddr;
-    if (bind(pana_sock, ll_sockaddr, sizeof (eap_peer_ll_sockaddr)) == -1) {
-        perror("socket");
-        return -1;
     }
 
 	//Update the socket number in the session.
