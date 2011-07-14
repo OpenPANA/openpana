@@ -373,8 +373,9 @@ eap_auth_receive_radius(struct radius_msg *msg, struct radius_msg *req,
 	struct radius_hdr *hdr = radius_msg_get_hdr(msg);
 	
 	/*Now, we should look for the identity in a list of eap_auth contexts*/
-	
-	struct eap_auth_ctx *eap_ctx = radctx->eap_ctx; /*radctx->eap_ctx will be a pointer to linked list*/
+
+	struct eap_auth_ctx *eap_ctx = search_eap_ctx_rad_client(hdr->identifier); //Search for the correct eap_ctx
+	//struct eap_auth_ctx *eap_ctx = radctx->eap_ctx; /*radctx->eap_ctx will be a pointer to linked list*/
 	
 	/*-----------------------------------------------------------------*/
 	
@@ -492,19 +493,10 @@ eap_auth_receive_radius(struct radius_msg *msg, struct radius_msg *req,
 	}
 	/*******************************************/
 	
-	//fprintf(stderr, "--PEDRO: Va a comprobar el override override\n");
 	
 	if (override_eapReq){
-		//fprintf(stderr, "--PEDRO: Entra en override\n");
 		eap_ctx->eap_if->aaaEapReq = FALSE;
 	}
-	
-	/*fprintf(stderr, "--PEDRO: entra en el estado ANTES DEL STEP DE EAP\n");
-	fprintf(stderr, "--PEDRO: El valor de aaaEapNoReq = %d\n", eap_ctx->eap_if->aaaEapNoReq);
-	fprintf(stderr, "--PEDRO: El valor de aaaEapReq = %d\n", eap_ctx->eap_if->aaaEapReq);
-	fprintf(stderr, "--PEDRO: El valor de aaaFail = %d\n", eap_ctx->eap_if->aaaFail);
-	fprintf(stderr, "--PEDRO: El valor de aaaSuccess = %d\n", eap_ctx->eap_if->aaaSuccess);*/
-
 	
 	eap_server_sm_step(eap_ctx->eap);
 	

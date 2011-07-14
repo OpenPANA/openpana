@@ -575,7 +575,6 @@ SM_STATE(EAP, FAILURE2)
 
 SM_STATE(EAP, SUCCESS2)
 {
-
 	SM_ENTRY(EAP, SUCCESS2);
 
 	eap_copy_buf(&sm->eap_if.eapReqData, sm->eap_if.aaaEapReqData);

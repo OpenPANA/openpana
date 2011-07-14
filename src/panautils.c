@@ -164,9 +164,6 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
         avp_pana * elmnt = (avp_pana*) avpbytes ;
 
         //Now, avp elmnt points to auth avp
-        #ifdef DEBUG
-        fprintf(stderr, "DEBUG: Saving AUTH AVP value. \n");
-        #endif
         size = ntohs(elmnt->length);
         data = malloc(size * sizeof (char));
         if(data == NULL){
@@ -309,7 +306,7 @@ u8 * generateAUTH(pana_ctx * session) {
 	}
     #ifdef DEBUG
     fprintf(stderr, "DEBUG: Starting AUTH generation.\n");
-    fprintf(stderr, "DEBUG: PaC Nonce:\n");
+    /*fprintf(stderr, "DEBUG: PaC Nonce:\n");
     debug_pana((pana*)session->PaC_nonce);
     fprintf(stderr, "DEBUG: PAA Nonce:\n");
     debug_pana((pana*)session->PAA_nonce);
@@ -326,7 +323,7 @@ u8 * generateAUTH(pana_ctx * session) {
     for(int i =0; i< session->key_id_length;i++){
 		fprintf(stderr,"%02X",session->key_id[i]);
 	}
-    
+    */
     #endif
 
     pana * msg;
@@ -403,10 +400,10 @@ u8 * generateAUTH(pana_ctx * session) {
 	}
 	
 	#ifdef DEBUG
-	fprintf(stderr,"DEBUG: PRF Seed is: \n");
+	/*fprintf(stderr,"DEBUG: PRF Seed is: \n");
 	for (int j=0; j<seq_length; j++){
 		fprintf(stderr, "%02x ", sequence[j]);
-	}
+	}*/
 	#endif
 	
     PRF_plus(2, session->msk_key, session->key_len, (u8*) sequence, seq_length, result);
@@ -416,10 +413,10 @@ u8 * generateAUTH(pana_ctx * session) {
         fprintf(stderr,"DEBUG: Generated PANA_AUTH_KEY.\n");
     }
 
-    int i;
+    /*int i;
     for (i = 0; i < 40; i++) {
         fprintf(stderr, "%02x ", (u8) result[i]);
-    }
+    }*/
     #endif
 
     free(sequence); //Seed's memory is freed
@@ -431,19 +428,16 @@ int hashAuth(char *msg, char* key, int key_len) {
     char * elmnt = getAvp(msg, AUTH_AVP);
     //debug_avp((avp_pana*)elmnt);
     #ifdef DEBUG
-	fprintf(stderr,"DEBUG: Key to use: ");
+	/*fprintf(stderr,"DEBUG: Key to use: ");
 	for (int i =0; i<key_len; i++){
 		fprintf(stderr,"%2X ",key[i] & 0xFF);
 	}
-	fprintf(stderr,"\n");
+	fprintf(stderr,"\n");*/
     #endif
     
-    if (elmnt == NULL) //Caso de que no haya ningun AUTH
+    if (elmnt == NULL) //If there's no AUTH return an error
         return 1;
     PRF_plus(1, (u8*) key, key_len, (u8*) msg, ntohs(((pana*)msg)->msg_length), (u8*) (elmnt + sizeof(avp_pana)) );
-    #ifdef DEBUG
-    fprintf(stderr,"DEBUG: AUTH AVP hashed.\n");
-    #endif
     return 0; //Everything went better than expected
 }
 

@@ -26,14 +26,17 @@
 #include <sys/time.h>
 
 /* Proceso que inicializa el listado, lanzado en user_inicializar */
-struct lalarm *crear_alarma(pthread_mutex_t * mutex_list) {
+struct lalarm *init_alarms(pthread_mutex_t * mutex_list) {
     mutex = mutex_list;
     return NULL;
 
 }
 
 /* Inserta una alarma*/
-struct lalarm * add_alarma(struct lalarm ** l, pana_ctx* session, time_t time, int iden) {
+struct lalarm * add_alarma(struct lalarm ** l, 
+							pana_ctx* session, 
+							time_t time, 
+							int iden) {
     pthread_mutex_lock(mutex);
     struct timeval tv; 
     gettimeofday(&tv, NULL);
@@ -41,7 +44,6 @@ struct lalarm * add_alarma(struct lalarm ** l, pana_ctx* session, time_t time, i
     tiempo += time;
     struct lalarm *anterior = *l;
     int final = 0; //Booleano para encontrar el sitio de inserción
-
     if (anterior == NULL) { // Si la lista es vacía
         (*l) = malloc(sizeof (struct lalarm));
         (*l)->pana_session = session;
@@ -100,28 +102,6 @@ struct lalarm * add_alarma(struct lalarm ** l, pana_ctx* session, time_t time, i
     pthread_mutex_unlock(mutex);
     return (*l);
 
-}
-//Borra la primera alarma de la lista
-
-struct lalarm* del_alarma(struct lalarm **l) {
-    pthread_mutex_lock(mutex);
-	#ifdef DEBUG
-    fprintf(stderr, "DEBUG: Function del_alarma\n");
-    #endif
-    struct lalarm *returnalarm;
-    if ((*l) == NULL) {//Si está vacía
-        pthread_mutex_unlock(mutex);
-        return NULL;
-    }
-    returnalarm = (*l);
-    (*l) = (*l) -> sig; //Devolvemos el resto de la lista menos la primera alarma
-
-    //Como la primera alarma no va a ser utilizada se libera su memoria
-    returnalarm->sig = NULL;
-    free(l);
-    
-    pthread_mutex_unlock(mutex);
-    return returnalarm;
 }
 
 pana_ctx * get_alarm_session(struct lalarm** list, int id_session, int id_alarm) {
@@ -190,23 +170,43 @@ struct lalarm * get_next_alarm(struct lalarm** list, time_t time) {
 
 void remove_alarm(struct lalarm** list, int id_session){
 	pthread_mutex_lock(mutex);
-    //struct lalarm* session = NULL;
-    struct lalarm* anterior = NULL;
-    struct lalarm* aux = NULL;
-    if (list == NULL) {
-        pthread_mutex_unlock(mutex);
-        return;
-    }
-    aux = (*list);
-    while (aux != NULL) {
-		if (aux->pana_session->session_id == id_session){
-			anterior = aux;
-			aux = aux->sig;
-			anterior->sig = NULL;
-			free(anterior);//fixme: cuidado al poner este free. Hay que verlo con el de remove_session(mainservidor.c)
+	
+	if(list == NULL || (*list) == NULL){
+		pthread_mutex_unlock(mutex);
+		return;
+	}
+	
+	else if((*list)->pana_session->session_id == id_session){
+		struct lalarm * tofree = (*list);
+		(*list) = (*list)->sig;
+		free(tofree);
+		pthread_mutex_unlock(mutex);
+		return;
+	}
+	else{
+		
+		struct lalarm* current = (*list)->sig;
+		struct lalarm* prev = (*list);
+		while(current!=NULL){
+			#ifdef DEBUG
+			if(current->pana_session == NULL){
+				fprintf(stderr,"DEBUG: remove_alarm: NULL Session \n");
+				exit(1);
+			}
+			#endif
+			if(current->pana_session->session_id == id_session){
+					struct lalarm * tofree = current;
+					prev->sig = current->sig;
+					tofree->sig = NULL;
+					free(tofree);
+			}
+			else{
+				prev = current;
+				current = current->sig;
+			}
 		}
-			
-    }
-
-    pthread_mutex_unlock(mutex);
+		
+		pthread_mutex_unlock(mutex);
+		return;
+	}
 }
