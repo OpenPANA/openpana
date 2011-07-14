@@ -1,33 +1,20 @@
 ChangeLog for OpenPANA
 
-Next - v0.1.1
-	* Developed a xml configuration file
-		- File ./src/config.xml contains configurable variables
-	* Minor bugfixes and deleted useless code:
-		- Key-Id generation fixed.
-		- First sequence number is a random value.
-		- Session Id only generated on PAA.
-		- Some unused functions deleted such as extractNonce or isEqual
-		  used to compare two PANA sessions.
-		- Added more doxygen documentation.
-		- Translated the entire output (including debug information)
-		  to English and some comments.
-		- Changed PANA messages and AVPs structs and message treatment simplified.
-		- Fixed some memory leaks.
-
-2011-05-09 - v0.1.0
+2011-XX-XX - v0.0
 	* Initial version of OpenPANA.
 	* Many aspects defined in IETF RFC 5191 and 5609 are covered such as
-		- Integrity check
+		- Integrity check.
 		- Authentication, authorization, reauthentication and termination phases
 		  are implemented.
-		- Sequence Number and Retransmission
-		- PANA SA
-		- Message Authentication
-		- Session Lifetime
+		- Sequence Number and Retransmission.
+		- PANA SA.
+		- Message Authentication.
+		- Session Lifetime.
 
 	* Some features developed:
-		- Multithreading solution
-		- It is allowed the authentication of a lot of users
+		- Multithreading solution.
+		- It is allowed the authentication of a lot of users.
 		- Available multiple EAP methods (see hostapd implementation for more
-		  information)
+		  information).
+		- XML based configuration file available in ./src/
+		- Doxygen documentation.

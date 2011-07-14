@@ -1,6 +1,6 @@
 
 AC_PREREQ([2.65])
-AC_INIT([OpenPANA], [0.1.1], [openpana-users@lists.sourceforge.net])
+AC_INIT([OpenPANA], [0.0], [openpana-users@lists.sourceforge.net])
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_AUX_DIR(config)
 AM_INIT_AUTOMAKE()
@@ -26,8 +26,6 @@ AC_CHECK_LIB([crypto], [main])
 AC_CHECK_LIB([dl], [main])
 # FIXME: Replace `main' with a function in `-ldnet':
 AC_CHECK_LIB([dnet], [main])
-# FIXME: Replace `main' with a function in `-leap':
-#AC_CHECK_LIB([eap], [main])
 # FIXME: Replace `main' with a function in `-lgcrypt':
 AC_CHECK_LIB([gcrypt], [main])
 # FIXME: Replace `main' with a function in `-lgdi32':
