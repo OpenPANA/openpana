@@ -189,6 +189,7 @@ void* process_receive_radius_msg(void* arg) {
     if (eap_ctx != NULL) {
 		
         radius_client_receive(radmsg, radius_data, &radius_type);
+        
         if ((eap_auth_get_eapReq(eap_ctx) == TRUE)
                 || (eap_auth_get_eapSuccess(eap_ctx) == TRUE)) {
 		//A transition with PANA ctx is made
@@ -432,13 +433,13 @@ void* handle_worker(void* data) {
         }
 
         if (a_task) {
-#ifdef DEBUG
+/*#ifdef DEBUG
             fprintf(stderr, "DEBUG: Running task. Id session: %d\n", a_task->id_session);
-#endif
+#endif*/
             a_task->use_function(a_task->data);
-#ifdef DEBUG
+/*#ifdef DEBUG
             fprintf(stderr, "DEBUG: Ended task. Id session: %d\n", a_task->id_session);
-#endif
+#endif*/
 			//FIXME: PEDRO: Habría que liberar esta memoria. El problema está en que
 			//cuando la session llega al estado CLOSED, se libera su memoria, y al 
 			//intentar liberar la memoria de la tarea, intenta liberar la memoria 
