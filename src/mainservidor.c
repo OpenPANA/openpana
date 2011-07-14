@@ -432,13 +432,13 @@ void* handle_worker(void* data) {
         }
 
         if (a_task) {
-#ifdef DEBUG
+/*#ifdef DEBUG
             fprintf(stderr, "DEBUG: Running task. Id session: %d\n", a_task->id_session);
-#endif
+#endif*/
             a_task->use_function(a_task->data);
-#ifdef DEBUG
+/*#ifdef DEBUG
             fprintf(stderr, "DEBUG: Ended task. Id session: %d\n", a_task->id_session);
-#endif
+#endif*/
 			//FIXME: PEDRO: Habría que liberar esta memoria. El problema está en que
 			//cuando la session llega al estado CLOSED, se libera su memoria, y al 
 			//intentar liberar la memoria de la tarea, intenta liberar la memoria 
