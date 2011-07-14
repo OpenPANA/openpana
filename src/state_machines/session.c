@@ -201,9 +201,7 @@ void updateSession(char *message, pana_ctx *pana_session) {
 		//free(pana_session->LAST_MESSAGE);
 	}
     pana_session->LAST_MESSAGE = message;
-    #ifdef DEBUG
-		fprintf(stderr,"DEBUG: Last message freed.\n");
-	#endif
+    
     // Detect message type and flags
     //FIXME Falta comprobar que sea el primer mensaje (flagS) o ponerlo en la maquina de estados
     //FIXME: Falta detectar el result-code

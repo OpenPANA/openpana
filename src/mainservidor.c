@@ -50,7 +50,6 @@ static int fin = FALSE;
 char * global_key_id;//Key id is generated from source port and ip of the client
 
 struct pana_ctx_list* list_pana_sessions = NULL; // head of linked list of pana sessions
-struct pana_ctx_list* last_pana_sessions = NULL; // pointer to last pana session
 
 struct task_list* list_tasks = NULL; // head of linked list of tasks
 struct task_list* last_task = NULL; // pointer to last task
@@ -115,9 +114,7 @@ void * process_receive_eap_ll_msg(void *arg) {
         short port = ntohs(pana_params->eap_ll_dst_addr->sin_port);
         char * ip = inet_ntoa(pana_params->eap_ll_dst_addr->sin_addr);
         int session_id = generateSessionId(ip, port); 
-#ifdef DEBUG
-        fprintf(stderr, "DEBUG: Session-Id added to the list is: %d\n", session_id);
-#endif
+
         
         pana_session = get_alarm_session(&(list_alarms), session_id, PCI_ALARM);
         
@@ -125,10 +122,12 @@ void * process_receive_eap_ll_msg(void *arg) {
             fprintf(stderr, "PANA: There isn't a PCI session corresponding with this answer\n");
             return NULL;
         }
-     
         pana_session->list_of_alarms = &(list_alarms);
         
         add_session(pana_session);
+        #ifdef DEBUG
+        fprintf(stderr, "DEBUG: Session-Id added to the list is: %d\n", session_id);
+		#endif
     } 
     
     else { //If the messsage is another one
@@ -139,7 +138,8 @@ void * process_receive_eap_ll_msg(void *arg) {
         //Check if the session is in the alarm list
         pana_session = get_alarm_session(&(list_alarms), id, PCI_ALARM);
         if (pana_session == NULL) { //If pana_session isn't in the alarm list, it must will be in the session list
-            pana_session = get_sesssion(id);
+			fprintf(stderr,"DEBUG: Session %#X not found in alarm_list, gonna search in session_list \n",id);
+            pana_session = get_session(id);
         }
         if (pana_session == NULL) { //If the session doesn't exist
             fprintf(stderr, "PANA: CRITICAL ERROR, tried to send a message from an unauthenticated client.\n");
@@ -270,15 +270,15 @@ void add_session(pana_ctx * session) {
     /* pointers as required */
     if (list_pana_sessions == NULL) { /* special case - list is empty */
         list_pana_sessions = new_element;
-        last_pana_sessions = new_element;
     } 
     else {
-        last_pana_sessions->next = new_element;
-        last_pana_sessions = new_element;
+		struct pana_ctx_list* ptr = new_element;
+        new_element->next = list_pana_sessions;
+        list_pana_sessions = new_element;
     }
 
 #ifdef DEBUG
-    fprintf(stderr,"DEBUG: add_session: added session \n");
+    fprintf(stderr,"DEBUG: add_session: added session: %#X \n",new_element->pana_session->session_id);
 #endif /* DEBUG */
 
     /* unlock mutex */
@@ -286,7 +286,7 @@ void add_session(pana_ctx * session) {
 
 }
 
-pana_ctx* get_sesssion(int id) {
+pana_ctx* get_session(int id) {
     int rc; /* return code of pthreads functions.  */
 
     struct pana_ctx_list* session = NULL;
@@ -353,7 +353,7 @@ void remove_session(int id) {
         anterior = list_pana_sessions;
         while (session != NULL) {
             if (session->pana_session->session_id == id) {
-                anterior->next = anterior->next->next;
+                anterior->next = session->next;
                 session->next = NULL;
                 //free(session); //fixme: Cuidado al poner este free. Hay que verlo con el de remove_alarm (lalarm.c)
                 break;
@@ -418,10 +418,6 @@ void* handle_worker(void* data) {
     /* lock the mutex, to access the requests list exclusively. */
     sem_wait(&got_task);
 
-#ifdef DEBUG
-    fprintf(stderr, "DEBUG: thread '%d' after pthread_mutex_lock\n", thread_id);
-#endif
-
     /* do forever.... */
     while (!fin) {
 #ifdef DEBUG
@@ -448,15 +444,9 @@ void* handle_worker(void* data) {
             //Unlock the mutex of this session
             //pthread_mutex_unlock(mutex);
         }
-#ifdef DEBUG
-        fprintf(stderr, "DEBUG: thread '%d' before pthread_cond_wait\n", thread_id);
-#endif
         rc = sem_wait(&got_task);
         /* and after we return from pthread_cond_wait, the mutex  */
         /* is locked again, so we don't need to lock it ourselves */
-#ifdef DEBUG
-        fprintf(stderr, "DEBUG: thread '%d' after pthread_cond_wait\n", thread_id);
-#endif
     }
 
 }
@@ -698,7 +688,7 @@ int main(int argc, char* argv[]) {
 
 
     //Init global variables
-    list_alarms = crear_alarma(&alarm_list_mutex);
+    list_alarms = init_alarms(&alarm_list_mutex);
 
     /* create the request-handling threads */
     for (i = 0; i < NUM_WORKERS; i++) {

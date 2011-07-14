@@ -31,11 +31,6 @@
 
 #ifdef LIBXML_TREE_ENABLED
 
-/*
- *To compile this file using gcc you can type
- *gcc `xml2-config --cflags --libs` -o xmlexample libxml2-example.c
- */
-
 /**
  * parse_xml_client:
  * @a_node: the initial xml node to consider.
@@ -67,14 +62,14 @@ parse_xml_client(xmlNode * a_node)
 				if (paa){
 
 					DESTIP = malloc(16*sizeof(char));
-					xmlChar * value = (char *)xmlNodeGetContent(cur_node);
-					sprintf(DESTIP, "%s", value);
+					xmlChar * value = xmlNodeGetContent(cur_node);
+					sprintf(DESTIP, "%s",(char *) value);
 					xmlFree(value);
 				}
 				else if (pac) {
 					LOCALIP = malloc(16*sizeof(char));
-					xmlChar * value = (char *)xmlNodeGetContent(cur_node);
-					sprintf(LOCALIP, "%s", value);
+					xmlChar * value = xmlNodeGetContent(cur_node);
+					sprintf(LOCALIP, "%s", (char *)value);
 					xmlFree (value);
 				}
 			}
@@ -90,8 +85,8 @@ parse_xml_client(xmlNode * a_node)
 				}
 				else if (pac) {
 					
-					xmlChar * value = (char *)xmlNodeGetContent(cur_node);
-					sscanf(value, "%hd", &SRCPORT);
+					xmlChar * value = xmlNodeGetContent(cur_node);
+					sscanf((char *) value, "%hd", &SRCPORT);
 					xmlFree(value);
 					if (SRCPORT <=1024){
 						fprintf(stderr, "ERROR: PaC Port must be set to a number higher than 1024.\n");

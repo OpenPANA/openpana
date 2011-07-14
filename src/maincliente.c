@@ -130,7 +130,7 @@ int main(int argc, char *argv[]) {
     //The client is the autentication's initiator
     pana_session.client_ctx.AUTH_USER = 1;
     
-    list_alarms = crear_alarma(&alarm_list_mutex);
+    list_alarms = init_alarms(&alarm_list_mutex);
 	pana_session.list_of_alarms = &(list_alarms);
 	pthread_create(&alarm_thread, NULL, handle_alarm_management, NULL);
 

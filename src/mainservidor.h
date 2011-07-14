@@ -80,7 +80,7 @@ void add_session(pana_ctx * session);
 void add_task(func funcion, void* arg);
 void check_eap_status(pana_ctx *pana_session);
 int generateSessionId(char * ip, short port);
-pana_ctx* get_sesssion(int id);
+pana_ctx* get_session(int id);
 struct task_list* get_task();
 void* handle_alarm_management(void* none);
 void* handle_network_management();
