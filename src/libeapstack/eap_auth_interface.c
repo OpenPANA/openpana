@@ -2,7 +2,8 @@
 #include "../utils/os.h"
 
 struct radius_ctx *global_rad_ctx=NULL;
-pthread_mutex_t radmux;
+pthread_mutex_t radmutex;
+pthread_mutex_t radmutex_list;
 
 static char *eap_type_text(u8 type)
 {
@@ -28,7 +29,6 @@ static char *eap_type_text(u8 type)
 static int add_extra_attr(struct radius_msg *msg,
 						  struct extra_radius_attr *attr)
 {
-	pthread_mutex_lock(&radmux);
 	size_t len;
 	char *pos;
 	u32 val;
@@ -50,13 +50,11 @@ static int add_extra_attr(struct radius_msg *msg,
 			len = os_strlen(pos);
 			if ((len & 1) || (len / 2) > sizeof(buf)) {
 				printf("Invalid extra attribute hexstring\n");
-				pthread_mutex_unlock(&radmux);
 				return -1;
 			}
 			len /= 2;
 			if (hexstr2bin(pos, (u8 *) buf, len) < 0) {
 				printf("Invalid extra attribute hexstring\n");
-				pthread_mutex_unlock(&radmux);
 				return -1;
 			}
 			break;
@@ -67,32 +65,27 @@ static int add_extra_attr(struct radius_msg *msg,
 			break;
 		default:
 			printf("Incorrect extra attribute syntax specification\n");
-			pthread_mutex_unlock(&radmux);
 			return -1;
 	}
 	
 	if (!radius_msg_add_attr(msg, attr->type, (u8 *) buf, len)) {
 		printf("Could not add attribute %d\n", attr->type);
-		pthread_mutex_unlock(&radmux);
 		return -1;
 	}
 
-	pthread_mutex_unlock(&radmux);
 	return 0;
 }
 
 static int add_extra_attrs(struct radius_msg *msg,
 						   struct extra_radius_attr *attrs)
 {
-	pthread_mutex_lock(&radmux);
 	struct extra_radius_attr *p;
 	for (p = attrs; p; p = p->next) {
 		if (add_extra_attr(msg, p) < 0){
-			pthread_mutex_unlock(&radmux);
 			return -1;
 		}
 	}
-	pthread_mutex_unlock(&radmux);
+
 	return 0;
 }
 
@@ -111,8 +104,9 @@ find_extra_attr(struct extra_radius_attr *attrs, u8 type)
 
 static void eap_auth_encapsulate_radius(struct eap_auth_ctx *eap_ctx, const struct wpabuf *eap_buf)
 {
+
 		struct radius_ctx *radctx= eap_ctx->rad_ctx;
-		pthread_mutex_lock(&radmux);
+		
 		
 		struct radius_msg *msg;
 		char buf[128];
@@ -239,12 +233,10 @@ static void eap_auth_encapsulate_radius(struct eap_auth_ctx *eap_ctx, const stru
 		eap_ctx->last_send_radius = msg;
 		
 		radius_client_send(radctx->radius, msg, RADIUS_AUTH, eap_ctx->own_addr,(void *)eap_ctx);
-		pthread_mutex_unlock(&radmux);
 		return;
 		
 	fail:
 		radius_msg_free(msg);
-		pthread_mutex_unlock(&radmux);
 }
 
 
@@ -305,7 +297,6 @@ static void eap_auth_get_keys(struct eap_auth_ctx *eap_ctx,
 
 static void eap_auth_decapsulate_radius(struct eap_auth_ctx *eap_ctx)
 {
-	pthread_mutex_lock(&radmux);
 	u8 *eap;
 	size_t len;
 	struct eap_hdr *hdr;
@@ -314,7 +305,6 @@ static void eap_auth_decapsulate_radius(struct eap_auth_ctx *eap_ctx)
 	struct radius_msg *msg;
 	
 	if (eap_ctx->last_recv_radius == NULL){
-		pthread_mutex_unlock(&radmux);
 		return;
 	}
 
@@ -327,7 +317,6 @@ static void eap_auth_decapsulate_radius(struct eap_auth_ctx *eap_ctx)
 		 * attribute */
 		wpa_printf(MSG_DEBUG, "could not extract "
 			       "EAP-Message from RADIUS message");
-		pthread_mutex_unlock(&radmux);
 		return;
 	}
 	
@@ -335,7 +324,6 @@ static void eap_auth_decapsulate_radius(struct eap_auth_ctx *eap_ctx)
 		wpa_printf(MSG_DEBUG, "too short EAP packet "
 			       "received from authentication server");
 		os_free(eap);
-		pthread_mutex_unlock(&radmux);
 		return;
 	}
 	
@@ -376,7 +364,7 @@ static void eap_auth_decapsulate_radius(struct eap_auth_ctx *eap_ctx)
 	
 	wpabuf_free(eap_ctx->eap_if->aaaEapReqData);
 	eap_ctx->eap_if->aaaEapReqData = wpabuf_alloc_ext_data(eap, len);
-	pthread_mutex_unlock(&radmux);
+	
 }
 
 
@@ -386,6 +374,7 @@ eap_auth_receive_radius(struct radius_msg *msg, struct radius_msg *req,
 						const u8 *shared_secret, size_t shared_secret_len,
 						void *data)
 {
+	pthread_mutex_lock(&radmutex);
 	
 	int override_eapReq = 0;
 	u32 session_timeout = 0, termination_action, acct_interim_interval;
@@ -415,6 +404,7 @@ eap_auth_receive_radius(struct radius_msg *msg, struct radius_msg *req,
 								 req, 1)) {
 		printf("Incoming RADIUS packet did not have correct "
 		       "Message-Authenticator - dropped\n");
+		pthread_mutex_unlock(&radmutex);
 		return RADIUS_RX_UNKNOWN;
 	}
 	
@@ -422,6 +412,7 @@ eap_auth_receive_radius(struct radius_msg *msg, struct radius_msg *req,
 	    hdr->code != RADIUS_CODE_ACCESS_REJECT &&
 	    hdr->code != RADIUS_CODE_ACCESS_CHALLENGE) {
 		printf("Unknown RADIUS message code\n");
+		pthread_mutex_unlock(&radmutex);
 		return RADIUS_RX_UNKNOWN;
 	}
 	
@@ -431,7 +422,7 @@ eap_auth_receive_radius(struct radius_msg *msg, struct radius_msg *req,
 	
 	/*********************************************************************************************/
 	//eap_ctx = search_eap_ctx_rad_client(hdr->identifier);
-	eap_ctx->radius_identifier = -1; //PEDRO: Esto es lo que estaba puesto
+	//eap_ctx->radius_identifier = -1; //PEDRO: Esto es lo que estaba puesto
 	wpa_printf(MSG_DEBUG, "RADIUS packet matching with station");
 	
 	radius_msg_free(eap_ctx->last_recv_radius);
@@ -522,7 +513,8 @@ eap_auth_receive_radius(struct radius_msg *msg, struct radius_msg *req,
 	}
 	
 	eap_server_sm_step(eap_ctx->eap);
-	
+
+	pthread_mutex_unlock(&radmutex);
 	return RADIUS_RX_QUEUED;
 }
 
@@ -676,8 +668,9 @@ static int eap_auth_init_tls(struct eap_auth_ctx *eap_ctx)
 	
 	os_memset(&tconf, 0, sizeof(tconf));
 	eap_ctx->tls_ctx = tls_init(&tconf);
-	if (eap_ctx->tls_ctx == NULL)
+	if (eap_ctx->tls_ctx == NULL){
 		return -1;
+	}
 	
 	os_memset(&tparams, 0, sizeof(tparams));
 	tparams.ca_cert = "ca.pem";
@@ -695,7 +688,7 @@ static int eap_auth_init_tls(struct eap_auth_ctx *eap_ctx)
 		printf("Failed to set check_crl\n");
 		return -1;
 	}
-	
+
 	return 0;
 }
 
@@ -716,7 +709,8 @@ struct radius_ctx *rad_client_init()
 		if (rad_ctx == NULL) return NULL;
 		os_memset(rad_ctx, 0, sizeof(*rad_ctx));
 	
-		pthread_mutex_init(&radmux, NULL);
+		pthread_mutex_init(&radmutex, NULL);
+		pthread_mutex_init(&radmutex_list, NULL);
 	
 		inet_aton("127.0.0.1", &rad_ctx->own_ip_addr);
 		rad_ctx->own_addr[0]=0x00;
@@ -774,20 +768,21 @@ struct radius_client_data *get_rad_client_ctx()
 
 int add_eap_ctx_rad_client(struct eap_auth_ctx *eap_ctx)
 {
-	pthread_mutex_lock(&radmux);
 	
-	if (global_rad_ctx == NULL) return -1;
+	if (global_rad_ctx == NULL){
+		 return -1;
+	 }
 	
 	eap_ctx->next=global_rad_ctx->eap_ctx;
 	global_rad_ctx->eap_ctx = eap_ctx;
 
-	pthread_mutex_unlock(&radmux);
 	return 0;
 	
 }
 
 struct eap_auth_ctx *search_eap_ctx_rad_client(u8 identifier)
 {
+	pthread_mutex_lock(&radmutex_list);
 	struct eap_auth_ctx *searched = global_rad_ctx->eap_ctx;
 	
 	while (searched != NULL)
@@ -797,13 +792,14 @@ struct eap_auth_ctx *search_eap_ctx_rad_client(u8 identifier)
 			searched=searched->next;
 		
 	}
-	
+	pthread_mutex_unlock(&radmutex_list);
 	return searched;
 }
 
 
 int eap_auth_init(struct eap_auth_ctx *eap_ctx, void *eap_ll_ctx)
 {
+	pthread_mutex_lock(&radmutex);
 	/*if (rad_client_init(&global_rad_ctx) < 0)
 		return -1;*/
 	
@@ -817,6 +813,7 @@ int eap_auth_init(struct eap_auth_ctx *eap_ctx, void *eap_ll_ctx)
 	
 	if (eap_server_register_methods(&(eap_ctx->eap_methods)) < 0)
 	{
+		pthread_mutex_unlock(&radmutex);
 		return -1;
 	}
 	
@@ -835,8 +832,10 @@ int eap_auth_init(struct eap_auth_ctx *eap_ctx, void *eap_ll_ctx)
 	eap_conf->eap_methods=eap_ctx->eap_methods;
 	
 	eap_ctx->eap = eap_server_sm_init(eap_ctx, eap_cb, eap_conf);
-	if (eap_ctx->eap == NULL)
+	if (eap_ctx->eap == NULL){
+		pthread_mutex_unlock(&radmutex);
 		return -1;
+	}
 	
 	eap_ctx->eap_if = eap_get_interface(eap_ctx->eap);
 	
@@ -851,23 +850,25 @@ int eap_auth_init(struct eap_auth_ctx *eap_ctx, void *eap_ll_ctx)
 	add_eap_ctx_rad_client(eap_ctx);
 	//eap_ctx->eap_ll_cb = eap_ll_cb;
 	eap_ctx->eap_ll_ctx = eap_ll_ctx;
-	
+
+	pthread_mutex_unlock(&radmutex);
 	return 0;
 }
 
 void eap_auth_deinit(struct eap_auth_ctx *eap_ctx)
 {
-	pthread_mutex_lock(&radmux);
+	pthread_mutex_lock(&radmutex);
 	
 	eap_server_sm_deinit(eap_ctx->eap);
 	eap_server_unregister_methods(&(eap_ctx->eap_methods));
 	tls_deinit(eap_ctx->tls_ctx);
 	
-	pthread_mutex_unlock(&radmux);
+	pthread_mutex_unlock(&radmutex);
 }
 
 int eap_auth_step(struct eap_auth_ctx* eap_ctx)
 {
+	pthread_mutex_lock(&radmutex);
 	int res = 0;
 	//struct eap_server_ctx *eap_ctx = pana_session->eap_srv_ctx;
 	
@@ -908,7 +909,8 @@ int eap_auth_step(struct eap_auth_ctx* eap_ctx)
 	if (process && eap_ctx->eap_if->eapReqData) {
 		res = 1;
 	}*/
-	
+
+	pthread_mutex_unlock(&radmutex);
 	return res;
 }
 
