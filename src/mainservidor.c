@@ -198,6 +198,9 @@ void* process_receive_radius_msg(void* arg) {
             fprintf(stderr, "DEBUG: Trying to make a transition with the message from RADIUS\n");
 #endif
             transition((pana_ctx *) eap_ctx->eap_ll_ctx);
+            
+            //Freeing radius msg FIXME NOT the place to free, invalid size reads
+            //radius_msg_free(radmsg);
             pthread_mutex_unlock(&(ll_session->mutex));
             return NULL;
         }
@@ -502,7 +505,7 @@ void* handle_network_management() {
     int addr_size;
     //fixme debería hacerse lo mismo para radius que para pana?
     struct pana_func_parameter *pana_params;
-    struct radius_func_parameter radius_params;
+    struct radius_func_parameter *radius_params;
     pana *msg;
 
     while (!fin) {
@@ -541,9 +544,10 @@ void* handle_network_management() {
                 if (length > 0) {
 
                     struct radius_msg *radmsg = radius_msg_parse(udp_packet, length);
-                    radius_params.radius_msg = radmsg;
+                    radius_params = calloc(sizeof(struct radius_func_parameter),1);
+                    radius_params->radius_msg = radmsg;
                     
-                    add_task(process_receive_radius_msg, &radius_params);
+                    add_task(process_receive_radius_msg, radius_params);
                     
                 } else fprintf(stderr,"recvfrom returned ret=%d, errno=%d\n", length, errno);
             }
