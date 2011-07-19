@@ -119,11 +119,14 @@ static void eap_auth_encapsulate_radius(struct eap_auth_ctx *eap_ctx, const stru
 		pthread_mutex_lock(&(radctx->radmux));
 		
 		eap_ctx->radius_identifier = radius_client_get_id(radctx->radius);
+
+		fprintf(stderr, "PEDRO: El id que ha devuelto es: %d\n", eap_ctx->radius_identifier);
 		
-		pthread_mutex_unlock(&(radctx->radmux));
 		
 		msg = radius_msg_new(RADIUS_CODE_ACCESS_REQUEST,
 							 eap_ctx->radius_identifier);
+
+		pthread_mutex_unlock(&(radctx->radmux));
 		if (msg == NULL) {
 			printf("Could not create net RADIUS packet\n");
 			return;
@@ -408,7 +411,8 @@ eap_auth_receive_radius(struct radius_msg *msg, struct radius_msg *req,
 	
 	
 	/*********************************************************************************************/
-	eap_ctx->radius_identifier = -1;
+	//eap_ctx = search_eap_ctx_rad_client(hdr->identifier);
+	//eap_ctx->radius_identifier = -1; //PEDRO: Esto es lo que estaba puesto
 	wpa_printf(MSG_DEBUG, "RADIUS packet matching with station");
 	
 	radius_msg_free(eap_ctx->last_recv_radius);
@@ -755,6 +759,7 @@ int add_eap_ctx_rad_client(struct eap_auth_ctx *eap_ctx)
 	
 	eap_ctx->next=global_rad_ctx->eap_ctx;
 	global_rad_ctx->eap_ctx = eap_ctx;
+	
 	return 0;
 	
 }
@@ -770,6 +775,7 @@ struct eap_auth_ctx *search_eap_ctx_rad_client(u8 identifier)
 			searched=searched->next;
 		
 	}
+	
 	return searched;
 }
 

@@ -99,15 +99,16 @@ void * process_receive_eap_ll_msg(void *arg) {
         //FIXME: Debería comprobarse que pasa cuando un cliente "muere" y ese mismo vuelve a lanzar un PCI
         //Ataque por PCIs falsos para borrar sesiones? reautenticación?
         //Delete the previous session if it exists in the session list and the alarm list
-        get_alarm_session(&list_alarms, pana_session->session_id, PCI_ALARM);
+        //get_alarm_session(&list_alarms, pana_session->session_id, PCI_ALARM);
         remove_session(pana_session->session_id);
-        
+        remove_alarm(&(list_alarms), pana_session->session_id);
+        add_session(pana_session);
         //Add the provisional session in the alarm list
-        add_alarma(&(list_alarms), pana_session, TIME_PCI, PCI_ALARM);
+        //add_alarma(&(list_alarms), pana_session, TIME_PCI, PCI_ALARM);
         
 
     }
-    else if ((ntohs(msg->msg_type) == PAN_MSG) && // If it is the first answer message
+    /*else if ((ntohs(msg->msg_type) == PAN_MSG) && // If it is the first answer message
             ((ntohs(msg->flags) & S_FLAG) == S_FLAG)) {// it is created a new session for the new client
        
         //Generate the session id asociated to client's port and ip
@@ -128,7 +129,7 @@ void * process_receive_eap_ll_msg(void *arg) {
         #ifdef DEBUG
         fprintf(stderr, "DEBUG: Session-Id added to the list is: %d\n", session_id);
 		#endif
-    } 
+    }*/ 
     
     else { //If the messsage is another one
         int id = ntohl(msg->session_id); 
@@ -136,11 +137,12 @@ void * process_receive_eap_ll_msg(void *arg) {
         fprintf(stderr, "DEBUG: It's gonna search id: %d\n", id);
 #endif
         //Check if the session is in the alarm list
-        pana_session = get_alarm_session(&(list_alarms), id, PCI_ALARM);
-        if (pana_session == NULL) { //If pana_session isn't in the alarm list, it must will be in the session list
+        //pana_session = get_alarm_session(&(list_alarms), id, PCI_ALARM);
+        pana_session = get_session(id);
+        /*if (pana_session == NULL) { //If pana_session isn't in the alarm list, it must will be in the session list
 			fprintf(stderr,"DEBUG: Session %#X not found in alarm_list, gonna search in session_list \n",id);
             pana_session = get_session(id);
-        }
+        }*/
         if (pana_session == NULL) { //If the session doesn't exist
             fprintf(stderr, "PANA: CRITICAL ERROR, tried to send a message from an unauthenticated client.\n");
             return 0;
@@ -174,12 +176,14 @@ void* process_receive_radius_msg(void* arg) {
 
     int radius_type = RADIUS_AUTH;
     //Get the function's parameters
-    struct radius_msg *radmsg = radius_params.radius_msg;
+    struct radius_msg *radmsg = radius_params.msg;
     
     struct radius_client_data *radius_data = get_rad_client_ctx();
     struct radius_hdr *hdr = radius_msg_get_hdr(radmsg);
 	struct eap_auth_ctx *eap_ctx = search_eap_ctx_rad_client(hdr->identifier);
-                  
+
+    if (eap_ctx == NULL)
+		fprintf(stderr, "PEDRO: eap_ctx NULO. Tratamiento de radius\n");
     pana_ctx * ll_session = (pana_ctx*) (eap_ctx->eap_ll_ctx);
     pthread_mutex_lock(&(ll_session->mutex));
     
@@ -207,7 +211,10 @@ void* process_receive_radius_msg(void* arg) {
 }
 
 void add_task(func funcion, void * arg/*, int session_id*/) {
-    int rc; /* return code of pthreads functions.  */
+
+	int rc; /* return code of pthreads functions.  */
+    /* lock the mutex, to assure exclusive access to the list */
+    rc = pthread_mutex_lock(&list_tasks_mutex);
     
     struct task_list * new_element; // A new element in the list
 
@@ -222,8 +229,6 @@ void add_task(func funcion, void * arg/*, int session_id*/) {
     new_element->data = arg;
     new_element->next = NULL;
 
-    /* lock the mutex, to assure exclusive access to the list */
-    rc = pthread_mutex_lock(&list_tasks_mutex);
 
     /* add new session to the end of the list, updating list */
     /* pointers as required */
@@ -240,6 +245,7 @@ void add_task(func funcion, void * arg/*, int session_id*/) {
     fprintf(stderr,"DEBUG: add_task: added task \n");
 #endif /* DEBUG */
 
+	
     /* unlock mutex */
     rc = pthread_mutex_unlock(&list_tasks_mutex);
 
@@ -526,7 +532,8 @@ void* handle_network_management() {
                     //FIXME: Cuándo se libera esto
                     pana_params = calloc(sizeof(struct pana_func_parameter),1);
                     pana_params->pana_msg = msg;
-                    pana_params->eap_ll_dst_addr = &(eap_ll_dst_addr);
+                    pana_params->eap_ll_dst_addr = malloc (sizeof(struct sockaddr_in));
+                    memcpy(pana_params->eap_ll_dst_addr, &(eap_ll_dst_addr), sizeof(struct sockaddr_in));
                     pana_params->sock = eap_ll_sock;
 					pana_params->id_alarm = -1;
                     add_task(process_receive_eap_ll_msg, pana_params/*, ntohl(msg->session_id)*/);
@@ -541,7 +548,9 @@ void* handle_network_management() {
                 if (length > 0) {
 
                     struct radius_msg *radmsg = radius_msg_parse(udp_packet, length);
-                    radius_params.radius_msg = radmsg;
+                    radius_params.msg = malloc (length);
+                    memcpy(radius_params.msg, radmsg, length);
+                    //radius_params.msg = radmsg;
                     
                     add_task(process_receive_radius_msg, &radius_params);
                     
