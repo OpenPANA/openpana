@@ -247,7 +247,7 @@ void remove_alarm(struct lalarm** list, int id_session){
 
 	if ((*list)->pana_session == NULL)
 		fprintf(stderr, "ERROR: Trying to remove a session in an alarm's list empty\n");
-	while((*list)->pana_session->session_id == id_session){
+	while( ((*list) != NULL) && ((*list)->pana_session->session_id == id_session)){
 		struct lalarm * tofree = (*list);
 		(*list) = (*list)->sig;
 		free(tofree);
