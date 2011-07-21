@@ -40,7 +40,6 @@
 #define SESS_ALARM 3
 #define RETR_AAA   4
 
-pthread_mutex_t * mutex;
 
 struct lalarm {
 	/** PANA session associated to the alarm. */
@@ -53,7 +52,7 @@ struct lalarm {
     int id;
 };
 /** Creates a new alarm list. */
-struct lalarm* init_alarms(pthread_mutex_t * mutex_list);
+struct lalarm* init_alarms();
 /** Adds a new alarm to a list.*/
 struct lalarm* add_alarma(struct lalarm ** l, pana_ctx* session, time_t tiempo, int iden);
 /** Returns the alarm requested and removes it from the list.*/

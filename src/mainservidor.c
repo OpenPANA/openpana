@@ -58,7 +58,6 @@ struct lalarm* list_alarms = NULL; // alarms' list
 
 pthread_mutex_t list_sessions_mutex;
 pthread_mutex_t list_tasks_mutex;
-pthread_mutex_t alarm_list_mutex;
 pthread_mutexattr_t request_mutex_attr; //Needed to set attributes to pthread_mutex_t
 
 /* global condition 	variable for our program. assignment initializes it. */
@@ -235,13 +234,22 @@ void* process_receive_radius_msg(void* arg) {
     struct radius_hdr *hdr = radius_msg_get_hdr(radmsg);
 	struct eap_auth_ctx *eap_ctx = search_eap_ctx_rad_client(hdr->identifier);
 
-    if (eap_ctx == NULL)
-		fprintf(stderr, "PEDRO: eap_ctx NULO. Tratamiento de radius\n");
+    if (eap_ctx == NULL){
+		fprintf(stderr, "ERROR: eap_ctx NULL. It can't be used\n");
+		return NULL;
+	}
     pana_ctx * ll_session = (pana_ctx*) (eap_ctx->eap_ll_ctx);
     pthread_mutex_lock(&(ll_session->mutex));
+
+	printf("PEDRO: Antes de borrar la alarma la lista es esta \n");
+	print_list_alarms();
     
     //Delete the alarm associated to this message
 	get_alarm_session(ll_session->list_of_alarms, ll_session->session_id, RETR_AAA);
+
+	printf("PEDRO: Después de borrar la alarma la lista es esta \n");
+	print_list_alarms();
+
 
     if (eap_ctx != NULL) {
 		
@@ -746,11 +754,10 @@ int main(int argc, char* argv[]) {
     //Init the lockers
     pthread_mutex_init(&list_sessions_mutex, NULL);
     pthread_mutex_init(&list_tasks_mutex, NULL);
-    pthread_mutex_init(&alarm_list_mutex, NULL);
 
 
     //Init global variables
-    list_alarms = init_alarms(&alarm_list_mutex);
+    list_alarms = init_alarms();
 
     /* create the request-handling threads */
     for (i = 0; i < NUM_WORKERS; i++) {
