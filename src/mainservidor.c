@@ -61,12 +61,57 @@ pthread_mutex_t list_tasks_mutex;
 pthread_mutex_t alarm_list_mutex;
 pthread_mutexattr_t request_mutex_attr; //Needed to set attributes to pthread_mutex_t
 
-/* global condition variable for our program. assignment initializes it. */
+/* global condition 	variable for our program. assignment initializes it. */
 sem_t got_task; //Semaphore used to wait for new tasks by workers
 
 void signal_handler(int sig) {
     printf("\nStopping server, signal: %d\n", sig);
     fin = 1;
+}
+
+
+
+void print_list_alarms(){
+
+	int rc; /* return code of pthreads functions.  */
+
+    struct lalarm* ptr = list_alarms;
+
+    /* lock the mutex, to assure exclusive access to the list */
+
+
+	while (ptr != NULL) {
+		printf("DEBUG: Showing session alarm id: %#X\n", ptr->pana_session->session_id);
+		printf("DEBUG: Showing alarm type: %#X\n", ptr->id);
+		ptr = ptr->sig;
+	}
+    
+   
+   
+}
+
+
+void print_list_sessions(){
+
+	int rc; /* return code of pthreads functions.  */
+
+    struct pana_ctx_list* ptr = list_pana_sessions;
+
+#ifdef DEBUG
+    fprintf(stderr, "DEBUG: Trying to get session of id: %d\n", id);
+#endif
+    /* lock the mutex, to assure exclusive access to the list */
+    rc = pthread_mutex_lock(&list_sessions_mutex);
+
+
+	while (ptr != NULL) {
+		printf("DEBUG: Showing session id: %#X\n", ptr->pana_session->session_id);
+		ptr = ptr->next;
+	}
+    
+    
+    /* unlock mutex */
+    rc = pthread_mutex_unlock(&list_sessions_mutex);
 }
 
 void * process_receive_eap_ll_msg(void *arg) {
@@ -152,9 +197,17 @@ void * process_receive_eap_ll_msg(void *arg) {
     
 	pthread_mutex_lock(&(pana_session->mutex));
     //Use the correct session
+    
     updateSession((char *)msg, pana_session);
     transition(pana_session);
     check_eap_status(pana_session);
+
+      if (pana_session->CURRENT_STATE == OPEN){
+		printf("Aqui tengo que pararme yo\n");
+		print_list_sessions();
+		print_list_alarms();
+		//exit(0);
+	}
     
     if (pana_session->CURRENT_STATE == CLOSED) {
         remove_alarm(&list_alarms, pana_session->session_id); //Remove the alarms
