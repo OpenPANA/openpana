@@ -23,11 +23,15 @@
  */
 
 #include "lalarm.h"
-#include <sys/time.h>
+#include <time.h>
+
+pthread_mutex_t mutex;
+
 
 /* Proceso que inicializa el listado, lanzado en user_inicializar */
-struct lalarm *init_alarms(pthread_mutex_t * mutex_list) {
-    mutex = mutex_list;
+struct lalarm *init_alarms() {
+    //mutex = mutex_list;
+    pthread_mutex_init(&mutex, NULL);
     return NULL;
 
 }
@@ -37,7 +41,76 @@ struct lalarm * add_alarma(struct lalarm ** l,
 							pana_ctx* session, 
 							time_t time, 
 							int iden) {
-    pthread_mutex_lock(mutex);
+
+	/*
+	pthread_mutex_lock(&mutex);
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+    time_t tiempo = tv.tv_sec;
+    tiempo += time;
+
+    if ((*l)==NULL){ //The alarm list is empty
+
+		(*l) = malloc (sizeof(struct lalarm));
+		(*l)->pana_session = session;
+		(*l)->tmp = tiempo;
+		(*l)->id = iden;
+		(*l)->sig = NULL;
+	}
+
+	else if ((difftime((*l)->tmp, tiempo) == 0) || (difftime((*l)->tmp, tiempo) > 0)) { // If the new alarm must be set the first one
+		struct lalarm * point_to_list = (*l);
+		(*l) = malloc (sizeof(struct lalarm));
+		(*l)->pana_session = session;
+		(*l)->tmp = tiempo;
+		(*l)->id = iden;
+		(*l)->sig = point_to_list;
+	}
+
+	else if ((*l)->sig == NULL){ // If only there is an alarm, the new alarm will be the second one.
+		(*l)->sig = malloc (sizeof(struct lalarm));
+		(*l)->sig->pana_session = session;
+		(*l)->sig->tmp = tiempo;
+		(*l)->sig->id = iden;
+		(*l)->sig->sig = NULL;
+	}
+
+	else {
+		struct lalarm * prev = (*l);
+		struct lalarm * ptr = (*l)->sig;
+		//int final = 0;
+		while ((difftime(ptr->tmp, tiempo)<0) && (ptr->sig !=NULL)){
+				prev = ptr;
+				ptr = ptr->sig;
+		}
+
+		if ((difftime(ptr->tmp, tiempo)>0) || (difftime(ptr->tmp, tiempo)==0)){ // The new alarm must be set between two alarms
+			prev->sig = malloc (sizeof(struct lalarm));
+			prev->sig->pana_session = session;
+			prev->sig->tmp = tiempo;
+			prev->sig->id = iden;
+			prev->sig->sig = ptr;
+		}
+
+		else { //The new alarm must be set in the last position of alarm's list
+			ptr->sig = malloc (sizeof(struct lalarm));
+			ptr->sig->pana_session = session;
+			ptr->sig->tmp = tiempo;
+			ptr->sig->id = iden;
+			ptr->sig->sig = NULL;
+		}
+	}
+
+	pthread_mutex_unlock(&mutex);
+    return (*l);
+	*/
+
+
+
+
+
+    								
+    pthread_mutex_lock(&mutex);
     struct timeval tv; 
     gettimeofday(&tv, NULL);
     time_t tiempo = tv.tv_sec;
@@ -99,17 +172,17 @@ struct lalarm * add_alarma(struct lalarm ** l,
 
 
     }
-    pthread_mutex_unlock(mutex);
+    pthread_mutex_unlock(&mutex);
     return (*l);
 
 }
 
 pana_ctx * get_alarm_session(struct lalarm** list, int id_session, int id_alarm) {
-    pthread_mutex_lock(mutex);
+    pthread_mutex_lock(&mutex);
     struct lalarm* session = NULL;
     struct lalarm* anterior = NULL;
     if (list == NULL) {
-        pthread_mutex_unlock(mutex);
+        pthread_mutex_unlock(&mutex);
         return NULL;
     }
     if ((*list) != NULL) {
@@ -119,39 +192,41 @@ pana_ctx * get_alarm_session(struct lalarm** list, int id_session, int id_alarm)
 				*list = (*list)->sig;
 				session->sig = NULL;
 			}
-        } else {
-            session = (*list)->sig;
-            anterior = (*list);
-            while (session != NULL) {
-                if ((*list)->pana_session!=NULL){
-					if (session->pana_session->session_id == id_session && session->id == id_alarm) {
-						anterior->sig = anterior->sig->sig;
-						session->sig = NULL;
-						break;
+
+			else {
+				session = (*list)->sig;
+				anterior = (*list);
+				while (session != NULL) {
+					if ((*list)->pana_session!=NULL){
+						if (session->pana_session->session_id == id_session && session->id == id_alarm) {
+							anterior->sig = anterior->sig->sig;
+							session->sig = NULL;
+							break;
+						}
 					}
+					anterior = anterior->sig;
+					session = session->sig;
 				}
-                anterior = anterior->sig;
-                session = session->sig;
-            }
-        }
+			}
+        } 
     }
 
     /* return the request to the caller. */
     if (session == NULL) {
 #ifdef DEBUG
-        fprintf(stderr, "DEBUG: Session with id %d not found.\n", id_session);
+        fprintf(stderr, "DEBUG: Session with id %d not found in the alarm list.\n", id_session);
 #endif
-        pthread_mutex_unlock(mutex);
+        pthread_mutex_unlock(&mutex);
         return NULL;
     }
-    pthread_mutex_unlock(mutex);
+    pthread_mutex_unlock(&mutex);
     return session->pana_session;
 }
 
 struct lalarm * get_next_alarm(struct lalarm** list, time_t time) {
-	pthread_mutex_lock(mutex);
+	pthread_mutex_lock(&mutex);
 	if ((*list)==NULL){
-		pthread_mutex_unlock(mutex);
+		pthread_mutex_unlock(&mutex);
 		return NULL;
 	}
 	
@@ -159,31 +234,34 @@ struct lalarm * get_next_alarm(struct lalarm** list, time_t time) {
 		struct lalarm* first = (*list);
 		(*list) = (*list)->sig;
 		first->sig = NULL;
-		pthread_mutex_unlock(mutex);
+		pthread_mutex_unlock(&mutex);
 		return first;
 	}
 	else {
-		pthread_mutex_unlock(mutex);
+		pthread_mutex_unlock(&mutex);
 		return NULL;
 	}
 }
 
 void remove_alarm(struct lalarm** list, int id_session){
-	pthread_mutex_lock(mutex);
+	pthread_mutex_lock(&mutex);
 	
 	if(list == NULL || (*list) == NULL){
-		pthread_mutex_unlock(mutex);
+		pthread_mutex_unlock(&mutex);
 		return;
 	}
-	
-	else if((*list)->pana_session->session_id == id_session){
+
+	if ((*list)->pana_session == NULL)
+		fprintf(stderr, "ERROR: Trying to remove a session in an alarm's list empty\n");
+	while( ((*list) != NULL) && ((*list)->pana_session->session_id == id_session)){
 		struct lalarm * tofree = (*list);
 		(*list) = (*list)->sig;
 		free(tofree);
-		pthread_mutex_unlock(mutex);
-		return;
+		//pthread_mutex_unlock(&mutex);
+		//return;
 	}
-	else{
+	
+	if (list != NULL && (*list) != NULL){
 		
 		struct lalarm* current = (*list)->sig;
 		struct lalarm* prev = (*list);
@@ -200,13 +278,14 @@ void remove_alarm(struct lalarm** list, int id_session){
 					tofree->sig = NULL;
 					free(tofree);
 			}
-			else{
-				prev = current;
-				current = current->sig;
-			}
+			
+			prev = current;
+			current = current->sig;		
 		}
 		
-		pthread_mutex_unlock(mutex);
-		return;
 	}
+
+	
+	pthread_mutex_unlock(&mutex);
+	return;
 }

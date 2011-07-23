@@ -30,6 +30,7 @@
 	int sock;
 };*/
 
+
 struct extra_radius_attr {
 	u8 type;
 	char syntax;
@@ -50,7 +51,6 @@ struct radius_ctx {
 	u8 own_addr[6];//mac addrs
     u8 *connect_info;
 	//struct radius_msg *last_recv_radius;
-	pthread_mutex_t radmux;
 		//int radius_access_accept_received;
 	//int radius_access_reject_received;
 	

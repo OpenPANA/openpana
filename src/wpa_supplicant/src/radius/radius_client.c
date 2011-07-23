@@ -473,7 +473,7 @@ int radius_client_send(struct radius_client_data *radius,
 	
 	//PEDRO: Esto lo he puesto yo
 	//printf("Va a bloquearse en radius_client_send\n");
-	pthread_mutex_lock(&list_mutex);
+	//pthread_mutex_lock(&list_mutex);
 	//Hasta aquí
 	/*Rafa: Here we should add a timer to alarm list to provoke reauth. Network manager will receive the answer... hopefully */
 	radius_client_list_add(radius, msg, msg_type, shared_secret,
@@ -481,7 +481,7 @@ int radius_client_send(struct radius_client_data *radius,
 	//PEDRO: Esto lo he puesto yo
 	
 	//printf("Va a desbloquearse en radius_client_send\n");
-	pthread_mutex_unlock(&list_mutex);
+	//pthread_mutex_unlock(&list_mutex);
 	//Hasta aquí
 	res = send(s, wpabuf_head(buf), wpabuf_len(buf), 0);
 	if (res < 0)
@@ -568,7 +568,7 @@ void radius_client_receive(struct radius_msg *msg, void *eloop_ctx, void *sock_c
 	//PEDRO: Esto lo he puesto yo
 	
 	//printf("Va a bloquearse en radius_client_recieve\n");
-	pthread_mutex_lock(&list_mutex);
+	//pthread_mutex_lock(&list_mutex);
 	//Hasta aquí
 	prev_req = NULL;
 	req = radius->msgs;
@@ -594,7 +594,7 @@ void radius_client_receive(struct radius_msg *msg, void *eloop_ctx, void *sock_c
 	//PEDRO: Esto lo he puesto yo
 	
 	//printf("Va a desbloquearse en radius_client_receive\n");
-	pthread_mutex_unlock(&list_mutex);
+	//pthread_mutex_unlock(&list_mutex);
 	//Hasta aquí
 	
 	if (req == NULL) {
@@ -1253,7 +1253,7 @@ radius_client_init(void *ctx, struct hostapd_radius_servers *conf)
 {
 	struct radius_client_data *radius;
 	//PEDRO: Esto lo he puesto yo
-	pthread_mutex_init(&list_mutex, NULL);
+	//pthread_mutex_init(&list_mutex, NULL);
 	// Hasta aquí
 	radius = os_zalloc(sizeof(struct radius_client_data));
 	if (radius == NULL)

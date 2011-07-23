@@ -23,6 +23,8 @@
  *  https://sourceforge.net/projects/openpana/
  */
 
+#ifndef MAINSERVIDOR_H
+#define MAINSERVIDOR_H
 #include "./libeapstack/eap_auth_interface.h"
 #include "state_machines/session.h"
 
@@ -73,7 +75,7 @@ struct retr_func_parameter {
 
 /**Struct of process_receive_radius_msg function's parameter*/
 struct radius_func_parameter {
-    struct radius_msg *radius_msg;
+    struct radius_msg * msg;
 };
 
 void add_session(pana_ctx * session);
@@ -93,3 +95,4 @@ int retransmitAAA (pana_ctx* current_session);
 void* process_receive_eap_ll_msg(void * arg);
 void* process_receive_radius_msg(void* arg);
 void* process_retr(void *arg);
+#endif

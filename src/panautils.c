@@ -148,6 +148,7 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
 		
         if (pana_session->SEQ_NUMBER != seq_number) { //Si se recibe un answer erroneo
 			fprintf(stderr, "ERROR: Wrong Answer secuence number. Dropping message.\n");
+			fprintf(stderr, "Valores: session -> %d, mensaje -> %d\n", pana_session->SEQ_NUMBER, seq_number);
             return 0;
         }
     }
@@ -236,7 +237,7 @@ int generateSessionId(char * ip, short port) {
     int * point = (int *) result;
     int rc = (*point);
     #ifdef DEBUG
-    fprintf(stderr,"DEBUG: Session Id %d generated withport %d and ip %s\n",rc,port,ip);
+    fprintf(stderr,"DEBUG: Session Id %d generated with port %d and ip %s\n",rc,port,ip);
     #endif
     free(seed);
     free(result);
