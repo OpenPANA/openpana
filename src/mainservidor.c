@@ -201,12 +201,12 @@ void * process_receive_eap_ll_msg(void *arg) {
     transition(pana_session);
     check_eap_status(pana_session);
 
-      if (pana_session->CURRENT_STATE == OPEN){
+    /*if (pana_session->CURRENT_STATE == OPEN){
 		printf("Aqui tengo que pararme yo\n");
 		print_list_sessions();
 		print_list_alarms();
 		//exit(0);
-	}
+	}*/	
     
     if (pana_session->CURRENT_STATE == CLOSED) {
         remove_alarm(&list_alarms, pana_session->session_id); //Remove the alarms
