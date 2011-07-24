@@ -189,10 +189,12 @@ int paaInitHandshake() {
 
 int panaResult() {
 	int par_result_code=0;
-	avp_pana * elmnt =(avp_pana*) getAvp(current_session->LAST_MESSAGE, RESULTCODE_AVP);
-	if (elmnt != NULL && elmnt->length != 0){
-		par_result_code = ntohs((short)  *( ((char*) elmnt) + sizeof(avp_pana) )  );
-	}
+	char * attribute = getAvp(current_session->LAST_MESSAGE, RESULTCODE_AVP);
+    if (attribute != NULL) {
+		char* value =(((char*)attribute) + sizeof(avp_pana));
+		par_result_code = Hex2Dec(value, 4);//FIXME: Magic number (4 porque es el tamaño del campo value)
+    }
+    
     if ((current_session->PAR.receive && (current_session->PAR.flags & C_FLAG)) && par_result_code == PANA_SUCCESS) {
         txEAP();
         return WAIT_EAP_RESULT;
@@ -306,7 +308,6 @@ int returnPanParFromEap() {
 int eapResultStateWaitEapResult() {
 fprintf(stderr,"DEBUG: pacmachine.c eapresultstatewaiteapresult\n");
     if (eap_peer_get_eapSuccess(&(current_session->eap_ctx)) == TRUE) {
-
 		if(current_session->retr_msg !=NULL){
 			//free(current_session->retr_msg);
 		}
@@ -352,7 +353,9 @@ fprintf(stderr,"DEBUG: pacmachine.c eapresultstatewaiteapresult\n");
         disconnect();
         eap_peer_set_eapFail(&(current_session->eap_ctx), FALSE);
         return CLOSED;
-    } else return ERROR;
+    } else{
+		 return ERROR;
+	 }
 }
 
 int eapResultStateWaitEapResultClose() {
@@ -370,7 +373,7 @@ int eapResultStateWaitEapResultClose() {
             current_session->retr_msg = transmissionMessage("PAN", C_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, "", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
         }
         sessionTimerStop();
-        fprintf(stderr,"DEBUG: pacmachine.c resultclose");
+        fprintf(stderr,"DEBUG: pacmachine.c resultclose\n");
         disconnect();
 
         if (eap_peer_get_eapSuccess(&(current_session->eap_ctx)) == TRUE) {

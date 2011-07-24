@@ -241,20 +241,20 @@ void* process_receive_radius_msg(void* arg) {
     pana_ctx * ll_session = (pana_ctx*) (eap_ctx->eap_ll_ctx);
     pthread_mutex_lock(&(ll_session->mutex));
 
-	printf("PEDRO: Antes de borrar la alarma la lista es esta \n");
-	print_list_alarms();
-    
+    int fail = 0;
     //Delete the alarm associated to this message
 	get_alarm_session(ll_session->list_of_alarms, ll_session->session_id, RETR_AAA);
-
-	printf("PEDRO: Después de borrar la alarma la lista es esta \n");
-	print_list_alarms();
-
 
     if (eap_ctx != NULL) {
 		
         radius_client_receive(radmsg, radius_data, &radius_type);
-        
+
+		//FIXME: Uncomment this code to deal the fail case
+        if ((eap_auth_get_eapFail(eap_ctx) == TRUE)){
+			fprintf(stderr,"DEBUG: There's an eap fail in RADIUS\n");
+			transition((pana_ctx *) eap_ctx->eap_ll_ctx);
+		}
+		
         if ((eap_auth_get_eapReq(eap_ctx) == TRUE)
                 || (eap_auth_get_eapSuccess(eap_ctx) == TRUE)) {
 		//A transition with PANA ctx is made
