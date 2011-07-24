@@ -205,6 +205,16 @@ int main(int argc, char *argv[]) {
                 transition(&pana_session);
                 pthread_mutex_unlock(&session_mutex);
             }
+
+            //Check if eap authentication has finished with a fail
+                if (eap_peer_get_eapFail(&(current_session->eap_ctx)) == TRUE) {
+#ifdef DEBUG
+                    fprintf(stderr,"DEBUG: There's an eapFail\n");
+#endif
+					pthread_mutex_lock(&session_mutex);
+                    transition(&pana_session);
+                    pthread_mutex_unlock(&session_mutex);
+                }
             
                 //Check if exist a Response for eap server
                 if (eap_peer_get_eapResp(&(pana_session.eap_ctx)) == TRUE) {
@@ -226,6 +236,17 @@ int main(int argc, char *argv[]) {
                     transition(&pana_session);
                     pthread_mutex_unlock(&session_mutex);
                 }
+
+				
+				//FIXME: Este if no debería ser necesario siguiendo el rfc.
+                if (current_session->CURRENT_STATE == WAIT_EAP_RESULT_CLOSE){
+					if (eap_peer_get_eapResp(&(pana_session.eap_ctx)) == TRUE) {
+						eap_peer_set_eapFail(&(current_session->eap_ctx), TRUE);
+						pthread_mutex_lock(&session_mutex);
+						transition(&pana_session);
+						pthread_mutex_unlock(&session_mutex);
+					}
+				}
             }//length >0
 
         }//If a PANA packet is received

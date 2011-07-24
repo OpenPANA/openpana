@@ -425,12 +425,12 @@ eap_auth_receive_radius(struct radius_msg *msg, struct radius_msg *req,
 	//eap_ctx->radius_identifier = -1; //PEDRO: Esto es lo que estaba puesto
 	wpa_printf(MSG_DEBUG, "RADIUS packet matching with station");
 
-	if (eap_ctx->last_recv_radius != NULL)
-		radius_msg_free(eap_ctx->last_recv_radius); //PEDRO: Esto estaba sin comentar
+	//if (eap_ctx->last_recv_radius != NULL){
+		//radius_msg_free(eap_ctx->last_recv_radius); //fixme: This line must be uncommented?
+	//}
 	eap_ctx->last_recv_radius = malloc (1024);
 	memcpy(eap_ctx->last_recv_radius, msg, 1024);
 	//eap_ctx->last_recv_radius = msg;
-	
 	session_timeout_set = !radius_msg_get_attr_int32(msg, RADIUS_ATTR_SESSION_TIMEOUT,
 							                         &session_timeout);
 	
@@ -500,6 +500,7 @@ eap_auth_receive_radius(struct radius_msg *msg, struct radius_msg *req,
 			override_eapReq = 1;
 			break;
 	}
+
 	eap_auth_decapsulate_radius(eap_ctx);
 	
 	/*Rafa: This source code may be removed*/
