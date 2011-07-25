@@ -228,6 +228,26 @@ static void eap_auth_encapsulate_radius(struct eap_auth_ctx *eap_ctx, const stru
 						   "Attribute");
 			}
 		}
+		else{
+			printf("PEDRO: esto no tiene atributo estado.\n");
+			if (eap_ctx->last_recv_radius){
+				int code = radius_msg_get_hdr(eap_ctx->last_recv_radius)->code;
+				printf("PEDRO: el código es: %d\n", code);
+				int res2 = radius_msg_copy_attr(msg, eap_ctx->last_recv_radius,
+										   RADIUS_ATTR_STATE);
+				if (res2 <= 0) {
+					printf("Could not copy State attribute from previous "
+						   "Access-Challenge\n");
+				}
+				if (res2 > 0) {
+					wpa_printf(MSG_DEBUG, "  Copied RADIUS State "
+							   "Attribute");
+				}
+			}
+			else {
+				printf("PEDRO: el last_recv_radius es nulo\n");
+			}
+		}
 		
 		//FIXME: PEDRO: Actualiza el valor del último mensaje enviado y del socket a enviar
 		eap_ctx->last_send_radius = msg;
