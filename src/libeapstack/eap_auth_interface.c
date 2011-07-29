@@ -229,7 +229,7 @@ static void eap_auth_encapsulate_radius(struct eap_auth_ctx *eap_ctx, const stru
 			}
 		}
 		
-		//FIXME: PEDRO: Actualiza el valor del último mensaje enviado y del socket a enviar
+		//Update the last RADIUS message sended
 		eap_ctx->last_send_radius = msg;
 		
 		radius_client_send(radctx->radius, msg, RADIUS_AUTH, eap_ctx->own_addr,(void *)eap_ctx);
@@ -308,7 +308,10 @@ static void eap_auth_decapsulate_radius(struct eap_auth_ctx *eap_ctx)
 		return;
 	}
 
-	msg = eap_ctx->last_recv_radius;
+	int length = ntohs(radius_msg_get_hdr(eap_ctx->last_recv_radius)->length);
+	msg = malloc (length*sizeof(char));
+	memcpy (msg, eap_ctx->last_recv_radius, length*sizeof(char));
+	//msg = eap_ctx->last_recv_radius;
 	
 	eap = radius_msg_get_eap(msg, &len);
 	if (eap == NULL) {
@@ -421,16 +424,21 @@ eap_auth_receive_radius(struct radius_msg *msg, struct radius_msg *req,
 	
 	
 	/*********************************************************************************************/
-	//eap_ctx = search_eap_ctx_rad_client(hdr->identifier);
-	//eap_ctx->radius_identifier = -1; //PEDRO: Esto es lo que estaba puesto
+
 	wpa_printf(MSG_DEBUG, "RADIUS packet matching with station");
 
 	//if (eap_ctx->last_recv_radius != NULL){
 		//radius_msg_free(eap_ctx->last_recv_radius); //fixme: This line must be uncommented?
 	//}
-	eap_ctx->last_recv_radius = malloc (1024);
-	memcpy(eap_ctx->last_recv_radius, msg, 1024);
+
+	int length = ntohs(radius_msg_get_hdr(msg)->length);
+	eap_ctx->last_recv_radius = malloc(length *sizeof(char));
+	memcpy(eap_ctx->last_recv_radius, msg, length * sizeof(char));
+
+	//The 3 lines of code above replace the following one
 	//eap_ctx->last_recv_radius = msg;
+
+
 	session_timeout_set = !radius_msg_get_attr_int32(msg, RADIUS_ATTR_SESSION_TIMEOUT,
 							                         &session_timeout);
 	
