@@ -371,9 +371,9 @@ load_config_client()
     LIBXML_TEST_VERSION
 
     /*parse the file and get the DOM */
-    // FIXME: First check if DATADIR"/config.xml" exists, if it doesn't, try in current directory
+    // FIXME: First check if CONFIGDIR"/config.xml" exists, if it doesn't, try in current directory
     // then open the correct file
-    doc = xmlReadFile(DATADIR"/config.xml", NULL, 0);
+    doc = xmlReadFile(CONFIGDIR"/config.xml", NULL, 0);
 
     if (doc == NULL) {
 		fprintf(stderr,"Trying to load config.xml from current directory.\n");
@@ -421,9 +421,9 @@ load_config_server()
     LIBXML_TEST_VERSION
 
     /*parse the file and get the DOM */
-    // FIXME: First check if DATADIR"/config.xml" exists, if it doesn't, try in current directory
+    // FIXME: First check if CONFIGDIR"/config.xml" exists, if it doesn't, try in current directory
     // then open the correct file
-    doc = xmlReadFile(DATADIR"/config.xml", NULL, 0);
+    doc = xmlReadFile(CONFIGDIR"/config.xml", NULL, 0);
 
     if (doc == NULL) {
 		fprintf(stderr,"Trying to load config.xml from current directory.\n");

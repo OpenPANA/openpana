@@ -16,5 +16,5 @@ ChangeLog for OpenPANA
 		- It is allowed the authentication of a lot of users.
 		- Available multiple EAP methods (see hostapd implementation for more
 		  information).
-		- XML based configuration file available in ./src/ installed in /usr/local/share
+		- XML based configuration file available in ./src/ and when the program is installed in /etc/openpana
 		- Doxygen documentation.
