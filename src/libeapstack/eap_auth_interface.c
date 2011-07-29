@@ -685,10 +685,10 @@ static int eap_auth_init_tls(struct eap_auth_ctx *eap_ctx)
 	}
 	
 	os_memset(&tparams, 0, sizeof(tparams));
-	tparams.ca_cert = "ca.pem";
-	tparams.client_cert = "server.pem";
-	/* tparams.private_key = "server.key"; */
-	tparams.private_key = "server-key.pem";
+	tparams.ca_cert = CA_CERT;
+	tparams.client_cert = SERVER_CERT;
+	tparams.private_key = SERVER_KEY; 
+	//tparams.private_key = "server-key.pem";
 	/* tparams.private_key_passwd = "whatever"; */
 	
 	if (tls_global_set_params(eap_ctx->tls_ctx, &tparams)) {
@@ -706,9 +706,9 @@ static int eap_auth_init_tls(struct eap_auth_ctx *eap_ctx)
 
 struct radius_ctx *rad_client_init()
 {
-	char *as_addr = "127.0.0.1";
-	int as_port = 1812;
-	char *as_secret = "testing123";
+	char *as_addr = AS_IP;
+	int as_port = AS_PORT;
+	char *as_secret = AS_SECRET;
 	char *cli_addr = NULL;
 	
 	struct extra_radius_attr *p = NULL, *p1;
@@ -740,13 +740,13 @@ struct radius_ctx *rad_client_init()
 			return NULL;
 	
 		srv->addr.af = AF_INET;
-		srv->port = 1812;
-		if (hostapd_parse_ip_addr("127.0.0.1", &srv->addr) < 0) {
+		srv->port = AS_PORT;
+		if (hostapd_parse_ip_addr(AS_IP, &srv->addr) < 0) {
 			printf("Failed to parse IP address\n");
 			return NULL;
 		}
-		srv->shared_secret = (u8 *) os_strdup("testing123"); //Rafa: Obtain this password from a file
-		srv->shared_secret_len = 10;
+		srv->shared_secret = (u8 *) os_strdup(AS_SECRET); //Rafa: Obtain this password from a file
+		srv->shared_secret_len = strlen(AS_SECRET);
 	
 		rad_ctx->conf.auth_server = rad_ctx->conf.auth_servers = srv;
 		rad_ctx->conf.num_auth_servers = 1;

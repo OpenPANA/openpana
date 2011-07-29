@@ -38,13 +38,21 @@ short SRCPORT;
 short DSTPORT;
 char* DESTIP;
 char* LOCALIP;
+
+char* USER;
+char* PASSWORD;
+char* CA_CERT;
+char* CLIENT_CERT;
+char* CLIENT_KEY;
+char* PRIVATE_KEY;
+int FRAG_SIZE;
 #endif
 
 #ifdef ISSERVER //Include session variables only for PANA servers
 #include "sessionserver.h"
 #include "../libeapstack/eap_auth_interface.h"
 /**
- * Declaration of client configurable variables
+ * Declaration of server configurable variables
  * */
 int PRF_HMAC_SHA1;
 int AUTH_HMAC_SHA1_160;
@@ -53,6 +61,13 @@ int LIFETIME_SESSION_TIMEOUT_CONFIG;
 int LIFETIME_SESSION_CLIENT_TIMEOUT_CONFIG;
 int TIME_PCI;
 int NUM_WORKERS;
+
+char* CA_CERT;
+char* SERVER_CERT;
+char* SERVER_KEY;
+char* AS_IP;
+short AS_PORT;
+char* AS_SECRET;
 #endif
 
 #include "../panamessages.h"
