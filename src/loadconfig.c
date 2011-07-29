@@ -61,14 +61,14 @@ parse_xml_client(xmlNode * a_node)
 			else if (strcmp((char *)cur_node->name, "IP")==0){
 				if (paa){
 
-					DESTIP = malloc(16*sizeof(char));
 					xmlChar * value = xmlNodeGetContent(cur_node);
+					DESTIP = malloc(strlen(value)*sizeof(char));
 					sprintf(DESTIP, "%s",(char *) value);
 					xmlFree(value);
 				}
 				else if (pac) {
-					LOCALIP = malloc(16*sizeof(char));
 					xmlChar * value = xmlNodeGetContent(cur_node);
+					LOCALIP = malloc(strlen(value)*sizeof(char));
 					sprintf(LOCALIP, "%s", (char *)value);
 					xmlFree (value);
 				}
@@ -80,7 +80,7 @@ parse_xml_client(xmlNode * a_node)
 					xmlFree(value);
 					if (DSTPORT != 716){
 						fprintf(stderr, "ERROR: PAA Port must be set to 716.\n");
-						exit(0);
+						exit(1);
 					}
 				}
 				else if (pac) {
@@ -90,7 +90,7 @@ parse_xml_client(xmlNode * a_node)
 					xmlFree(value);
 					if (SRCPORT <=1024){
 						fprintf(stderr, "ERROR: PaC Port must be set to a number higher than 1024.\n");
-						exit(0);
+						exit(1);
 					}
 				}
 			}
@@ -101,7 +101,7 @@ parse_xml_client(xmlNode * a_node)
 					xmlFree(value);
 					if (FAILED_SESS_TIMEOUT_CONFIG <=0){
 						fprintf(stderr, "ERROR: PaC Session Timeout must be set to a number higher than 0.\n");
-						exit(0);
+						exit(1);
 					}
 				}
 			}
@@ -112,7 +112,7 @@ parse_xml_client(xmlNode * a_node)
 					xmlFree(value);
 					if (PRF_HMAC_SHA1 <=0 || PRF_HMAC_SHA1 > 4){
 						fprintf(stderr, "ERROR: PaC PRF algorithm must be set to a number between 1 and 4.\n");
-						exit(0);
+						exit(1);
 					}
 				}
 			}
@@ -123,8 +123,64 @@ parse_xml_client(xmlNode * a_node)
 					xmlFree(value);
 					if (AUTH_HMAC_SHA1_160 <=0 || AUTH_HMAC_SHA1_160 > 7){
 						fprintf(stderr, "ERROR: PaC Integrity algorithm must be set to a number between 1 and 7.\n");
-						exit(0);
+						exit(1);
 					}
+				}
+			}
+			else if (strcmp((char *)cur_node->name, "USER")==0){
+				if (pac){
+					char * value = (char*)xmlNodeGetContent(cur_node);
+					USER = malloc(strlen(value)*sizeof(char)); 
+					sprintf(USER, "%s",(char *) value);
+					xmlFree(value);
+					
+				}
+			}
+			else if (strcmp((char *)cur_node->name, "PASSWORD")==0){
+				if (pac){
+					char * value = (char*)xmlNodeGetContent(cur_node);
+					PASSWORD = malloc(strlen(value)*sizeof(char)); 
+					sprintf(PASSWORD, "%s",(char *) value);
+					xmlFree(value);
+				}
+			}
+			else if (strcmp((char *)cur_node->name, "CA_CERT")==0){
+				if (pac){
+					char * value = (char*)xmlNodeGetContent(cur_node);
+					CA_CERT = malloc(strlen(value)*sizeof(char)); 
+					sprintf(CA_CERT, "%s",(char *) value);
+					xmlFree(value);
+				}
+			}
+			else if (strcmp((char *)cur_node->name, "CLIENT_CERT")==0){
+				if (pac){
+					char * value = (char*)xmlNodeGetContent(cur_node);
+					CLIENT_CERT = malloc(strlen(value)*sizeof(char)); 
+					sprintf(CLIENT_CERT, "%s",(char *) value);
+					xmlFree(value);
+				}
+			}
+			else if (strcmp((char *)cur_node->name, "CLIENT_KEY")==0){
+				if (pac){
+					char * value = (char*)xmlNodeGetContent(cur_node);
+					CLIENT_KEY = malloc(strlen(value)*sizeof(char)); 
+					sprintf(CLIENT_KEY, "%s",(char *) value);
+					xmlFree(value);
+				}
+			}
+			else if (strcmp((char *)cur_node->name, "PRIVATE_KEY")==0){
+				if (pac){
+					char * value = (char*)xmlNodeGetContent(cur_node);
+					PRIVATE_KEY = malloc(strlen(value)*sizeof(char)); 
+					sprintf(PRIVATE_KEY, "%s",(char *) value);
+					xmlFree(value);
+				}
+			}
+			else if (strcmp((char *)cur_node->name, "FRAGMENT_SIZE")==0){
+				if (pac){
+					char * value = (char*)xmlNodeGetContent(cur_node);
+					sscanf(value, "%d", &FRAG_SIZE);
+					xmlFree(value);
 				}
 			}
         }
@@ -166,7 +222,7 @@ parse_xml_server(xmlNode * a_node)
 					xmlFree(value);
 					if (SRCPORT != 716){
 						fprintf(stderr, "ERROR: PAA Port must be set to 716.\n");
-						exit(0);
+						exit(1);
 					}
 				}
 			}
@@ -177,7 +233,7 @@ parse_xml_server(xmlNode * a_node)
 					xmlFree(value);
 					if (LIFETIME_SESSION_TIMEOUT_CONFIG <=0){
 						fprintf(stderr, "ERROR: PAA Session Timeout must be set to a number higher than 0.\n");
-						exit(0);
+						exit(1);
 					}
 				}
 			}
@@ -188,7 +244,7 @@ parse_xml_server(xmlNode * a_node)
 					xmlFree(value);
 					if (PRF_HMAC_SHA1 <=0 || PRF_HMAC_SHA1 > 4){
 						fprintf(stderr, "ERROR: PAA PRF algorithm must be set to a number between 1 and 4.\n");
-						exit(0);
+						exit(1);
 					}
 				}
 			}
@@ -199,7 +255,7 @@ parse_xml_server(xmlNode * a_node)
 					xmlFree(value);
 					if (AUTH_HMAC_SHA1_160 <=0 || AUTH_HMAC_SHA1_160 > 7){
 						fprintf(stderr, "ERROR: PAA Integrity algorithm must be set to a number between 1 and 7.\n");
-						exit(0);
+						exit(1);
 					}
 				}
 			}
@@ -210,7 +266,7 @@ parse_xml_server(xmlNode * a_node)
 					xmlFree(value);
 					if (LIFETIME_SESSION_CLIENT_TIMEOUT_CONFIG <=0){
 						fprintf(stderr, "ERROR: PAA TIMEOUT CLIENT must be set to a number higher than 0.\n");
-						exit(0);
+						exit(1);
 					}
 				}
 			}
@@ -221,7 +277,7 @@ parse_xml_server(xmlNode * a_node)
 					xmlFree(value);
 					if (NUM_WORKERS <=0){
 						fprintf(stderr, "ERROR: The worker's number must be set to a number higher than 0.\n");
-						exit(0);
+						exit(1);
 					}
 				}
 			}
@@ -233,8 +289,59 @@ parse_xml_server(xmlNode * a_node)
 					xmlFree(value);
 					if (TIME_PCI <=0){
 						fprintf(stderr, "ERROR: The answer's time must be set to a number higher than 0.\n");
-						exit(0);
+						exit(1);
 					}
+				}
+			}
+			else if (strcmp((char *)cur_node->name, "CA_CERT")==0){
+				if (paa){
+					char * value = (char *)xmlNodeGetContent(cur_node);
+					CA_CERT = malloc(strlen(value)*sizeof(char)); 
+					sprintf(CA_CERT, "%s",(char *) value);
+					xmlFree(value);
+				}
+			}
+			else if (strcmp((char *)cur_node->name, "SERVER_CERT")==0){
+				if (paa){
+					char * value = (char *)xmlNodeGetContent(cur_node);
+					SERVER_CERT = malloc(strlen(value)*sizeof(char)); 
+					sprintf(SERVER_CERT, "%s",(char *) value);
+					xmlFree(value);
+				}
+			}
+			else if (strcmp((char *)cur_node->name, "SERVER_KEY")==0){
+				if (paa){
+					char * value = (char*)xmlNodeGetContent(cur_node);
+					SERVER_KEY = malloc(strlen(value)*sizeof(char)); 
+					sprintf(SERVER_KEY, "%s",(char *) value);
+					xmlFree(value);
+				}
+			}
+			else if (strcmp((char *)cur_node->name, "AS_IP")==0){
+				if (paa){
+					char * value = (char*)xmlNodeGetContent(cur_node);
+					AS_IP = malloc(strlen(value)*sizeof(char)); 
+					sprintf(AS_IP, "%s",(char *) value);
+					xmlFree(value);
+				}
+			}
+			else if (strcmp((char *)cur_node->name, "AS_PORT")==0){
+				if (paa){
+					char * value = (char*)xmlNodeGetContent(cur_node);
+					sscanf(value, "%hd", &AS_PORT);
+					xmlFree(value);
+					if (AS_PORT <= 0){
+						fprintf(stderr, "ERROR, The Authentication Server's Port must be higher than 0.\n");
+						exit(1);
+					}
+				}
+			}
+			else if (strcmp((char *)cur_node->name, "SHARED_SECRET")==0){
+				if (paa){
+					char * value = (char*)xmlNodeGetContent(cur_node);
+					AS_SECRET = malloc(strlen(value)*sizeof(char));
+					sprintf(AS_SECRET, "%s",(char *) value);
+					xmlFree(value);
 				}
 			}
         }
@@ -267,7 +374,8 @@ load_config_client()
     doc = xmlReadFile("config.xml", NULL, 0);
 
     if (doc == NULL) {
-        printf("error: could not parse file config.xml\n" );
+        fprintf(stderr,"ERROR: could not parse file config.xml. The application can't run without this file.\n" );
+        exit(1);
     }
 
     /*Get the root element node */

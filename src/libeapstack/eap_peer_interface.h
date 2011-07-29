@@ -16,6 +16,17 @@
 #include "eap_peer/eap_config.h"
 #include "wpabuf.h"
 
+/** Configurable values loaded from xml configuration file (config.xml)
+ *
+ */
+extern char* USER;
+extern char* PASSWORD;
+extern char* CA_CERT;
+extern char* CLIENT_CERT;
+extern char* CLIENT_KEY;
+extern char* PRIVATE_KEY;
+extern int FRAG_SIZE;
+
 struct eap_peer_ctx {
 	Boolean eapSuccess;
 	Boolean eapRestart;

@@ -274,15 +274,15 @@ int eap_peer_init(struct eap_peer_ctx *eap_ctx, void *eap_ll_ctx)
 	eap_conf->eap_methods=eap_ctx->eap_methods; //This is new.
 	
 	
-	eap_ctx->eap_config.identity = (u8 *) os_strdup("user");
-	eap_ctx->eap_config.identity_len = 4;
-	eap_ctx->eap_config.password = (u8 *) os_strdup("password");
-	eap_ctx->eap_config.password_len = 8;
-	eap_ctx->eap_config.client_cert = (u8*) os_strdup("client.pem");
-	eap_ctx->eap_config.private_key=(u8*) os_strdup("client.pk8");
-	eap_ctx->eap_config.ca_cert = (u8 *) os_strdup("ca.pem");
-	eap_ctx->eap_config.private_key_passwd = (u8*) os_strdup("whatever");
-	eap_ctx->eap_config.fragment_size = 1398;
+	eap_ctx->eap_config.identity = (u8 *) os_strdup(USER);
+	eap_ctx->eap_config.identity_len = strlen(USER);
+	eap_ctx->eap_config.password = (u8 *) os_strdup(PASSWORD);
+	eap_ctx->eap_config.password_len = strlen(PASSWORD);
+	eap_ctx->eap_config.client_cert = (u8*) os_strdup(CLIENT_CERT);
+	eap_ctx->eap_config.private_key=(u8*) os_strdup(CLIENT_KEY);
+	eap_ctx->eap_config.ca_cert = (u8 *) os_strdup(CA_CERT);
+	eap_ctx->eap_config.private_key_passwd = (u8*) os_strdup(PRIVATE_KEY);
+	eap_ctx->eap_config.fragment_size = FRAG_SIZE;
 	
 	eap_ctx->eap = eap_peer_sm_init(eap_ctx, eap_cb, eap_ctx, eap_conf);
 	if (eap_ctx->eap == NULL)

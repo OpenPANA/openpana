@@ -52,6 +52,17 @@
 											6 AUTH_HMAC_MD5_128
 											7 AUTH_HMAC_SHA1_160-->
 	</ALGORITHMS>
+
+	<USER>user</USER>
+	<PASSWORD>password</PASSWORD>
+	
+	<CLIENT_CERTS> <!-- Client certificates configuration -->
+		<CA_CERT>ca.pem</CA_CERT>
+		<CLIENT_CERT>client.pem</CLIENT_CERT>
+		<CLIENT_KEY>client.pk8</CLIENT_KEY>
+		<PRIVATE_KEY>whatever</PRIVATE_KEY>
+	</CLIENT_CERTS>
+	<FRAGMENT_SIZE>1398</FRAGMENT_SIZE>
 	</PAC>
 	
 	<PAA> <!-- PAA configuration data -->
@@ -75,9 +86,22 @@
 											6 AUTH_HMAC_MD5_128
 											7 AUTH_HMAC_SHA1_160-->
 	</ALGORITHMS>
+
+	<SERVER_CERTS> <!-- Server certificates configuration -->
+		<CA_CERT>ca.pem</CA_CERT>
+		<SERVER_CERT>server.pem</SERVER_CERT>
+		<SERVER_KEY>server.key</SERVER_KEY>
+	</SERVER_CERTS>
+
+	
 	<TIMEOUT_CLIENT>1</TIMEOUT_CLIENT> <!-- Timeout for expiring client session -->
 	<WORKERS>1</WORKERS> <!-- Number of threads used to service requests -->
 	<TIME_ANSWER>3</TIME_ANSWER> <!-- Time while a session is on the server without answer for the first PAR message -->
+	<AUTH_SERVER>  <!-- Radius Server information -->
+		<AS_IP>127.0.0.1</AS_IP>
+		<AS_PORT>1812</AS_PORT>
+		<SHARED_SECRET>testing123</SHARED_SECRET>
+	</AUTH_SERVER>
 	</PAA>
 
 	

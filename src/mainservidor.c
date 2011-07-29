@@ -242,10 +242,6 @@ void* process_receive_radius_msg(void* arg) {
     //Delete the alarm associated to this message
 	get_alarm_session(ll_session->list_of_alarms, ll_session->session_id, RETR_AAA);
 
-	printf("PEDRO: Después de borrar la alarma la lista es esta \n");
-	print_list_alarms();
-
-
     if (eap_ctx != NULL) {
 		
         radius_client_receive(radmsg, radius_data, &radius_type);

@@ -30,6 +30,15 @@
 	int sock;
 };*/
 
+/** Configurable values loaded from xml configuration file (config.xml)
+ *
+ */
+extern char* CA_CERT;
+extern char* SERVER_CERT;
+extern char* SERVER_KEY;
+extern char* AS_IP;
+extern short AS_PORT;
+extern char* AS_SECRET;
 
 struct extra_radius_attr {
 	u8 type;
