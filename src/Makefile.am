@@ -19,7 +19,7 @@ PAA_SOURCES               =	state_machines/session.c \
 				panautils.c \
 				mainservidor.c \
 				loadconfig.c
-PAA_CPPFLAGS =		$(AM_CPPFLAGS) -D ISSERVER
+PAA_CPPFLAGS =		$(AM_CPPFLAGS) -D DATADIR=\"$(datadir)/@PACKAGE@\" -D ISSERVER
 
 ### library dependencies ###
 
@@ -37,11 +37,18 @@ PaC_SOURCES               =	state_machines/session.c \
 				panautils.c \
 				maincliente.c \
 				loadconfig.c
-PaC_CPPFLAGS =		$(AM_CPPFLAGS) -D ISCLIENT
+PaC_CPPFLAGS =		$(AM_CPPFLAGS) -D DATADIR=\"$(datadir)/@PACKAGE@\" -D ISCLIENT
 
 ### library dependencies ###
 
 PaC_LDADD                     = libeapstack/libeap.a
 
 # Adding PANA header files to distribute using "make dist"
-EXTRA_DIST =  *.h state_machines/*.h
+EXTRA_DIST =  *.h state_machines/*.h config.xml dtd.xml
+
+# Extra config files needed
+PaCextradir = $(datadir)/@PACKAGE@
+PaCextra_DATA = \
+		config.xml \
+		dtd.xml
+

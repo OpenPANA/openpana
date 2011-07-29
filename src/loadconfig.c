@@ -371,11 +371,17 @@ load_config_client()
     LIBXML_TEST_VERSION
 
     /*parse the file and get the DOM */
-    doc = xmlReadFile("config.xml", NULL, 0);
+    // FIXME: First check if DATADIR"/config.xml" exists, if it doesn't, try in current directory
+    // then open the correct file
+    doc = xmlReadFile(DATADIR"/config.xml", NULL, 0);
 
     if (doc == NULL) {
-        fprintf(stderr,"ERROR: could not parse file config.xml. The application can't run without this file.\n" );
-        exit(1);
+		fprintf(stderr,"Trying to load config.xml from current directory.\n");
+		doc = xmlReadFile("config.xml", NULL, 0);
+		if(doc==NULL){
+			fprintf(stderr,"ERROR: could not parse file config.xml. \nThe application can't run without this file.\n" );
+			exit(1);
+		}
     }
 
     /*Get the root element node */
@@ -415,10 +421,17 @@ load_config_server()
     LIBXML_TEST_VERSION
 
     /*parse the file and get the DOM */
-    doc = xmlReadFile("config.xml", NULL, 0);
+    // FIXME: First check if DATADIR"/config.xml" exists, if it doesn't, try in current directory
+    // then open the correct file
+    doc = xmlReadFile(DATADIR"/config.xml", NULL, 0);
 
     if (doc == NULL) {
-        printf("error: could not parse file config.xml\n" );
+		fprintf(stderr,"Trying to load config.xml from current directory.\n");
+		doc = xmlReadFile("config.xml", NULL, 0);
+		if(doc==NULL){
+			fprintf(stderr,"ERROR: could not parse file config.xml. \nThe application can't run without this file.\n" );
+			exit(1);
+		}
     }
 
     /*Get the root element node */

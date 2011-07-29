@@ -54,7 +54,7 @@ AC_CHECK_LIB([ssl], [HMAC],[],[
         exit -1
         ])
 AC_CHECK_LIB([xml2], [xmlCleanupParser],[],[
-        echo "Error! You need to have xml2 to continue."
+        echo "Error! You need to have libxml2-dev to continue."
         exit -1
         ])
 
