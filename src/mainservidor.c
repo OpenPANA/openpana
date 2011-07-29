@@ -58,7 +58,7 @@ struct lalarm* list_alarms = NULL; // alarms' list
 
 pthread_mutex_t list_sessions_mutex;
 pthread_mutex_t list_tasks_mutex;
-pthread_mutexattr_t request_mutex_attr; //Needed to set attributes to pthread_mutex_t
+
 
 /* global condition 	variable for our program. assignment initializes it. */
 sem_t got_task; //Semaphore used to wait for new tasks by workers

@@ -12,6 +12,8 @@
  * See README and COPYING for more details.
  */
 
+#include <pthread.h>
+
 #include "includes.h"
 
 #include "common.h"
@@ -488,7 +490,7 @@ int radius_client_send(struct radius_client_data *radius,
 void radius_client_receive(struct radius_msg *msg, void *eloop_ctx, void *sock_ctx)
 {
 	
-	
+	pthread_mutex_lock(& mutex_radius);
 	struct radius_client_data *radius = eloop_ctx;
 	struct hostapd_radius_servers *conf = radius->conf;
 	int *rtype=(int *)sock_ctx;
@@ -533,7 +535,8 @@ void radius_client_receive(struct radius_msg *msg, void *eloop_ctx, void *sock_c
 	msg = radius_msg_parse(buf, len);*/
 	if (msg == NULL) {
 		printf("Parsing incoming RADIUS frame failed\n");
-		rconf->malformed_responses++; 
+		rconf->malformed_responses++;
+		pthread_mutex_unlock(& mutex_radius);
 		return;
 	}
 	hdr = radius_msg_get_hdr(msg);
@@ -620,6 +623,7 @@ void radius_client_receive(struct radius_msg *msg, void *eloop_ctx, void *sock_c
 				/* continue */
 			case RADIUS_RX_QUEUED:
 				radius_client_msg_free(req);
+				pthread_mutex_unlock(& mutex_radius);
 				return;
 			case RADIUS_RX_INVALID_AUTHENTICATOR:
 				invalid_authenticator++;
@@ -645,7 +649,9 @@ void radius_client_receive(struct radius_msg *msg, void *eloop_ctx, void *sock_c
 	
 	
 fail:
-	radius_msg_free(msg);
+	//radius_msg_free(msg);
+	
+	pthread_mutex_unlock(& mutex_radius);
 	
 }
 
@@ -1235,6 +1241,7 @@ static int radius_client_init_acct(struct radius_client_data *radius)
 struct radius_client_data *
 radius_client_init(void *ctx, struct hostapd_radius_servers *conf)
 {
+	pthread_mutex_init(& mutex_radius, NULL);
 	struct radius_client_data *radius;
 	radius = os_zalloc(sizeof(struct radius_client_data));
 	if (radius == NULL)

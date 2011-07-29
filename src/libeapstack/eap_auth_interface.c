@@ -429,7 +429,7 @@ eap_auth_receive_radius(struct radius_msg *msg, struct radius_msg *req,
 	//if (eap_ctx->last_recv_radius != NULL){
 		//radius_msg_free(eap_ctx->last_recv_radius); //fixme: This line must be uncommented?
 	//}
-	
+
 	int length = ntohs(radius_msg_get_hdr(msg)->length);
 	eap_ctx->last_recv_radius = malloc(length *sizeof(char));
 	memcpy(eap_ctx->last_recv_radius, msg, length * sizeof(char));
@@ -507,6 +507,7 @@ eap_auth_receive_radius(struct radius_msg *msg, struct radius_msg *req,
 			break;
 	}
 
+	
 	eap_auth_decapsulate_radius(eap_ctx);
 	
 	/*Rafa: This source code may be removed*/
