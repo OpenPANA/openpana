@@ -1,6 +1,6 @@
 
 AC_PREREQ([2.65])
-AC_INIT([OpenPANA], [0.1.1], [openpana-users@lists.sourceforge.net])
+AC_INIT([OpenPANA], [0.0], [openpana-users@lists.sourceforge.net])
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_AUX_DIR(config)
 AM_INIT_AUTOMAKE()
@@ -26,8 +26,6 @@ AC_CHECK_LIB([crypto], [main])
 AC_CHECK_LIB([dl], [main])
 # FIXME: Replace `main' with a function in `-ldnet':
 AC_CHECK_LIB([dnet], [main])
-# FIXME: Replace `main' with a function in `-leap':
-#AC_CHECK_LIB([eap], [main])
 # FIXME: Replace `main' with a function in `-lgcrypt':
 AC_CHECK_LIB([gcrypt], [main])
 # FIXME: Replace `main' with a function in `-lgdi32':
@@ -51,10 +49,12 @@ AC_CHECK_LIB([pcsclite], [main])
 AC_CHECK_LIB([pthread], [pthread_mutex_lock])
 # FIXME: Replace `main' with a function in `-lreadline':
 AC_CHECK_LIB([readline], [main])
-# FIXME: Replace `main' with a function in `-lssl':
-AC_CHECK_LIB([ssl], [main])
+AC_CHECK_LIB([ssl], [HMAC],[],[
+        echo "Error! You need to have ssl to continue."
+        exit -1
+        ])
 AC_CHECK_LIB([xml2], [xmlCleanupParser],[],[
-        echo "Error! You need to have xml2 around."
+        echo "Error! You need to have xml2 to continue."
         exit -1
         ])
 

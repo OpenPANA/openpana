@@ -94,7 +94,7 @@ void* handle_alarm_management(void* none) {
 
 int main(int argc, char *argv[]) {
 
-    struct sockaddr_in eap_peer_ll_sockaddr, eap_auth_ll_sockaddr;
+    struct sockaddr_in eap_auth_ll_sockaddr;
     fd_set readfds, exceptfds; //FD sets to use with select
     int pana_sock;//PANA's socket
 	
@@ -130,7 +130,7 @@ int main(int argc, char *argv[]) {
     //The client is the autentication's initiator
     pana_session.client_ctx.AUTH_USER = 1;
     
-    list_alarms = crear_alarma(&alarm_list_mutex);
+    list_alarms = init_alarms(&alarm_list_mutex);
 	pana_session.list_of_alarms = &(list_alarms);
 	pthread_create(&alarm_thread, NULL, handle_alarm_management, NULL);
 
@@ -149,18 +149,6 @@ int main(int argc, char *argv[]) {
     if (setsockopt(pana_sock, SOL_SOCKET, SO_REUSEADDR, &b, 4)) {
         perror("setsockopt");
         return 0;
-    }
-    
-    memset((char *) &eap_peer_ll_sockaddr, 0, sizeof (eap_peer_ll_sockaddr));
-    eap_peer_ll_sockaddr.sin_family = AF_INET;
-    eap_peer_ll_sockaddr.sin_port = htons(pana_session.src_port);
-    eap_peer_ll_sockaddr.sin_addr.s_addr = inet_addr(DESTIP);
-
-	//Avoid's a warning, bind expects the "const ptr" type
-    const struct sockaddr * ll_sockaddr = (struct sockaddr *) &eap_peer_ll_sockaddr;
-    if (bind(pana_sock, ll_sockaddr, sizeof (eap_peer_ll_sockaddr)) == -1) {
-        perror("socket");
-        return -1;
     }
 
 	//Update the socket number in the session.
@@ -217,6 +205,16 @@ int main(int argc, char *argv[]) {
                 transition(&pana_session);
                 pthread_mutex_unlock(&session_mutex);
             }
+
+            //Check if eap authentication has finished with a fail
+                if (eap_peer_get_eapFail(&(current_session->eap_ctx)) == TRUE) {
+#ifdef DEBUG
+                    fprintf(stderr,"DEBUG: There's an eapFail\n");
+#endif
+					pthread_mutex_lock(&session_mutex);
+                    transition(&pana_session);
+                    pthread_mutex_unlock(&session_mutex);
+                }
             
                 //Check if exist a Response for eap server
                 if (eap_peer_get_eapResp(&(pana_session.eap_ctx)) == TRUE) {
@@ -238,6 +236,17 @@ int main(int argc, char *argv[]) {
                     transition(&pana_session);
                     pthread_mutex_unlock(&session_mutex);
                 }
+
+				
+				//FIXME: Este if no debería ser necesario siguiendo el rfc.
+                if (current_session->CURRENT_STATE == WAIT_EAP_RESULT_CLOSE){
+					if (eap_peer_get_eapResp(&(pana_session.eap_ctx)) == TRUE) {
+						eap_peer_set_eapFail(&(current_session->eap_ctx), TRUE);
+						pthread_mutex_lock(&session_mutex);
+						transition(&pana_session);
+						pthread_mutex_unlock(&session_mutex);
+					}
+				}
             }//length >0
 
         }//If a PANA packet is received

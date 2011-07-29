@@ -12,6 +12,8 @@
  * See README and COPYING for more details.
  */
 
+#include <pthread.h>
+
 #include "includes.h"
 
 #include "common.h"
@@ -471,18 +473,11 @@ int radius_client_send(struct radius_client_data *radius,
 	buf = radius_msg_get_buf(msg);
 	
 	
-	//PEDRO: Esto lo he puesto yo
-	//printf("Va a bloquearse en radius_client_send\n");
-	pthread_mutex_lock(&list_mutex);
-	//Hasta aquí
 	/*Rafa: Here we should add a timer to alarm list to provoke reauth. Network manager will receive the answer... hopefully */
 	radius_client_list_add(radius, msg, msg_type, shared_secret,
 			       shared_secret_len, addr, session);
-	//PEDRO: Esto lo he puesto yo
 	
-	//printf("Va a desbloquearse en radius_client_send\n");
-	pthread_mutex_unlock(&list_mutex);
-	//Hasta aquí
+
 	res = send(s, wpabuf_head(buf), wpabuf_len(buf), 0);
 	if (res < 0)
 		radius_client_handle_send_error(radius, s, msg_type);
@@ -495,7 +490,7 @@ int radius_client_send(struct radius_client_data *radius,
 void radius_client_receive(struct radius_msg *msg, void *eloop_ctx, void *sock_ctx)
 {
 	
-	
+	pthread_mutex_lock(& mutex_radius);
 	struct radius_client_data *radius = eloop_ctx;
 	struct hostapd_radius_servers *conf = radius->conf;
 	int *rtype=(int *)sock_ctx;
@@ -540,7 +535,8 @@ void radius_client_receive(struct radius_msg *msg, void *eloop_ctx, void *sock_c
 	msg = radius_msg_parse(buf, len);*/
 	if (msg == NULL) {
 		printf("Parsing incoming RADIUS frame failed\n");
-		rconf->malformed_responses++; 
+		rconf->malformed_responses++;
+		pthread_mutex_unlock(& mutex_radius);
 		return;
 	}
 	hdr = radius_msg_get_hdr(msg);
@@ -565,11 +561,8 @@ void radius_client_receive(struct radius_msg *msg, void *eloop_ctx, void *sock_c
 			break;
 	}
 	
-	//PEDRO: Esto lo he puesto yo
 	
-	//printf("Va a bloquearse en radius_client_recieve\n");
-	pthread_mutex_lock(&list_mutex);
-	//Hasta aquí
+
 	prev_req = NULL;
 	req = radius->msgs;
 	while (req) {
@@ -591,12 +584,8 @@ void radius_client_receive(struct radius_msg *msg, void *eloop_ctx, void *sock_c
 		req = req->next;
 	}
 	
-	//PEDRO: Esto lo he puesto yo
 	
-	//printf("Va a desbloquearse en radius_client_receive\n");
-	pthread_mutex_unlock(&list_mutex);
-	//Hasta aquí
-	
+
 	if (req == NULL) {
 		hostapd_logger(radius->ctx, NULL, HOSTAPD_MODULE_RADIUS,
 					   HOSTAPD_LEVEL_DEBUG,
@@ -636,6 +625,7 @@ void radius_client_receive(struct radius_msg *msg, void *eloop_ctx, void *sock_c
 				/* continue */
 			case RADIUS_RX_QUEUED:
 				radius_client_msg_free(req);
+				pthread_mutex_unlock(& mutex_radius);
 				return;
 			case RADIUS_RX_INVALID_AUTHENTICATOR:
 				invalid_authenticator++;
@@ -661,7 +651,9 @@ void radius_client_receive(struct radius_msg *msg, void *eloop_ctx, void *sock_c
 	
 	
 fail:
-	radius_msg_free(msg);
+	//radius_msg_free(msg);
+	
+	pthread_mutex_unlock(& mutex_radius);
 	
 }
 
@@ -1251,10 +1243,9 @@ static int radius_client_init_acct(struct radius_client_data *radius)
 struct radius_client_data *
 radius_client_init(void *ctx, struct hostapd_radius_servers *conf)
 {
+	pthread_mutex_init(& mutex_radius, NULL);
 	struct radius_client_data *radius;
-	//PEDRO: Esto lo he puesto yo
-	pthread_mutex_init(&list_mutex, NULL);
-	// Hasta aquí
+
 	radius = os_zalloc(sizeof(struct radius_client_data));
 	if (radius == NULL)
 		return NULL;
