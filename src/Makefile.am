@@ -1,4 +1,4 @@
-AM_CPPFLAGS+= -D CONFIGDIR=\"$(sysconfdir)\"  # Sets the config dir
+AM_CPPFLAGS+= -D CONFIGDIR=\"$(sysconfdir)\" # Sets the config dir
 
 ### user programs ###
 bin_PROGRAMS = PAA PaC

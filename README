@@ -49,7 +49,7 @@ o STANDARD REFERENCES
 
 o Install
 
- 1. OpenPANA probably requires the following libraries:
+ 1. OpenPANA requires the following libraries:
 
   - OpennSSL library
     http://wwww.openssl.org
@@ -59,7 +59,7 @@ o Install
 
  2. Configuring OpenPANA:
 
-    Default settings can be changed by modifying the ./src/config.xml file.
+    Default settings can be changed by modifying the config.xml file found in ./src and /etc/openpana when installed.
     - Common Settings:
 	- IP <IP>
 	- Port <PORT>
@@ -74,7 +74,8 @@ o Install
 
  3. Building the OpenPANA softwares:
 
-  You can just run the 'autogen.sh', 'configure' script and 'make'.
+  You can just run the 'autogen.sh', './configure --sysconfdir=/etc/openpana' script and 'make'.
+  If the --sysconfdir option is not added, configuration files will be placed under the '/usr/local/etc' directory.
   
  4. OpenPANA will need a working installation of a Radius Server using EAP-TLS method.
     OpenPANA will require the following certificate files in ./src application's folder:
@@ -86,7 +87,9 @@ o Install
    
  5. After all you have PaC and PAA in the ./src application's folder.
  
- 6. By running 'make install' OpenPANA will be installed tipically under '/usr/local/bin' and configuration files will be placed in '/usr/local/etc/'.
+ 6. By running 'make install' as root OpenPANA will be installed tipically under '/usr/local/bin' and configuration files will be placed in '/etc/openpana'.
+
+* OpenPANA can be uninstalled by the 'make uninstall' command.
 
 o Contact Points
 
