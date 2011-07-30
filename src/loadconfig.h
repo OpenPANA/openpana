@@ -27,7 +27,7 @@
 #define LOADCONFIG_H
 
 #include "state_machines/session.h"
-
+#include "../config.h"
 
 int load_config_client();
 int load_config_server();

@@ -1,9 +1,4 @@
-#ACLOCAL_AMFLAGS  = -I m4
-
-#SUBDIRS = state_machines
-
-#HIPL_HEADER_LOCATIONS = firewall/*.h hipd/*.h lib/*/*.h modules/*/*/*.h test/*/*.h test/*/*/*.h
-#HIPL_HEADER_LIST = $(wildcard $(addprefix $(srcdir)/,$(HIPL_HEADER_LOCATIONS)))
+AM_CPPFLAGS+= -D CONFIGDIR=\"$(sysconfdir)\"  # Sets the config dir
 
 ### user programs ###
 bin_PROGRAMS = PAA PaC
@@ -19,7 +14,7 @@ PAA_SOURCES               =	state_machines/session.c \
 				panautils.c \
 				mainservidor.c \
 				loadconfig.c
-PAA_CPPFLAGS =		$(AM_CPPFLAGS) -D CONFIGDIR=\"$(sysconfdir)/@PACKAGE@\" -D ISSERVER
+PAA_CPPFLAGS =		$(AM_CPPFLAGS) -D ISSERVER
 
 ### library dependencies ###
 
@@ -37,7 +32,7 @@ PaC_SOURCES               =	state_machines/session.c \
 				panautils.c \
 				maincliente.c \
 				loadconfig.c
-PaC_CPPFLAGS =		$(AM_CPPFLAGS) -D CONFIGDIR=\"$(sysconfdir)/@PACKAGE@\" -D ISCLIENT
+PaC_CPPFLAGS =		$(AM_CPPFLAGS) -D ISCLIENT
 
 ### library dependencies ###
 
@@ -47,8 +42,7 @@ PaC_LDADD                     = libeapstack/libeap.a
 EXTRA_DIST =  *.h state_machines/*.h config.xml dtd.xml
 
 # Extra config files needed
-PaCextradir = $(sysconfdir)/@PACKAGE@
-PaCextra_DATA = \
+sysconf_DATA = \
 		config.xml \
 		dtd.xml
 

@@ -371,18 +371,20 @@ load_config_client()
     LIBXML_TEST_VERSION
 
     /*parse the file and get the DOM */
-    // FIXME: First check if CONFIGDIR"/config.xml" exists, if it doesn't, try in current directory
-    // then open the correct file
-    doc = xmlReadFile(CONFIGDIR"/config.xml", NULL, 0);
-
-    if (doc == NULL) {
-		fprintf(stderr,"Trying to load config.xml from current directory.\n");
+	//First check if CONFIGDIR"/config.xml" exists
+	if( access( CONFIGDIR"/config.xml", F_OK ) != -1 ) {
+		// file exists and it can be opened
+		doc = xmlReadFile(CONFIGDIR"/config.xml", NULL, 0);
+	} else {
+		// file doesn't exist
+		fprintf(stderr,"WARNING: Loading config.xml from current directory.\n");
 		doc = xmlReadFile("config.xml", NULL, 0);
-		if(doc==NULL){
-			fprintf(stderr,"ERROR: could not parse file config.xml. \nThe application can't run without this file.\n" );
-			exit(1);
-		}
-    }
+	}
+ 	
+	if(doc==NULL){
+		fprintf(stderr,"ERROR: could not parse file config.xml. \nThe application can't run without this file.\n" );
+		exit(1);
+	}
 
     /*Get the root element node */
     root_element = xmlDocGetRootElement(doc);
@@ -410,8 +412,7 @@ load_config_server()
 {
     xmlDoc *doc = NULL;
     xmlNode *root_element = NULL;
-
-    
+        
 
     /*
      * this initialize the library and check potential ABI mismatches
@@ -421,19 +422,21 @@ load_config_server()
     LIBXML_TEST_VERSION
 
     /*parse the file and get the DOM */
-    // FIXME: First check if CONFIGDIR"/config.xml" exists, if it doesn't, try in current directory
-    // then open the correct file
-    doc = xmlReadFile(CONFIGDIR"/config.xml", NULL, 0);
-
-    if (doc == NULL) {
-		fprintf(stderr,"Trying to load config.xml from current directory.\n");
+	//First check if CONFIGDIR"/config.xml" exists
+	if( access( CONFIGDIR"/config.xml", F_OK ) != -1 ) {
+		// file exists and it can be opened
+		doc = xmlReadFile(CONFIGDIR"/config.xml", NULL, 0);
+	} else {
+		// file doesn't exist
+		fprintf(stderr,"WARNING: Loading config.xml from current directory.\n");
 		doc = xmlReadFile("config.xml", NULL, 0);
-		if(doc==NULL){
-			fprintf(stderr,"ERROR: could not parse file config.xml. \nThe application can't run without this file.\n" );
-			exit(1);
-		}
-    }
-
+	}
+ 	
+	if(doc==NULL){
+		fprintf(stderr,"ERROR: could not parse file config.xml. \nThe application can't run without this file.\n" );
+		exit(1);
+	}
+ 
     /*Get the root element node */
     root_element = xmlDocGetRootElement(doc);
 

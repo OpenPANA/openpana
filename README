@@ -86,7 +86,7 @@ o Install
    
  5. After all you have PaC and PAA in the ./src application's folder.
  
- 6. By running 'make install' OpenPANA will be installed tipically under '/usr/local/bin' and configuration files will be placed in '/etc/openpana'.
+ 6. By running 'make install' OpenPANA will be installed tipically under '/usr/local/bin' and configuration files will be placed in '/usr/local/etc/'.
 
 o Contact Points
 

@@ -93,10 +93,7 @@ void print_list_sessions(){
 	int rc; /* return code of pthreads functions.  */
 
     struct pana_ctx_list* ptr = list_pana_sessions;
-
-#ifdef DEBUG
-    fprintf(stderr, "DEBUG: Trying to get session of id: %d\n", id);
-#endif
+    
     /* lock the mutex, to assure exclusive access to the list */
     rc = pthread_mutex_lock(&list_sessions_mutex);
 
