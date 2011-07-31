@@ -137,8 +137,7 @@ void initSession(pana_ctx * pana_session) {
     pana_session->session_id = 0;
 	
     //Inicia el usuario eap
-    pana_session->client_ctx.EAP_USER = USER;
-    eap_peer_init(&(pana_session->eap_ctx), pana_session);
+    eap_peer_init(&(pana_session->eap_ctx), pana_session,USER,PASSWORD,CA_CERT,CLIENT_CERT,CLIENT_KEY,PRIVATE_KEY,FRAG_SIZE);
 
 #endif
 
