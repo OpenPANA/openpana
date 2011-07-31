@@ -78,7 +78,7 @@ o Install
   If the --sysconfdir option is not added, configuration files will be placed under the '/usr/local/etc' directory.
   
  4. OpenPANA will need a working installation of a Radius Server using EAP-TLS method.
-    OpenPANA will require the following certificate files in ./src application's folder:
+    OpenPANA will require the following certificate files in config folder or in the current directory:
     	- ca.pem 
     	- client.pem
     	- client.pk8 (Can be obtained from client.key using: openssl pkcs8 -topk8 -in client.key -out client.pk8 -nocrypt )

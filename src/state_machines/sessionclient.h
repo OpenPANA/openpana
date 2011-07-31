@@ -56,5 +56,8 @@ typedef struct {
      */
     int AUTH_USER;
     
+    char * EAP_USER;
+    
+    
 } pana_client_ctx;
 #endif

@@ -47,7 +47,8 @@ parse_xml_client(xmlNode * a_node)
 {
 #ifdef ISCLIENT
     xmlNode *cur_node = NULL;
-
+	int checkconfig = 0;
+	
     for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
         if (cur_node->type == XML_ELEMENT_NODE) {
 			if (strcmp((char*) cur_node->name, "PAC")==0) {
@@ -80,7 +81,7 @@ parse_xml_client(xmlNode * a_node)
 					xmlFree(value);
 					if (DSTPORT != 716){
 						fprintf(stderr, "ERROR: PAA Port must be set to 716.\n");
-						exit(1);
+						checkconfig = 1;
 					}
 				}
 				else if (pac) {
@@ -90,7 +91,7 @@ parse_xml_client(xmlNode * a_node)
 					xmlFree(value);
 					if (SRCPORT <=1024){
 						fprintf(stderr, "ERROR: PaC Port must be set to a number higher than 1024.\n");
-						exit(1);
+						checkconfig = 1;
 					}
 				}
 			}
@@ -101,7 +102,7 @@ parse_xml_client(xmlNode * a_node)
 					xmlFree(value);
 					if (FAILED_SESS_TIMEOUT_CONFIG <=0){
 						fprintf(stderr, "ERROR: PaC Session Timeout must be set to a number higher than 0.\n");
-						exit(1);
+						checkconfig = 1;
 					}
 				}
 			}
@@ -112,7 +113,7 @@ parse_xml_client(xmlNode * a_node)
 					xmlFree(value);
 					if (PRF_HMAC_SHA1 <=0 || PRF_HMAC_SHA1 > 4){
 						fprintf(stderr, "ERROR: PaC PRF algorithm must be set to a number between 1 and 4.\n");
-						exit(1);
+						checkconfig = 1;
 					}
 				}
 			}
@@ -123,7 +124,7 @@ parse_xml_client(xmlNode * a_node)
 					xmlFree(value);
 					if (AUTH_HMAC_SHA1_160 <=0 || AUTH_HMAC_SHA1_160 > 7){
 						fprintf(stderr, "ERROR: PaC Integrity algorithm must be set to a number between 1 and 7.\n");
-						exit(1);
+						checkconfig = 1;
 					}
 				}
 			}
@@ -147,24 +148,78 @@ parse_xml_client(xmlNode * a_node)
 			else if (strcmp((char *)cur_node->name, "CA_CERT")==0){
 				if (pac){
 					char * value = (char*)xmlNodeGetContent(cur_node);
-					CA_CERT = malloc(strlen(value)*sizeof(char)); 
-					sprintf(CA_CERT, "%s",(char *) value);
+					
+					char * complete = malloc(strlen(value)+strlen(CONFIGDIR)+20);
+					sprintf(complete,"%s/%s",CONFIGDIR,(char*)value);
+					//Check if the file exists
+					if( access( complete, F_OK ) == -1 ) {
+						// file doesn't exist in config directory
+						if( access( value, F_OK ) == -1 ) {
+							fprintf(stderr,"ERROR: CA Certificate \"%s\" needed to run doesn't exist.\n",value);
+							checkconfig = 1;
+						}
+						else{
+							printf("PANA: Loading %s from current directory.\n",value);
+							CA_CERT = malloc(strlen(value)*sizeof(char)); 
+							sprintf(CA_CERT, "%s",(char *) value);
+						}
+					}
+					else{
+						printf("PANA: Loading %s from config directory.\n",value);
+						CA_CERT = complete;
+					}
+					
 					xmlFree(value);
 				}
 			}
 			else if (strcmp((char *)cur_node->name, "CLIENT_CERT")==0){
 				if (pac){
 					char * value = (char*)xmlNodeGetContent(cur_node);
-					CLIENT_CERT = malloc(strlen(value)*sizeof(char)); 
-					sprintf(CLIENT_CERT, "%s",(char *) value);
+					
+					char * complete = malloc(strlen(value)+strlen(CONFIGDIR)+20);
+					sprintf(complete,"%s/%s",CONFIGDIR,(char*)value);
+					//Check if the file exists
+					if( access( complete, F_OK ) == -1 ) {
+						// file doesn't exist in config directory
+						if( access( value, F_OK ) == -1 ) {
+							fprintf(stderr,"ERROR: Client's certificate \"%s\" needed to run doesn't exist.\n",value);
+							checkconfig = 1;
+						}
+						else{
+							printf("PANA: Loading %s from current directory.\n",value);
+							CLIENT_CERT = malloc(strlen(value)*sizeof(char)); 
+							sprintf(CLIENT_CERT, "%s",(char *) value);
+						}
+					}
+					else{
+						printf("PANA: Loading %s from config directory.\n",value);
+						CLIENT_CERT = complete;
+					}
 					xmlFree(value);
 				}
 			}
 			else if (strcmp((char *)cur_node->name, "CLIENT_KEY")==0){
 				if (pac){
 					char * value = (char*)xmlNodeGetContent(cur_node);
-					CLIENT_KEY = malloc(strlen(value)*sizeof(char)); 
-					sprintf(CLIENT_KEY, "%s",(char *) value);
+					char * complete = malloc(strlen(value)+strlen(CONFIGDIR)+20);
+					sprintf(complete,"%s/%s",CONFIGDIR,(char*)value);
+					//Check if the file exists
+					if( access( complete, F_OK ) == -1 ) {
+						// file doesn't exist in config directory
+						if( access( value, F_OK ) == -1 ) {
+							fprintf(stderr,"ERROR: Client's key file \"%s\" needed to run doesn't exist.\n",value);
+							checkconfig = 1;
+						}
+						else{
+							printf("PANA: Loading %s from current directory.\n",value);
+							CLIENT_KEY = malloc(strlen(value)*sizeof(char)); 
+							sprintf(CLIENT_KEY, "%s",(char *) value);
+						}
+					}
+					else{
+						printf("PANA: Loading %s from config directory.\n",value);
+						CLIENT_KEY = complete;
+					}
 					xmlFree(value);
 				}
 			}
@@ -187,6 +242,11 @@ parse_xml_client(xmlNode * a_node)
 
         parse_xml_client(cur_node->children);
     }
+    
+    if(checkconfig){
+		fprintf(stderr,"ERROR: Check configuration to continue.\n");
+		exit(1);
+	}
 #endif
 }
 

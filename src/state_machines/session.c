@@ -135,8 +135,9 @@ void initSession(pana_ctx * pana_session) {
      * always supposed to be a PCI. */
     pana_session->SEQ_NUMBER = 0;
     pana_session->session_id = 0;
-
+	
     //Inicia el usuario eap
+    pana_session->client_ctx.EAP_USER = USER;
     eap_peer_init(&(pana_session->eap_ctx), pana_session);
 
 #endif
