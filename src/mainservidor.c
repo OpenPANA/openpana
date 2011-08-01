@@ -292,7 +292,7 @@ void add_task(func funcion, void * arg/*, int session_id*/) {
         last_task = new_element;
     } else {
         last_task->next = new_element;
-        last_task = new_element;
+        last_task = last_task->next;
     }
 
 
@@ -563,7 +563,7 @@ void* handle_network_management() {
     int addr_size;
     //fixme debería hacerse lo mismo para radius que para pana?
     struct pana_func_parameter *pana_params;
-    struct radius_func_parameter radius_params;
+    struct radius_func_parameter *radius_params;
     pana *msg;
 
     while (!fin) {
@@ -602,12 +602,13 @@ void* handle_network_management() {
 
                 if (length > 0) {
 
+					radius_params = calloc(sizeof(struct radius_func_parameter),1);
                     struct radius_msg *radmsg = radius_msg_parse(udp_packet, length);
-                    radius_params.msg = malloc (length);
-                    memcpy(radius_params.msg, radmsg, length);
+                    radius_params->msg = malloc (length);
+                    memcpy(radius_params->msg, radmsg, length);
                     //radius_params.msg = radmsg;
                     
-                    add_task(process_receive_radius_msg, &radius_params);
+                    add_task(process_receive_radius_msg, radius_params);
                     
                 } else fprintf(stderr,"recvfrom returned ret=%d, errno=%d\n", length, errno);
             }
