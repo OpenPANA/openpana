@@ -1,11 +1,11 @@
 AM_CPPFLAGS+= -D CONFIGDIR=\"$(sysconfdir)\" # Sets the config dir
 
 ### user programs ###
-bin_PROGRAMS = PAA PaC
+bin_PROGRAMS = openpaa openpac
 
 ### source declarations ###
 
-PAA_SOURCES               =	state_machines/session.c \
+openpaa_SOURCES               =	state_machines/session.c \
 				state_machines/statemachine.c \
 				state_machines/paamachine.c \
 				prf_plus.c \
@@ -14,16 +14,16 @@ PAA_SOURCES               =	state_machines/session.c \
 				panautils.c \
 				mainservidor.c \
 				loadconfig.c
-PAA_CPPFLAGS =		$(AM_CPPFLAGS) -D ISSERVER
+openpaa_CPPFLAGS =		$(AM_CPPFLAGS) -D ISSERVER
 
 ### library dependencies ###
 
-PAA_LDADD                     = libeapstack/libeap.a
+openpaa_LDADD                     = libeapstack/libeap.a
 
 
 ### source declarations ###
 
-PaC_SOURCES               =	state_machines/session.c \
+openpac_SOURCES               =	state_machines/session.c \
 				state_machines/statemachine.c \
 				state_machines/pacmachine.c \
 				prf_plus.c \
@@ -32,11 +32,11 @@ PaC_SOURCES               =	state_machines/session.c \
 				panautils.c \
 				maincliente.c \
 				loadconfig.c
-PaC_CPPFLAGS =		$(AM_CPPFLAGS) -D ISCLIENT
+openpac_CPPFLAGS =		$(AM_CPPFLAGS) -D ISCLIENT
 
 ### library dependencies ###
 
-PaC_LDADD                     = libeapstack/libeap.a
+openpac_LDADD                     = libeapstack/libeap.a
 
 # Adding PANA header files to distribute using "make dist"
 EXTRA_DIST =  *.h state_machines/*.h config.xml dtd.xml
