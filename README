@@ -13,7 +13,7 @@ o DIRECTORIES
 
   certs/ - Files needed for creating the certificates
 
-  src/ - All the code, certs and example applications including client (PaC) and server (PAA) and config file.
+  src/ - All the code, certs and example applications including client (openpac) and server (openpaa) and config file.
   
   src/wpa_supplicant/ - WPA Supplicant's implementation done by Jouni Malinen ( http://hostap.epitest.fi ) using v0.7.1
 			
@@ -85,7 +85,7 @@ o Install
   
    An example of certificates and a working eap.conf (to use with freeRadius) can be found in radius_conf folder of svn root.
    
- 5. After all you have PaC and PAA in the ./src application's folder.
+ 5. After all you have 'openpaa' and 'openpac' in the ./src application's folder.
  
  6. By running 'make install' as root OpenPANA will be installed tipically under '/usr/local/bin' and configuration files will be placed in '/etc/openpana'.
 
