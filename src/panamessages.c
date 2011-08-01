@@ -33,7 +33,7 @@
 
 int AVPname2flag(char * avp_name){
 	int type=0;
-	//fprintf(stderr,"DEBUG: AVP: %s, type %x \n",avp_name,type);
+	
 	//The AVP flag is setted from the AVP_name
     if (strcmp(avp_name, "AUTH") == 0) {
         type = F_AUTH;
@@ -59,7 +59,7 @@ int AVPname2flag(char * avp_name){
 #endif
         type = 0;
     }
-    //fprintf(stderr,"FLAG: 0x%x\n",type);
+    
     return type;
 }
 
@@ -725,4 +725,148 @@ int insertAvps(char** message, int avps, void **data) {
 	//debug_pana((pana*)msg);
 	*message = msg;
 	return totalsize;
+}
+
+char * getAvp(char *msg, int type) {
+    char * elmnt = NULL;
+
+    int size = ntohs(((pana*)msg)->msg_length) - sizeof (pana);
+    int offset = sizeof(pana); //Offset to point to the next AVP
+    
+    while (size > 0) {//While there are AVPs left
+        elmnt = msg + offset; //Pointer to the next AVP
+		int padding = 0;
+		int code = ntohs(((avp_pana *)elmnt)->code);
+		if ( code == type) {//If is a match return true
+            return elmnt;
+        }
+        int length = ntohs(((avp_pana *)elmnt)->length);
+        if (isOctetString(code)){
+			padding = paddingOctetString(length);
+		}
+        size = size - sizeof(avp_pana) - length - padding;
+        offset = offset + sizeof(avp_pana) + length + padding;
+    }
+
+    return NULL; //Not found
+}
+
+char * getAvpName(int avp_code) {
+    char * avp_names[] = {"AUTH", "EAP-PAYLOAD", "INTEGRITY ALG", "KEY-ID", "NONCE", "PRF ALG", "RESULT-CODE", "SESSION-LIFETIME", "TERMINATION-CAUSE"};
+	
+	// All AVP codes are between AUTH and TERMINATIONCAUSE
+    if (avp_code >= AUTH_AVP && avp_code <= TERMINATIONCAUSE_AVP) {
+        return avp_names[avp_code - 1];
+    } else {
+    #ifdef DEBUG
+        fprintf(stderr, "DEBUG: ERROR getAvpName, wrong AVP code (%d).\n",avp_code);
+    #endif
+        return NULL;
+    }
+}
+
+char * getMsgName(int msg_type) {
+    char *pana_msg_type[] = {"PCI", "PANA-Auth", "PANA-Termination", "PANA-Notification"};
+	// All MSG types are between PCI and PNA
+    if (msg_type >= PCI_MSG && msg_type <= PNA_MSG) {
+        return pana_msg_type[msg_type - 1];
+    } else {
+        #ifdef DEBUG
+        fprintf(stderr, "DEBUG: ERROR getMsgName, wrong message type (%d).\n",msg_type);
+        #endif
+        return NULL;
+    }
+}
+
+int isOctetString(int type){
+	return (type==AUTH_AVP || type ==EAPPAYLOAD_AVP || type == NONCE_AVP);		
+}
+
+int paddingOctetString(int size) {
+
+    int left4byte = size % 4;
+    int padding = 0;
+    if (left4byte != 0) {
+        padding = 4 - left4byte;
+    }
+
+    return padding;
+}
+
+void debug_pana(pana *hdr){
+	#ifdef DEBUG
+    fprintf(stderr,"Pana Message Name: %s \n", getMsgName(ntohs(hdr->msg_type)));
+    //fprintf(stderr," 0                   1                   2                   3\n");
+    //fprintf(stderr," 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1\n");
+    fprintf(stderr,"+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
+    fprintf(stderr,"|        Reserved:%d           |          MessageLength: %d      |\n", ntohs(hdr->reserved), ntohs(hdr->msg_length));
+    fprintf(stderr,"+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
+    fprintf(stderr,"|       Flags: ");
+    int flags = ntohs(hdr->flags);//R S C A P I
+    fprintf(stderr,"%s",(flags & R_FLAG)?"R":"-");
+    fprintf(stderr,"%s",(flags & S_FLAG)?"S":"-");
+    fprintf(stderr,"%s",(flags & C_FLAG)?"C":"-");
+    fprintf(stderr,"%s",(flags & A_FLAG)?"A":"-");
+    fprintf(stderr,"%s",(flags & P_FLAG)?"P":"-");
+    fprintf(stderr,"%s",(flags & I_FLAG)?"I":"-");
+    fprintf(stderr,"         |       MessageType: %d            |\n",  ntohs(hdr->msg_type));
+    fprintf(stderr,"+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
+    fprintf(stderr,"|                     Session Identifier: %#X            |\n", ntohl(hdr->session_id));
+    fprintf(stderr,"+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
+    fprintf(stderr,"|                     Sequence Number: %#X               |\n", ntohl(hdr->seq_number));
+    fprintf(stderr,"+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
+
+    int size = ntohs(hdr->msg_length) - sizeof (pana);
+    int offset = 0;
+    //printf("DEBUG: debugmessage Value=%s \n", (msg->avp_list + 4 * sizeof (short)));
+    char * msg = (char *) hdr;
+    while (size > 0) {
+        avp_pana * elmnt = (avp_pana *) (msg + sizeof(pana) + offset);
+        debug_avp(elmnt);
+        int avance = ntohs(elmnt->length);
+        if(isOctetString(ntohs(elmnt->code))){
+			avance += paddingOctetString(avance);
+		} 
+		avance += sizeof(avp_pana);
+        size = size - avance;
+        offset = offset + avance;
+    }
+    #endif
+}
+
+void debug_avp(avp_pana * datos){
+	#ifdef DEBUG
+	char * avpname = getAvpName(ntohs(datos->code));
+	if(avpname != NULL){
+		
+		int sizevalue = ntohs(datos->length);
+		fprintf(stderr,"AVP Name: %s\n", avpname);
+		//fprintf(stderr," 0                   1                   2                   3\n");
+		//fprintf(stderr," 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1\n");
+		fprintf(stderr,"+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
+		fprintf(stderr,"|        AVP Code:%d            |           AVP Flags:%d         |\n", ntohs(datos->code), ntohs(datos->flags));
+		fprintf(stderr,"+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
+		fprintf(stderr,"|       AVP Length: %d           |       Reserved: %d           |\n", sizevalue, ntohs(datos->reserved));
+		fprintf(stderr,"+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
+		fprintf(stderr,"|    Value: ");
+
+		if(ntohs(datos->code) == EAPPAYLOAD_AVP){
+			fprintf(stderr," EAP-Payload omitted.");
+		}
+		/*else if(ntohs(datos->code) == AUTH_AVP){
+			fprintf(stderr," AUTH omitted.");
+		}*/
+		else if (sizevalue > 0 ) {
+			for(int i = 0; i< sizevalue; i++){
+				fprintf(stderr," %.2X",((*(((char*)datos) + sizeof(avp_pana) + i))&0xFF));
+				if (i!=0 && i%16 == 0)
+				fprintf(stderr,"\n            ");
+			}
+		}
+		else{
+			fprintf(stderr," (none)");
+		}
+		fprintf(stderr,"\n+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
+    }
+    #endif
 }

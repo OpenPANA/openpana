@@ -28,12 +28,10 @@
 #include "panamessages.h"
 #include "./state_machines/session.h"
 
+/** UDP port used for PANA.*/
 #define PANAPORT 716
+/** Maximum size to use with an UDP packet. */
 #define MAXSIZEUDP 1280
-
-//Devuelve el numero de bytes enviados o -1 en caso de error
-//FIXME: Hace un envío normal y corriente, se podría eliminar la función?
-int sendPana(struct sockaddr_in destaddr, char *msg, int sock);
 
  /** 
   * Returns if a PANA message is correct. Checks the header (flags, reserved field, messages types),
@@ -58,25 +56,6 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session);
 int generateSessionId (char * ip, short port);
 
 /** 
- * Returns the name of the message type given its code.
- * 
- * @param msg_type Message type code.
- * 
- * @return Message name. 
- * */
-char * getMsgName(int msg_type);
-
-/** 
- * Returns the name of the AVP given its code.
- * 
- * @param avp_code AVP code.
- * 
- * @return AVP name. 
- * */
-char * getAvpName(int avp_code);
-
-//FIXME: Poner que debe liberarse la memoria.
-/** 
  * Generates the AUTH key given a PANA session.
  * The PANA_AUTH_KEY is derived from the available MSK, and it is used
  * to integrity protect PANA messages. The PANA_AUTH_KEY is computed in
@@ -87,18 +66,9 @@ char * getAvpName(int avp_code);
  * 
  * @param current_session PANA session.
  * 
- * @return AUTH key generated.
+ * @return AUTH key generated. It must to be freed when no longer needed.
  * */
 u8 * generateAUTH(pana_ctx * current_session);
-
-/**
- * Returns if an AVP is OctetString or not.
- * 
- * @param type AVP code.
- * 
- * @return If the AVP is OctetString.
- * */
-int isOctetString(int type);
 
 /**
  * Adds 1 to a character array given it's length.
@@ -114,25 +84,8 @@ void increase_one (char *value, int length);
  * */
  int generateRandomKeyID (char** global_key_id);
 
-/**
- * Returns the padding space needed given an OctetString size.
- * 
- * @param size AVP size.
- * 
- * @return Padding needed.
- */
-int paddingOctetString(int size);
-
 /** 
- * Returns the pointer to a given AVP in a message.
- * 
- * @param msg PANA message.
- * @param type AVP code to get.
- * 
- * @return Pointer to the AVP.
- * */
-char * getAvp(char *msg, int type);
-/** Hashes the AUTH AVP given a key.
+ * Hashes the AUTH AVP given a key.
  * 
  * @param msg PANA message.
  * @param key Key to use during hashing.
@@ -143,19 +96,26 @@ char * getAvp(char *msg, int type);
  * */
 int hashAuth(char *msg, char* key, int key_len);
 
-//FIXME: Falta documentación. Pasa una cadena a número entero.
+/**
+ * Given a string cointaining an hexadecimal number and its length, 
+ * returns its value in an integer variable.
+ * 
+ * @param *value Hexadecimal number.
+ * @param length Array length.
+ * 
+ * @return Integer value of the hexadecimal array.
+ * */
 int Hex2Dec (char * value, int length) ;
 
-//Debugging functions
-/** Debug function, shows in a friendly way the information contained in
- * a PANA message (includes AVPs in the value area).
- * @param *hdr panaMessage to be shown. */
-void debug_pana(pana *hdr);
-
-/** Debug function, shows in a friendly way the information contained in
- * an AVP.
- * @param *datos AVP to be shown. */
-void debug_avp(avp_pana * datos);
-
-
+/**
+ * Sends the message.
+ * 
+ * @param destaddr Information needed to send the message.
+ * @param *msg Message to send.
+ * @param sock Socket to use during sending.
+ * 
+ * @return -1 In case of error.
+ * @return Number of bytes sended.
+ * */
+int sendPana(struct sockaddr_in destaddr, char *msg, int sock);
 #endif

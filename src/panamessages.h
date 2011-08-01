@@ -95,14 +95,28 @@
 
 //Cada flag representa un AVP, la entrada de string del tx se
 //transformará a éste formato por ser mucho más rápido para tratarlo.
+/** AVP flag definition for internal use. Represents the Auth AVP.*/
 #define F_AUTH 0x0001
+/** AVP flag definition for internal use. Represents the Eap-Payload AVP.*/
 #define F_EAPP 0x0002
+/** AVP flag definition for internal use. Represents the Integrity-Algorithm
+ *  AVP.*/
 #define F_INTEG 0x0004
+/** AVP flag definition for internal use. Represents the Key-Id AVP.*/
 #define F_KEYID 0x0008
+/** AVP flag definition for internal use. Represents the Nonce AVP.*/
 #define F_NONCE 0x0010
+/** AVP flag definition for internal use. Represents the PRF-Algorithm
+ *  AVP.*/
 #define F_PRF 0x0020
+/** AVP flag definition for internal use. Represents the Result-Code
+ *  AVP.*/
 #define F_RES 0x0040
+/** AVP flag definition for internal use. Represents the Session-Lifetime
+ *  AVP.*/
 #define F_SESS 0x0080
+/** AVP flag definition for internal use. Represents the Termination-Cause
+ *  AVP.*/
 #define F_TERM 0x0100
 
 /**
@@ -213,27 +227,40 @@ typedef struct {
 } __attribute__((packed)) avp_pana;
 
 /**
- * A procedure to send a PANA message to its peering PANA entity. \n\n 
+ * A procedure to send a PANA message to its peering PANA entity. 
  * See RFC 5609 as void Tx:PANA_MESSAGE_NAME[flag](AVPs)
  * 
  * @param *msgtype Name's abbreviation of the packet to be sent e.g. 
  * "PAR". 
- * @param flags Contains one or more flags to be set to the message, 
+ * @param flags Contains none, one or more flags to be set to the message, 
  * except for ’R’ (Request) flag.
- * @param sequence_number Sequence number field of the message.
+ * @param *sequence_number Pointer to the sequence number field of the message.
  * @param sess_id Session id field of the message.
  * @param *avps Contains a list of names of optional AVPs to be
  * inserted in the message, except for AUTH AVP.
  * @param destaddr Socket information to use during transmission.
- * @param data Data to be used in the AVP generation.
+ * @param data *data to be used in the AVP insertion.
  * @param sock Socket to use in the transmission.
  * 
  * @return Message sended. It must to be freed when no longer needed.
  */
 char * transmissionMessage(char * msgtype, short flags, int *sequence_number, int sess_id, char * avps, struct sockaddr_in destaddr, void **data, int sock);
-
+/**
+ * A procedure to get the combination of the AVP flags given an AVP list.
+ * 
+ * @param *avps List of AVPs.
+ * @return Flags to be used.
+ * */
 int AVPgenerateflags(char * avps);
+
+/**
+ * A procedure that given an AVP name return the associated flag.
+ * 
+ * @param *avp_name Name of the AVP.
+ * @return Flag associated to the AVP.
+ * */
 int AVPname2flag(char * avp_name);
+
 /**
  * A procedure that checks whether an AVP of the specified AVP name
  * exists in the specified PANA message \n\n See RFC 5609 as
@@ -250,14 +277,73 @@ int AVPname2flag(char * avp_name);
 int existAvp(char * message, char *avp_name);
 
 /**
- * A procedure that generates the struct that matches the name of the avp
- * given and inserts it in a AVP list.
+ * A procedure that inserts the given AVPs with their data into a PANA 
+ * message.
  * 
- * @param *lista List of AVPs to insert the AVP given.
+ * @param **message Message to insert the AVPs to.
+ * @param avps Flags of the AVPs to insert. 
+ * @param **data AVP data to use during insertion.
  * 
- * @param *avp_name Name of the AVP to be generated and inserted.
+ * @return 0 (FALSE) if an error ocurred.
+ * @see AVPgenerateflags To details on AVP flags
  */
 
 int insertAvps(char** message, int avps, void **data);
 
+/** 
+ * Returns the pointer to a given AVP in a message.
+ * 
+ * @param msg PANA message.
+ * @param type AVP code to get.
+ * 
+ * @return Pointer to the AVP.
+ * */
+char * getAvp(char *msg, int type);
+
+/** 
+ * Returns the name of the message type given its code.
+ * 
+ * @param msg_type Message type code.
+ * 
+ * @return Message name. 
+ * */
+char * getMsgName(int msg_type);
+
+/** 
+ * Returns the name of the AVP given its code.
+ * 
+ * @param avp_code AVP code.
+ * 
+ * @return AVP name. 
+ * */
+char * getAvpName(int avp_code);
+
+/**
+ * Returns the padding space needed given an OctetString size.
+ * 
+ * @param size AVP size.
+ * 
+ * @return Padding needed.
+ */
+int paddingOctetString(int size);
+
+/**
+ * Returns if an AVP is OctetString or not.
+ * 
+ * @param type AVP code.
+ * 
+ * @return If the AVP is OctetString.
+ * */
+int isOctetString(int type);
+
+//Debugging functions
+/** Debug function, shows in a friendly way the information contained in
+ * a PANA message (includes AVPs in the value area).
+ * @param *hdr panaMessage to be shown. */
+void debug_pana(pana *hdr);
+
+/** Debug function, shows in a friendly way the information contained in
+ * an AVP.
+ * @param *datos AVP to be shown. */
+void debug_avp(avp_pana * datos);
 #endif
