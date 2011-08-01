@@ -294,7 +294,9 @@ int returnPanParFromEap() {
 		}
         current_session->retr_msg = transmissionMessage("PAN", 0, &(current_session->SEQ_NUMBER), current_session->session_id, "", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
         sessionTimerStop();
+        #ifdef DEBUG
         fprintf(stderr,"DEBUG: pacmachine.c returnpanparfromeap");
+        #endif
         disconnect();
         return CLOSED;
     } else if (eap_peer_get_eapFail(&(current_session->eap_ctx)) == TRUE || (/*current_session->client_ctx.EAP_DISCARD && */!eapPiggyback())) {//Fixme el discard?
@@ -306,7 +308,9 @@ int returnPanParFromEap() {
 }
 
 int eapResultStateWaitEapResult() {
-fprintf(stderr,"DEBUG: pacmachine.c eapresultstatewaiteapresult\n");
+	#ifdef DEBUG
+	fprintf(stderr,"DEBUG: pacmachine.c eapresultstatewaiteapresult\n");
+	#endif
     if (eap_peer_get_eapSuccess(&(current_session->eap_ctx)) == TRUE) {
 		if(current_session->retr_msg !=NULL){
 			//free(current_session->retr_msg);
@@ -349,7 +353,9 @@ fprintf(stderr,"DEBUG: pacmachine.c eapresultstatewaiteapresult\n");
         // The C flag is added
         current_session->retr_msg = transmissionMessage("PAN", C_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, "", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
         sessionTimerStop();
+        #ifdef DEBUG
         fprintf(stderr,"DEBUG: pacmachine.c waiteapresult");
+        #endif
         disconnect();
         eap_peer_set_eapFail(&(current_session->eap_ctx), FALSE);
         return CLOSED;
@@ -373,7 +379,9 @@ int eapResultStateWaitEapResultClose() {
             current_session->retr_msg = transmissionMessage("PAN", C_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, "", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
         }
         sessionTimerStop();
+        #ifdef DEBUG
         fprintf(stderr,"DEBUG: pacmachine.c resultclose\n");
+        #endif
         disconnect();
 
         if (eap_peer_get_eapSuccess(&(current_session->eap_ctx)) == TRUE) {
@@ -437,7 +445,9 @@ int sessionTermInitPaaStateOpen() {
         current_session->retr_msg = transmissionMessage("PTA", 0, &(current_session->SEQ_NUMBER), current_session->session_id, "", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
 
         sessionTimerStop();
+        #ifdef DEBUG
         fprintf(stderr,"DEBUG: pacmachine.c initpaastateopen");
+        #endif
         disconnect();
         return CLOSED;
     } else return ERROR;
@@ -472,7 +482,9 @@ int sessionTermInitPaaStateWaitPnaReauth() {
 		}
 		current_session->retr_msg = transmissionMessage("PTA", 0, &(current_session->SEQ_NUMBER), current_session->session_id, "", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
         sessionTimerStop();
+        #ifdef DEBUG
         fprintf(stderr,"DEBUG: pacmachine.c waitpnareauth");
+        #endif
         disconnect();
         return CLOSED;
     } else return ERROR;
@@ -512,7 +524,9 @@ int sessionTermInitPaaStateWaitPnaPing() {
 		}
 		current_session->retr_msg  = transmissionMessage("PTA", 0, &(current_session->SEQ_NUMBER), current_session->session_id, "", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
         sessionTimerStop();
+        #ifdef DEBUG
         fprintf(stderr,"DEBUG: pacmachine.c waitpnaping");
+        #endif
         disconnect();
         return CLOSED;
     } else return ERROR;
@@ -520,7 +534,9 @@ int sessionTermInitPaaStateWaitPnaPing() {
 
 int sessionTermInitPacStateSessTerm() {
     if (current_session->PTA.receive) {
+		#ifdef DEBUG
 		fprintf(stderr,"DEBUG: pacmachine.c initpacstatesessterm\n");
+		#endif
         disconnect();
         return CLOSED;
     } else return ERROR;

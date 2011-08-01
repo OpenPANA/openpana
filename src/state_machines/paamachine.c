@@ -338,7 +338,9 @@ int rxEapTimeoutInvalidMsg() {
     if (eap_auth_get_eapTimeout(&(current_session->eap_ctx)) == TRUE
             /*|| current_session->server_ctx.EAP_DISCARD*/) { //FIXME: Que pasa con get_eapDiscard?
         sessionTimerStop();
+        #ifdef DEBUG
         fprintf(stderr,"DEBUG: paamachine rxeaptimeoutinvalidmsg.c\n");
+        #endif
         disconnect();
         //FIXME: Se pondría a false o no existe la funcion?
         //eap_auth_set_eapTimeout(&(current_session->eap_ctx), FALSE);
@@ -357,7 +359,9 @@ int panProcessingStateWaitSuccPan() {
 int panProcessingStateWaitFailPan() {
     if ((current_session->PAN.receive) && (current_session->PAN.flags & C_FLAG)) {
         rtxTimerStop();
+        #ifdef DEBUG
         fprintf(stderr,"DEBUG: paamachine.c panprocessingstatewaitfailpan");
+        #endif
         disconnect();
         return CLOSED;
     } else return ERROR;
@@ -417,7 +421,9 @@ int sessionTermInitPacStateOpen() {
 		}
         current_session->retr_msg = transmissionMessage("PTA", 0, &(current_session->SEQ_NUMBER), current_session->session_id, "", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
         sessionTimerStop();
+        #ifdef DEBUG
         fprintf(stderr,"DEBUG: paamachine.c sessionterminitpacstateopen\n");
+        #endif
         disconnect();
         return CLOSED;
     } else return ERROR;
@@ -452,7 +458,9 @@ int sessionTermInitPacStateWaitPnaPing() {
 		}
         current_session->retr_msg = transmissionMessage("PTA", 0, &(current_session->SEQ_NUMBER), current_session->session_id, "", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
         sessionTimerStop();
+        #ifdef DEBUG
         fprintf(stderr,"DEBUG: paamachine.c sessionterminitpacstatewaitpnaping.c");
+        #endif
         disconnect();
         return CLOSED;
     } else return ERROR;

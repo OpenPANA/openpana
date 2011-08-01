@@ -248,7 +248,7 @@ static int eap_peer_register_methods(struct eap_method **eap_methods)
 	return ret;
 }
 
-int eap_peer_init(struct eap_peer_ctx *eap_ctx, void *eap_ll_ctx)
+int eap_peer_init(struct eap_peer_ctx *eap_ctx, void *eap_ll_ctx, char * user, char * passwd, char * cacert, char * ccert, char * ckey, char * pkey, char * fsize)
 {
 	struct eapol_callbacks * eap_cb = (struct eapol_callbacks *)os_malloc(sizeof(struct eapol_callbacks));
 	os_memset(eap_cb, 0, sizeof(*eap_cb));
@@ -273,16 +273,15 @@ int eap_peer_init(struct eap_peer_ctx *eap_ctx, void *eap_ll_ctx)
 	os_memset(eap_conf, 0, sizeof(*eap_conf));
 	eap_conf->eap_methods=eap_ctx->eap_methods; //This is new.
 	
-	
-	eap_ctx->eap_config.identity = (u8 *) os_strdup(USER);
-	eap_ctx->eap_config.identity_len = strlen(USER);
-	eap_ctx->eap_config.password = (u8 *) os_strdup(PASSWORD);
-	eap_ctx->eap_config.password_len = strlen(PASSWORD);
-	eap_ctx->eap_config.client_cert = (u8*) os_strdup(CLIENT_CERT);
-	eap_ctx->eap_config.private_key=(u8*) os_strdup(CLIENT_KEY);
-	eap_ctx->eap_config.ca_cert = (u8 *) os_strdup(CA_CERT);
-	eap_ctx->eap_config.private_key_passwd = (u8*) os_strdup(PRIVATE_KEY);
-	eap_ctx->eap_config.fragment_size = FRAG_SIZE;
+	eap_ctx->eap_config.identity = (u8 *) os_strdup(user);
+	eap_ctx->eap_config.identity_len = strlen(user);
+	eap_ctx->eap_config.password = (u8 *) os_strdup(passwd);
+	eap_ctx->eap_config.password_len = strlen(passwd);
+	eap_ctx->eap_config.client_cert = (u8*) os_strdup(ccert);
+	eap_ctx->eap_config.private_key=(u8*) os_strdup(ckey);
+	eap_ctx->eap_config.ca_cert = (u8 *) os_strdup(cacert);
+	eap_ctx->eap_config.private_key_passwd = (u8*) os_strdup(pkey);
+	eap_ctx->eap_config.fragment_size = fsize;
 	
 	eap_ctx->eap = eap_peer_sm_init(eap_ctx, eap_cb, eap_ctx, eap_conf);
 	if (eap_ctx->eap == NULL)

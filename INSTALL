@@ -1,0 +1,28 @@
+Installation
+============
+
+These are installation instructions for Unix and Unix-like systems
+that can run the "configure" script in this same directory. These
+are not the installation instructions for Windows systems.
+
+ 1. OpenPANA requires the following libraries:
+
+  - OpennSSL library
+    http://wwww.openssl.org
+
+  - Libxml2
+    http://xmlsoft.org/
+
+ 2. Building the OpenPANA softwares:
+
+  You can just run the 'autogen.sh', './configure --sysconfdir=/etc/openpana' script and 'make'.
+  If the --sysconfdir option is not added, configuration files will be placed under the '/usr/local/etc' directory.
+
+ 3. By running 'make install' as root OpenPANA will be installed tipically under '/usr/local/bin' and configuration files will be placed in '/etc/	openpana'.
+
+* OpenPANA can be uninstalled by the 'make uninstall' command.
+
+If you have trouble with the build or installation process, you can
+find assistance on the openapana-users@list.sourceforge.net mailing list.
+See http://openpana.sf.net for details.
+

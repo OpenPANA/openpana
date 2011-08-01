@@ -135,9 +135,9 @@ void initSession(pana_ctx * pana_session) {
      * always supposed to be a PCI. */
     pana_session->SEQ_NUMBER = 0;
     pana_session->session_id = 0;
-
+	
     //Inicia el usuario eap
-    eap_peer_init(&(pana_session->eap_ctx), pana_session);
+    eap_peer_init(&(pana_session->eap_ctx), pana_session,USER,PASSWORD,CA_CERT,CLIENT_CERT,CLIENT_KEY,PRIVATE_KEY,FRAG_SIZE);
 
 #endif
 
@@ -250,7 +250,6 @@ void updateSession(char *message, pana_ctx *pana_session) {
     } else if (type == PAR_MSG) { //Authentication type Message, it could also be PAN_MSG
 		//debug_pana(msg);
         //Check if it contains the Nonce AVP and update its value
-        fprintf(stderr,"DEBUG: Pana Authentication Message detected, sequence number: %#X.\n",ntohl(msg->seq_number));
         if (existAvp(message, "Nonce")) { //Depending if you are server or client
 #ifdef ISSERVER
 			fprintf(stderr,"DEBUG: Server's detected a Nonce AVP.\n");
