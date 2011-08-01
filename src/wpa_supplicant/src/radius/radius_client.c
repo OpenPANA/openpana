@@ -542,7 +542,7 @@ void radius_client_receive(struct radius_msg *msg, void *eloop_ctx, void *sock_c
 	hdr = radius_msg_get_hdr(msg);
 
 	hostapd_logger(radius->ctx, NULL, HOSTAPD_MODULE_RADIUS,
-				   HOSTAPD_LEVEL_DEBUG, "Received RADIUS message");
+				   HOSTAPD_LEVEL_DEBUG, "Received RADIUS message"); 
 	if (conf->msg_dumps)
 		radius_msg_dump(msg);
 	
@@ -565,6 +565,7 @@ void radius_client_receive(struct radius_msg *msg, void *eloop_ctx, void *sock_c
 
 	prev_req = NULL;
 	req = radius->msgs;
+
 	while (req) {
 		/* TODO: also match by src addr:port of the packet when using
 		 * alternative RADIUS servers (?) */
@@ -583,7 +584,6 @@ void radius_client_receive(struct radius_msg *msg, void *eloop_ctx, void *sock_c
 		prev_req = req;
 		req = req->next;
 	}
-	
 	
 
 	if (req == NULL) {
@@ -651,7 +651,7 @@ void radius_client_receive(struct radius_msg *msg, void *eloop_ctx, void *sock_c
 	
 	
 fail:
-	//radius_msg_free(msg);
+	radius_msg_free(msg);
 	
 	pthread_mutex_unlock(& mutex_radius);
 	
