@@ -28,14 +28,16 @@
 #include "./libeapstack/eap_auth_interface.h"
 #include "state_machines/session.h"
 
+/** Maximum length of a udp packet.*/
 #define MAX_DATA_LEN 2048
-/**Time waited before retransmiting AAA request. */
+/** Time waited before retransmiting AAA request. */
 #define RETR_AAA_TIME 1
-/**Max. number of retransmissions to an AAA server. */
+/** Maximum number of retransmissions to an AAA server. */
 #define MAX_RETR_AAA 3
 /** Time to wake up the alarm manager (in miliseconds).*/
 #define TIME_WAKE_UP 1000000
 
+/** Task's callback.*/
 typedef void* (*func)(void* data);
 
 /** List of PANA contexts.*/
@@ -46,7 +48,7 @@ struct pana_ctx_list {
     struct pana_ctx_list * next;
 };
 
-/** List of tasks*/
+/** List of tasks.*/
 struct task_list {
 	/** Function to be used with the task.*/
     func use_function;
@@ -59,40 +61,139 @@ struct task_list {
 };
 
 
-/**Struct of process_receive_eap_ll_msg function's parameter*/
+/**Struct of process_receive_eap_ll_msg function's parameter.*/
 struct pana_func_parameter {
+	/** PaC destination address. */
     struct sockaddr_in* eap_ll_dst_addr;
+    /** PANA message to be sent to PaC.*/
     pana * pana_msg;
+    /** Socket's number used for sending the message. */
     int sock;
+    /** Alarm's id in case of it has occurred.*/
     int id_alarm;
 };
 
-/**Struct of process_retr function's parameter*/
+/**Struct of process_retr function's parameter.*/
 struct retr_func_parameter {
+	/** Identifier of the alarm activated.*/
 	int id;
+	/** PANA session associated with the alarm. */
 	pana_ctx * session;
 };
 
 /**Struct of process_receive_radius_msg function's parameter*/
 struct radius_func_parameter {
+	/** RADIUS message received. */
     struct radius_msg * msg;
 };
 
+/**
+ * A procedure to add a PANA session in the
+ * PANA sessions' list managed by the PAA.
+ * 
+ * @param *session PANA session to add in the list.
+ */ 
 void add_session(pana_ctx * session);
+/**
+ * A procedure to add a task in the tasks' list
+ * managed by the PAA.
+ *
+ * @param funcion Callback to function to be executed
+ * by some worker thread.
+ * @param *arg Arguments of the function pointed by the
+ * callback.
+ */
 void add_task(func funcion, void* arg);
+/**
+ * A procedure to check if exists a new EAP event
+ * available. In that case, a PANA state machine's transition
+ * is made.
+ *
+ * @param *pana_session PANA session used in the transition.
+ */ 
 void check_eap_status(pana_ctx *pana_session);
+/**
+ * A procedure to generate a PANA session's identifier using
+ * the PaC IP's address and the PaC port's number.
+ *
+ * @param *ip IP address of the PaC
+ * @param port Port's number from which PaC sent the message
+ *
+ * @return Session identifier generated from IP and port's number of
+ * the PaC.
+ */ 
 int generateSessionId(char * ip, short port);
+/**
+ * A procedure to get a PANA session from the PANA sessions' list
+ * managed by the PAA.
+ *
+ * @param id Identifier of the PANA session searched.
+ *
+ * @return A pointer to the PANA session with the identifier searched.
+ */ 
 pana_ctx* get_session(int id);
+/**
+ * A procedure to get a task from the PANA tasks' list managed by
+ * the PAA
+ *
+ * @return A pointer to the a new task available.
+ */ 
 struct task_list* get_task();
-void* handle_alarm_management(void* none);
+/**
+ * A procedure to do the Alarm Manager function in the
+ * multithreading framework. Basically, this function consists
+ * in looking for the new alarms activated and add new tasks with
+ * the information about these new alarms.
+ */ 
+void* handle_alarm_management();
+/**
+ * A procedure to do the Alarm Manager function in the
+ * multithreading framework. Basically, this function consists in
+ * listening to the RADIUS and PANA sockets. When a new message is
+ * received, a new task is added with the corresponding information.
+ */ 
 void* handle_network_management();
+/**
+ * A procedure to do the Worker function in the
+ * multithreading framework. Basically, this function consists in
+ * looking for a new task and executing the callback associated to
+ * it.
+ *
+ * @param *data Number for indentifying the worker.
+ */ 
 void* handle_worker(void* data);
+/**
+ * A procedure to delete a PANA session with the identifier given.
+ *
+ * @param id Identifier of the PANA session to be deleted.
+ */ 
 void remove_session(int id);
-int retransmitAAA (pana_ctx* current_session);
+/**
+ * A procedure to retransmit an AAA message to AAA server.
+ *
+ * @param *current_session Pointer to PANA session associated
+ * with the retransmission.
+ */ 
+void retransmitAAA (pana_ctx* current_session);
 
 
 // Functions used as task
+/**
+ * A procedure to process a PANA message received.
+ *
+ * @param *arg Arguments necessary to execute the callback
+ */ 
 void* process_receive_eap_ll_msg(void * arg);
+/**
+ * A procedure to process a RADIUS message received.
+ *
+ * @param *arg Arguments necessary to execute the callback
+ */ 
 void* process_receive_radius_msg(void* arg);
+/**
+ * A procedure to process a retransmission needed.
+ *
+ * @param *arg Arguments necessary to execute the callback
+ */ 
 void* process_retr(void *arg);
 #endif

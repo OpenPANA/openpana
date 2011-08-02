@@ -42,9 +42,6 @@
 #include "lalarm.h"
 #include "prf_plus.h"
 
-#define RADIUS_PORT 8000
-
-
 //Global variables
 static int fin = FALSE;
 char * global_key_id;//Key id is generated from source port and ip of the client
@@ -56,8 +53,8 @@ struct task_list* last_task = NULL; // pointer to last task
 
 struct lalarm* list_alarms = NULL; // alarms' list
 
-pthread_mutex_t list_sessions_mutex;
-pthread_mutex_t list_tasks_mutex;
+pthread_mutex_t list_sessions_mutex; //Mutex associated to PANA sessions' list
+pthread_mutex_t list_tasks_mutex; //Mutex associated to tasks' list
 
 sem_t got_task; //Semaphore used to wait for new tasks by workers
 
@@ -65,8 +62,6 @@ void signal_handler(int sig) {
     printf("\nStopping server, signal: %d\n", sig);
     fin = 1;
 }
-
-
 
 void print_list_alarms(){
 
@@ -81,10 +76,7 @@ void print_list_alarms(){
 		printf("DEBUG: Showing session alarm id: %#X\n", ptr->pana_session->session_id);
 		printf("DEBUG: Showing alarm type: %#X\n", ptr->id);
 		ptr = ptr->sig;
-	}
-    
-   
-   
+	} 
 }
 
 
@@ -110,6 +102,7 @@ void print_list_sessions(){
 
 void * process_receive_eap_ll_msg(void *arg) {
     struct pana_func_parameter * pana_params = (struct pana_func_parameter*) arg;
+
     // Current pana session.
     pana_ctx * pana_session;
     pana * msg = pana_params->pana_msg;
@@ -138,16 +131,15 @@ void * process_receive_eap_ll_msg(void *arg) {
         //FIXME: Debería comprobarse que pasa cuando un cliente "muere" y ese mismo vuelve a lanzar un PCI
         //Ataque por PCIs falsos para borrar sesiones? reautenticación?
         //Delete the previous session if it exists in the session list and the alarm list
-        //get_alarm_session(&list_alarms, pana_session->session_id, PCI_ALARM);
         remove_session(pana_session->session_id);
         remove_alarm(&(list_alarms), pana_session->session_id);
-        add_session(pana_session);
+       
         //Add the provisional session in the alarm list
-        //add_alarma(&(list_alarms), pana_session, TIME_PCI, PCI_ALARM);
+        add_alarma(&(list_alarms), pana_session, TIME_PCI, PCI_ALARM);
         
 
     }
-    /*else if ((ntohs(msg->msg_type) == PAN_MSG) && // If it is the first answer message
+    else if ((ntohs(msg->msg_type) == PAN_MSG) && // If it is the first answer message
             ((ntohs(msg->flags) & S_FLAG) == S_FLAG)) {// it is created a new session for the new client
        
         //Generate the session id asociated to client's port and ip
@@ -168,20 +160,16 @@ void * process_receive_eap_ll_msg(void *arg) {
         #ifdef DEBUG
         fprintf(stderr, "DEBUG: Session-Id added to the list is: %d\n", session_id);
 		#endif
-    }*/ 
+    } 
     
     else { //If the messsage is another one
         int id = ntohl(msg->session_id); 
 #ifdef DEBUG
         fprintf(stderr, "DEBUG: It's gonna search id: %d\n", id);
 #endif
-        //Check if the session is in the alarm list
-        //pana_session = get_alarm_session(&(list_alarms), id, PCI_ALARM);
+        // Get the session from the PANA sessions' list.
         pana_session = get_session(id);
-        /*if (pana_session == NULL) { //If pana_session isn't in the alarm list, it must will be in the session list
-			fprintf(stderr,"DEBUG: Session %#X not found in alarm_list, gonna search in session_list \n",id);
-            pana_session = get_session(id);
-        }*/
+        
         if (pana_session == NULL) { //If the session doesn't exist
             fprintf(stderr, "PANA: CRITICAL ERROR, tried to send a message from an unauthenticated client.\n");
             return 0;
@@ -190,19 +178,13 @@ void * process_receive_eap_ll_msg(void *arg) {
     }
     
 	pthread_mutex_lock(&(pana_session->mutex));
+
     //Use the correct session
-    
     updateSession((char *)msg, pana_session);
     transition(pana_session);
     check_eap_status(pana_session);
 
-    /*if (pana_session->CURRENT_STATE == OPEN){
-		printf("Aqui tengo que pararme yo\n");
-		print_list_sessions();
-		print_list_alarms();
-		//exit(0);
-	}*/	
-    
+	// When a session is closed, its correspondending memory must be removed.    
     if (pana_session->CURRENT_STATE == CLOSED) {
         remove_alarm(&list_alarms, pana_session->session_id); //Remove the alarms
         remove_session(pana_session->session_id); //Remove the session
@@ -222,9 +204,11 @@ void* process_receive_radius_msg(void* arg) {
     struct radius_func_parameter radius_params = *((struct radius_func_parameter*) arg);
 
     int radius_type = RADIUS_AUTH;
-    //Get the function's parameters
+
+    //Get the function's parameters.
     struct radius_msg *radmsg = radius_params.msg;
-    
+
+    // Get the information about the new message received.
     struct radius_client_data *radius_data = get_rad_client_ctx();
     struct radius_hdr *hdr = radius_msg_get_hdr(radmsg);
 	struct eap_auth_ctx *eap_ctx = search_eap_ctx_rad_client(hdr->identifier);
@@ -233,6 +217,7 @@ void* process_receive_radius_msg(void* arg) {
 		fprintf(stderr, "ERROR: eap_ctx NULL. It can't be used\n");
 		return NULL;
 	}
+	
     pana_ctx * ll_session = (pana_ctx*) (eap_ctx->eap_ll_ctx);
     pthread_mutex_lock(&(ll_session->mutex));
 
@@ -243,7 +228,7 @@ void* process_receive_radius_msg(void* arg) {
 		
         radius_client_receive(radmsg, radius_data, &radius_type);
 
-		//FIXME: Uncomment this code to deal the fail case
+		// In case of a EAP Fail is produced.
         if ((eap_auth_get_eapFail(eap_ctx) == TRUE)){
 			fprintf(stderr,"DEBUG: There's an eap fail in RADIUS\n");
 			transition((pana_ctx *) eap_ctx->eap_ll_ctx);
@@ -251,7 +236,7 @@ void* process_receive_radius_msg(void* arg) {
 		
         if ((eap_auth_get_eapReq(eap_ctx) == TRUE)
                 || (eap_auth_get_eapSuccess(eap_ctx) == TRUE)) {
-		//A transition with PANA ctx is made
+		
 #ifdef DEBUG
             fprintf(stderr,"DEBUG: There's an eap request in RADIUS\n");
             fprintf(stderr, "DEBUG: Trying to make a transition with the message from RADIUS\n");
@@ -265,17 +250,17 @@ void* process_receive_radius_msg(void* arg) {
     return NULL;
 }
 
-void add_task(func funcion, void * arg/*, int session_id*/) {
+void add_task(func funcion, void * arg) {
 
-	int rc; /* return code of pthreads functions.  */
-    /* lock the mutex, to assure exclusive access to the list */
+	int rc; // return code of pthreads functions.
+    // lock the mutex, to assure exclusive access to the list
     rc = pthread_mutex_lock(&list_tasks_mutex);
     
     struct task_list * new_element; // A new element in the list
 
-    /* create structure with new element */
+    // create structure with new element
     new_element = malloc(sizeof (struct task_list));
-    if (!new_element) { /* malloc failed?? */
+    if (!new_element) { // malloc failed?? 
         fprintf(stderr, "add_request: out of memory\n");
         exit(1);
     }
@@ -290,7 +275,8 @@ void add_task(func funcion, void * arg/*, int session_id*/) {
     if (list_tasks == NULL) { /* special case - list is empty */
         list_tasks = new_element;
         last_task = new_element;
-    } else {
+    }
+    else {
         last_task->next = new_element;
         last_task = last_task->next;
     }
@@ -307,8 +293,6 @@ void add_task(func funcion, void * arg/*, int session_id*/) {
     /* signal the condition variable - there's a new task to handle */
     rc = sem_post(&got_task);
 }
-
-
 
 void add_session(pana_ctx * session) {
     int rc; /* return code of pthreads functions.  */
@@ -382,8 +366,6 @@ pana_ctx* get_session(int id) {
     }
     return session->pana_session;
 }
-
-
 
 void remove_session(int id) {
     int rc;
@@ -463,15 +445,15 @@ struct task_list* get_task() {
 }
 
 void* handle_worker(void* data) {
-    int thread_id = *((int*) data); /* thread identifying number           */
+    int thread_id = *((int*) data); /* thread identifying number */
     
 #ifdef DEBUG
     fprintf(stderr, "DEBUG: thread '%d' as worker manager\n", thread_id);
 #endif
 
     int rc; /* return code of pthreads functions.  */
-    struct task_list* a_task = NULL; /* pointer to a task.               */
-    //pthread_mutex_t * mutex;
+    struct task_list* a_task = NULL; /* pointer to a task. */
+    
 #ifdef DEBUG
     fprintf(stderr, "DEBUG: Starting thread '%d'\n", thread_id);
 #endif
@@ -490,13 +472,9 @@ void* handle_worker(void* data) {
         }
 
         if (a_task) {
-/*#ifdef DEBUG
-            fprintf(stderr, "DEBUG: Running task. Id session: %d\n", a_task->id_session);
-#endif*/
+
             a_task->use_function(a_task->data);
-/*#ifdef DEBUG
-            fprintf(stderr, "DEBUG: Ended task. Id session: %d\n", a_task->id_session);
-#endif*/
+
 			//FIXME: PEDRO: Habría que liberar esta memoria. El problema está en que
 			//cuando la session llega al estado CLOSED, se libera su memoria, y al 
 			//intentar liberar la memoria de la tarea, intenta liberar la memoria 
@@ -561,7 +539,7 @@ void* handle_network_management() {
     u8 udp_packet[MAX_DATA_LEN];
     struct sockaddr_in eap_ll_dst_addr, radius_dst_addr;
     int addr_size;
-    //fixme debería hacerse lo mismo para radius que para pana?
+    
     struct pana_func_parameter *pana_params;
     struct radius_func_parameter *radius_params;
     pana *msg;
@@ -606,32 +584,38 @@ void* handle_network_management() {
                     struct radius_msg *radmsg = radius_msg_parse(udp_packet, length);
                     radius_params->msg = malloc (length);
                     memcpy(radius_params->msg, radmsg, length);
-                    //radius_params.msg = radmsg;
                     
                     add_task(process_receive_radius_msg, radius_params);
                     
-                } else fprintf(stderr,"recvfrom returned ret=%d, errno=%d\n", length, errno);
+                }
+                else
+					fprintf(stderr,"recvfrom returned ret=%d, errno=%d\n", length, errno);
             }
         }
     }
 
 }
 
-void* handle_alarm_management(void* none) {
+void* handle_alarm_management() {
 
-    while (!fin){
+    while (!fin){ // Do it while the PAA is activated.
+    
 		struct retr_func_parameter retrans_params;
+
+		// Get the actual timestamp.
 		struct timeval tv;
 		gettimeofday(&tv,NULL);
+		
 		struct lalarm* alarm = NULL;
-		while ((alarm=get_next_alarm(&list_alarms, tv.tv_sec)) != NULL){
+		while ((alarm=get_next_alarm(&list_alarms, tv.tv_sec)) != NULL){ //Look for the activated alarms.
 			 retrans_params.session = (pana_ctx *)alarm->pana_session;
 			 retrans_params.id = 0;
-			 if (alarm->id == PCI_ALARM) {
+			 if (alarm->id == PCI_ALARM) { // A PCI alarm is activated.
 	#ifdef DEBUG
 				fprintf(stderr, "DEBUG: A PCI alarm ocurred\n");
 	#endif
-			} else if (alarm->id == RETR_ALARM) {
+			}
+			else if (alarm->id == RETR_ALARM) { // A PANA retransmission alarm is activated.
 	#ifdef DEBUG
 				fprintf(stderr, "DEBUG: A PANA_RETRANSMISSION alarm ocurred\n");
 	#endif
@@ -639,14 +623,17 @@ void* handle_alarm_management(void* none) {
 				retrans_params.id = RETR_ALARM;
 				
 				add_task(process_retr, &retrans_params);
-			} else if (alarm->id == SESS_ALARM) {
+				
+			}
+			else if (alarm->id == SESS_ALARM) {// A session alarm is activated.
 	#ifdef DEBUG
 				fprintf(stderr, "DEBUG: A SESSION alarm ocurred\n");
 	#endif
 				
 				retrans_params.id = SESS_ALARM;
 				add_task(process_retr, &retrans_params);
-			} else if (alarm->id == RETR_AAA) {
+			}
+			else if (alarm->id == RETR_AAA) { // An AAA retransmission alarm is activated.
 	#ifdef DEBUG
 				fprintf(stderr, "DEBUG: An AAA_RETRANSMISSION alarm ocurred\n");
 	#endif
@@ -654,7 +641,7 @@ void* handle_alarm_management(void* none) {
 				add_task(process_retr, &retrans_params);
 				
 			} 
-			else {
+			else { // An unknown alarm is activated.
 	#ifdef DEBUG
 				fprintf(stderr, "DEBUG: An UNKNOWN alarm ocurred\n");
 	#endif
@@ -667,11 +654,13 @@ void* handle_alarm_management(void* none) {
 
 void* process_retr(void *arg){
 	struct retr_func_parameter* retr_params;
-	
+
+	// Get the function's parameters.
 	retr_params = (struct retr_func_parameter*) arg;
 	int alarm_id = retr_params->id;
 	pana_ctx * pana_session = retr_params->session;
-	
+
+	// Depends on the alarm produced, it is processed.
 	if (alarm_id == PCI_ALARM) {
 #ifdef DEBUG
 		fprintf(stderr, "DEBUG: A PCI alarm ocurred\n");
@@ -852,7 +841,7 @@ int main(int argc, char* argv[]) {
 }
 
 void check_eap_status(pana_ctx *pana_session) {
-    //Check eap status
+    //Check if exists a new EAP event.
 #ifdef DEBUG
     fprintf(stderr,"DEBUG: Starting to check EAP status (check_eap_status)\n");
 #endif
@@ -899,20 +888,24 @@ void check_eap_status(pana_ctx *pana_session) {
 }
 
 
-int retransmitAAA (pana_ctx* current_session){
+void retransmitAAA (pana_ctx* current_session){
+	// Get the eap ctx associated to current PANA session
 	struct eap_auth_ctx * eap_ctx = (struct eap_auth_ctx*) &(current_session->eap_ctx);
 #ifdef ISSERVER
+	// Add a new retransmission to the counter.
 	current_session->RTX_COUNTER_AAA +=1;
-	if (current_session->RTX_COUNTER_AAA == MAX_RETR_AAA){
+	if (current_session->RTX_COUNTER_AAA == MAX_RETR_AAA){ // If the max number of retransmission is reached.
 		eap_auth_set_eapTimeout(eap_ctx, TRUE);
 		transition(current_session);
-		return 1;
+		return;
 	}
 #endif
+	// Retransmit the last RADIUS message sent.
 	struct wpabuf *buf = radius_msg_get_buf(eap_ctx->last_send_radius);
 	int s = eap_ctx->rad_ctx->radius->auth_sock;
 	send(s, wpabuf_head(buf), wpabuf_len(buf), 0);
-	
+
+	// Add a new alarm of AAA retransmission.
 	add_alarma(current_session->list_of_alarms, current_session, RETR_AAA_TIME, RETR_AAA);	
-	return 0;
+	return;
 }
