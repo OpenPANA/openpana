@@ -23,20 +23,6 @@
 #ifndef SESSIONCLIENT
 #define SESSIONCLIENT
 
-/** Configurable values loaded from xml configuration file (config.xml)
- *
- */
-extern int PRF_HMAC_SHA1;
-extern int AUTH_HMAC_SHA1_160;
-extern int FAILED_SESS_TIMEOUT_CONFIG;
-extern short SRCPORT;
-extern short DSTPORT;
-//#define DESTIP "127.0.0.1"
-//#define LOCALIP "127.0.0.1"
-extern char* DESTIP;
-extern char* LOCALIP;
-
-
 /**
  * PANA context only for PaCs.
  * */

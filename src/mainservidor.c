@@ -35,6 +35,7 @@
 
 #include "state_machines/statemachine.h"
 #include "state_machines/paamachine.h"
+#include "state_machines/session.h"
 #include "panamessages.h"
 #include "state_machines/paamachine.h"
 #include "panautils.h"
@@ -501,7 +502,7 @@ void* handle_network_management() {
     struct sockaddr_in sa;
     fd_set mreadset; /*master read set*/
 
-    rad_client_init();
+    rad_client_init(AS_IP, AS_PORT, AS_SECRET);
 
     eap_ll_sock = socket(AF_INET, SOCK_DGRAM, 0);
     int b = 1;

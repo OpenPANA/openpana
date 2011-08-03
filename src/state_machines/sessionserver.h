@@ -22,17 +22,6 @@
 #ifndef SESSIONSERVER
 #define SESSIONSERVER
 
-
-/** Configurable values loaded from xml configuration file (config.xml)
- *
- */
-extern int PRF_HMAC_SHA1;
-extern int AUTH_HMAC_SHA1_160;
-extern int SRCPORT;
-extern int LIFETIME_SESSION_TIMEOUT_CONFIG;
-extern int LIFETIME_SESSION_CLIENT_TIMEOUT_CONFIG;
-extern int TIME_PCI;
-extern int NUM_WORKERS;
 /**
  * PANA context only for PAAs.
  * */
@@ -58,7 +47,11 @@ typedef struct {
      * carried in the Session-Lifetime AVP if present.
      */
     int REAUTH_TIMEOUT;
-    
+
+    /**
+     *	This variable is set whith the key identifier value when a new MSK
+     *  is available.
+     */ 
     char * global_key_id;
 } pana_server_ctx;
 

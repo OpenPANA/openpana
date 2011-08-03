@@ -30,15 +30,6 @@
 	int sock;
 };*/
 
-/** Configurable values loaded from xml configuration file (config.xml)
- *
- */
-extern char* CA_CERT;
-extern char* SERVER_CERT;
-extern char* SERVER_KEY;
-extern char* AS_IP;
-extern short AS_PORT;
-extern char* AS_SECRET;
 
 struct extra_radius_attr {
 	u8 type;
@@ -108,7 +99,7 @@ struct eap_auth_ctx {
 				  struct radius_ctx *rad_ctx,
 				  struct eapol_callbacks *eap_cb, struct eap_config *eap_conf);*/
 
-int eap_auth_init(struct eap_auth_ctx *eap_ctx, void *eap_ll_ctx);
+int eap_auth_init(struct eap_auth_ctx *eap_ctx, void *eap_ll_ctx, char* cacert, char* servercert, char* serverkey);
 void eap_auth_deinit(struct eap_auth_ctx *eap_ctx);
 //void eap_auth_rx(struct eap_auth_ctx *eap_ctx,const u8 *data, size_t data_len);
 int eap_auth_step(struct eap_auth_ctx* eap_ctx);
@@ -136,7 +127,7 @@ u8 *eap_auth_get_eapKeyData(struct eap_auth_ctx* eap_ctx, size_t *key_len);
 /************************************************************************/
 u8 *eap_auth_get_eapIdentity(struct eap_auth_ctx *eap_ctx, size_t *length);
 /************************************************************************/
-struct radius_ctx *rad_client_init();
+struct radius_ctx *rad_client_init(char *ip, int port, char * shared_secret);
 struct radius_client_data *get_rad_client_ctx();
 int add_eap_ctx_rad_client(struct eap_auth_ctx *eap_ctx);
 struct eap_auth_ctx *search_eap_ctx_rad_client(u8 identifier);

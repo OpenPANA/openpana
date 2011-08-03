@@ -673,7 +673,7 @@ static int eap_server_register_methods(struct eap_method **eap_methods)
 	return ret;
 }
 
-static int eap_auth_init_tls(struct eap_auth_ctx *eap_ctx)
+static int eap_auth_init_tls(struct eap_auth_ctx *eap_ctx, char* cacert, char* servercert, char* serverkey)
 {
 	struct tls_config tconf;
 	struct tls_connection_params tparams;
@@ -685,9 +685,9 @@ static int eap_auth_init_tls(struct eap_auth_ctx *eap_ctx)
 	}
 	
 	os_memset(&tparams, 0, sizeof(tparams));
-	tparams.ca_cert = CA_CERT;
-	tparams.client_cert = SERVER_CERT;
-	tparams.private_key = SERVER_KEY; 
+	tparams.ca_cert = cacert;
+	tparams.client_cert = servercert;
+	tparams.private_key = serverkey; 
 	//tparams.private_key = "server-key.pem";
 	/* tparams.private_key_passwd = "whatever"; */
 	
@@ -704,11 +704,11 @@ static int eap_auth_init_tls(struct eap_auth_ctx *eap_ctx)
 	return 0;
 }
 
-struct radius_ctx *rad_client_init()
+struct radius_ctx *rad_client_init(char *ip, int port, char * shared_secret)
 {
-	char *as_addr = AS_IP;
-	int as_port = AS_PORT;
-	char *as_secret = AS_SECRET;
+	char *as_addr = ip;
+	int as_port = port;
+	char *as_secret = shared_secret;
 	char *cli_addr = NULL;
 	
 	struct extra_radius_attr *p = NULL, *p1;
@@ -740,13 +740,13 @@ struct radius_ctx *rad_client_init()
 			return NULL;
 	
 		srv->addr.af = AF_INET;
-		srv->port = AS_PORT;
-		if (hostapd_parse_ip_addr(AS_IP, &srv->addr) < 0) {
+		srv->port = as_port;
+		if (hostapd_parse_ip_addr(as_addr, &srv->addr) < 0) {
 			printf("Failed to parse IP address\n");
 			return NULL;
 		}
-		srv->shared_secret = (u8 *) os_strdup(AS_SECRET); //Rafa: Obtain this password from a file
-		srv->shared_secret_len = strlen(AS_SECRET);
+		srv->shared_secret = (u8 *) os_strdup(as_secret); //Rafa: Obtain this password from a file
+		srv->shared_secret_len = strlen(as_secret);
 	
 		rad_ctx->conf.auth_server = rad_ctx->conf.auth_servers = srv;
 		rad_ctx->conf.num_auth_servers = 1;
@@ -809,7 +809,7 @@ struct eap_auth_ctx *search_eap_ctx_rad_client(u8 identifier)
 }
 
 
-int eap_auth_init(struct eap_auth_ctx *eap_ctx, void *eap_ll_ctx)
+int eap_auth_init(struct eap_auth_ctx *eap_ctx, void *eap_ll_ctx, char* cacert, char* servercert, char* serverkey)
 {
 	pthread_mutex_lock(&radmutex);
 	/*if (rad_client_init(&global_rad_ctx) < 0)
@@ -829,7 +829,7 @@ int eap_auth_init(struct eap_auth_ctx *eap_ctx, void *eap_ll_ctx)
 		return -1;
 	}
 	
-	/*if (eap_auth_init_tls(eap_ctx) < 0)
+	/*if (eap_auth_init_tls(eap_ctx, cacert, servercert, serverkey) < 0)
 		return -1;*/
 	
 	os_memset(eap_cb, 0, sizeof(*eap_cb));
