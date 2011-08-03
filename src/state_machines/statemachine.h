@@ -24,39 +24,45 @@
 #include "session.h"
 
 //FIXME: Esto debería ir en un include.h???
+/** SET state.*/
 #define SET		1
+/** UNSET state. */
 #define UNSET 	0
+/** ERROR state.*/
 #define ERROR	-666
 
 // Values of a result code avp
 /**
- * Both authentication and authorization processes are successful.
+ * Both authentication and authorization processes are successful. 
+ * Result-Code AVP value.
  */
 #define PANA_SUCCESS					0
 /**
  * Authentication has failed. When authentication fails,
- * authorization is also considered to have failed.
+ * authorization is also considered to have failed. Result-Code AVP value.
  */
 #define PANA_AUTHENTICATION_REJECTED	1
 /**
  * The authorization process has failed. This error could occur when
  * authorization is rejected by a AAA server or rejected locally by a
- * PAA, even if the authentication procedure has succeeded.
+ * PAA, even if the authentication procedure has succeeded. 
+ * Result-Code AVP value.
  */
 #define PANA_AUTHORIZATION_REJECTED		2
 
 // Values of a termination cause avp
 /**
- * The client initiated a disconnect.
+ * The client initiated a disconnect. Termination-Cause AVP value.
  */
 #define LOGOUT	1
 /**
  * The client was not granted access or was disconnected due to
- * administrative reasons.
+ * administrative reasons. Termination-Cause AVP value.
  */
 #define ADMINISTRATIVE	4
 /**
- * The session has timed out, and service has been terminated.
+ * The session has timed out, and service has been terminated. 
+ * Termination-Cause AVP value.
  */
 #define SESSION_TIMEOUT	 8
 
@@ -68,28 +74,44 @@
 #define NUM_EVENTS	22
 
 // States
-/** The state doesn't change. */
+/** State: The state doesn't change. */
 #define NO_CHANGE 				-1
-/** Initial state.*/
+/** State: Initial state.*/
 #define INITIAL 				0
+/** State: Wait a PNA ping.*/
 #define WAIT_PNA_PING 			1
-/**Closed state.*/
+/** State: Closed state.*/
 #define CLOSED					2
+/** State: Wait a PAA. */
 #define WAIT_PAA 				3
+/** State: Wait an EAP message. */
 #define WAIT_EAP_MSG			4
+/** State: Wait EAP Result. */
 #define WAIT_EAP_RESULT 		5
+/** State: Wait EAP Result to close session. */
 #define WAIT_EAP_RESULT_CLOSE	6
+/** State: Open. */
 #define OPEN					7
+/** State: Wait PNA reauthentication. */
 #define WAIT_PNA_REAUTH			8
+/** State: Session Terminated. */
 #define SESS_TERM				9
+/** State: Wait a PAN or PAR message. */
 #define WAIT_PAN_OR_PAR			10
+/** State: Wait a failed PAN. */
 #define WAIT_FAIL_PAN			11
+/** State: Wait a succesful PAN. */
 #define WAIT_SUCC_PAN			12
 
+
 // Events
+/** Retransmission Event. */
 #define RETRANSMISSION			0
+/** Reached maximum number of retransmissions event. */
 #define REACH_MAX_NUM_RT		1
+/** Liveness test peer event. */
 #define LIVENESS_TEST_PEER		2
+/** Liveness test response event. */
 #define LIVENESS_TEST_RESPONSE  3
 
 
@@ -227,7 +249,17 @@ int retransmission();
  * @return ERROR If no disconnection needed.
  * */
 int reachMaxNumRt();
+/** 
+ * Liveness test initiated by peer. A PNR is sent.
+ * @return NO_CHANGE If the message was sent succesfully.
+ * @return ERROR If an error ocurred during trasmission. 
+ * */
 int livenessTestPeer();
+/** 
+ * Response to a liveness test. A PNA is sent.
+ * @return NO_CHANGE If the message was sent succesfully.
+ * @return ERROR If an error ocurred during trasmission. 
+ * */
 int livenessTestResponse();
 /**
  * A procedure to use during the CLOSE state with any event, it does nothing.
