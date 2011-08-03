@@ -711,11 +711,8 @@ int main(int argc, char* argv[]) {
     int thr_id[num_threads]; // thread IDs
     pthread_t p_threads[num_threads]; // thread's structures
 
-	printf("\n");
-	printf(PACKAGE_NAME);
-	printf(" Server - ");
-	printf(PACKAGE_VERSION);
-	printf("\nhttp://openpana.sf.net \n\n\n");
+	printf("\n%s Server - %s",PACKAGE_NAME,PACKAGE_VERSION);
+	printf("\n%s\n\n",PACKAGE_URL);
     printf("Copyright (C) 2011  Pedro Moreno Sánchez and Francisco Vidal Meca\n");
     printf("This program comes with ABSOLUTELY NO WARRANTY.\n");
     printf("This is free software, and you are welcome to redistribute it\n");

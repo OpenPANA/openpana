@@ -106,12 +106,9 @@ int main(int argc, char *argv[]) {
         "OPEN", "WAIT_PNA_REAUTH", "SESS_TERM",
         "WAIT_PAN_OR_PAR", "WAIT_FAIL_PAN",
         "WAIT_SUCC_PAN"};
-#endif	
-	printf("\n");
-	printf(PACKAGE_NAME);
-	printf(" Client - ");
-	printf(PACKAGE_VERSION);
-	printf("\nhttp://openpana.sf.net \n\n\n");
+#endif
+	printf("\n%s Client - %s",PACKAGE_NAME,PACKAGE_VERSION);
+	printf("\n%s\n\n",PACKAGE_URL);
     printf("Copyright (C) 2011  Pedro Moreno Sánchez and Francisco Vidal Meca\n");
     printf("This program comes with ABSOLUTELY NO WARRANTY.\n");
     printf("This is free software, and you are welcome to redistribute it\n");
