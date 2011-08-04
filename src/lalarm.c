@@ -25,109 +25,45 @@
 #include "lalarm.h"
 #include <time.h>
 
+/** Global mutex used for controling the access to the critical lines of code.*/
 pthread_mutex_t mutex;
 
 
-/* Proceso que inicializa el listado, lanzado en user_inicializar */
+/* A procedure to init the alarms' list. */
 struct lalarm *init_alarms() {
-    //mutex = mutex_list;
     pthread_mutex_init(&mutex, NULL);
     return NULL;
 
 }
 
-/* Inserta una alarma*/
+/* Add an alarm*/
 struct lalarm * add_alarma(struct lalarm ** l, 
 							pana_ctx* session, 
 							time_t time, 
 							int iden) {
-
-	/*
-	pthread_mutex_lock(&mutex);
-	struct timeval tv;
-	gettimeofday(&tv, NULL);
-    time_t tiempo = tv.tv_sec;
-    tiempo += time;
-
-    if ((*l)==NULL){ //The alarm list is empty
-
-		(*l) = malloc (sizeof(struct lalarm));
-		(*l)->pana_session = session;
-		(*l)->tmp = tiempo;
-		(*l)->id = iden;
-		(*l)->sig = NULL;
-	}
-
-	else if ((difftime((*l)->tmp, tiempo) == 0) || (difftime((*l)->tmp, tiempo) > 0)) { // If the new alarm must be set the first one
-		struct lalarm * point_to_list = (*l);
-		(*l) = malloc (sizeof(struct lalarm));
-		(*l)->pana_session = session;
-		(*l)->tmp = tiempo;
-		(*l)->id = iden;
-		(*l)->sig = point_to_list;
-	}
-
-	else if ((*l)->sig == NULL){ // If only there is an alarm, the new alarm will be the second one.
-		(*l)->sig = malloc (sizeof(struct lalarm));
-		(*l)->sig->pana_session = session;
-		(*l)->sig->tmp = tiempo;
-		(*l)->sig->id = iden;
-		(*l)->sig->sig = NULL;
-	}
-
-	else {
-		struct lalarm * prev = (*l);
-		struct lalarm * ptr = (*l)->sig;
-		//int final = 0;
-		while ((difftime(ptr->tmp, tiempo)<0) && (ptr->sig !=NULL)){
-				prev = ptr;
-				ptr = ptr->sig;
-		}
-
-		if ((difftime(ptr->tmp, tiempo)>0) || (difftime(ptr->tmp, tiempo)==0)){ // The new alarm must be set between two alarms
-			prev->sig = malloc (sizeof(struct lalarm));
-			prev->sig->pana_session = session;
-			prev->sig->tmp = tiempo;
-			prev->sig->id = iden;
-			prev->sig->sig = ptr;
-		}
-
-		else { //The new alarm must be set in the last position of alarm's list
-			ptr->sig = malloc (sizeof(struct lalarm));
-			ptr->sig->pana_session = session;
-			ptr->sig->tmp = tiempo;
-			ptr->sig->id = iden;
-			ptr->sig->sig = NULL;
-		}
-	}
-
-	pthread_mutex_unlock(&mutex);
-    return (*l);
-	*/
-
-
-
-
-
-    								
+	// Set the mutex for entering in the critical section.
     pthread_mutex_lock(&mutex);
+
+    // Get the actual timestamp
     struct timeval tv; 
     gettimeofday(&tv, NULL);
     time_t tiempo = tv.tv_sec;
     tiempo += time;
+    
     struct lalarm *anterior = *l;
-    int final = 0; //Booleano para encontrar el sitio de inserción
-    if (anterior == NULL) { // Si la lista es vacía
+    int final = 0; //Bool for searching the place of the new alarm in the list.
+    if (anterior == NULL) { // If the list is empty
+		// Save the alarm's information
         (*l) = malloc(sizeof (struct lalarm));
         (*l)->pana_session = session;
-        (*l)->tmp = tiempo; //Guardo el tiempo de la alarma
+        (*l)->tmp = tiempo; 
         (*l)->id = iden;
         (*l)->sig = NULL;
     } else {
         struct lalarm *aux = (*l);
-        while (difftime(aux->tmp, tiempo) < 0 && final == 0) {// Recorremos hasta el sitio de inserción
+        while (difftime(aux->tmp, tiempo) < 0 && final == 0) {//Search the place where the new alarm 
 
-            if (aux->sig == NULL)//Si llegamos al final
+            if (aux->sig == NULL)//If we reach the end of the alarm list
                 final = 1;
             else {
                 anterior = aux;
@@ -135,56 +71,57 @@ struct lalarm * add_alarma(struct lalarm ** l,
             }
         }
 
-        if (final == 1) {// Si tiene que insertar al final
+        if (final == 1) {// If the new alarm must be inserted in the end of the alarms' list
             aux->sig = malloc(sizeof (struct lalarm));
             aux->sig->pana_session = session;
-            aux->sig->tmp = tiempo; //Guardo el tiempo de la alarma
+            aux->sig->tmp = tiempo; 
             aux->sig->id = iden;
             aux->sig->sig = NULL;
-        } else if (difftime(aux->tmp, tiempo) > 0) { //Si tiene que insertar en un lugar intermedio hay 2 casos:
-            // 		- Si el anterior = l es que hay que insertar en la primera posición
-            //		- Sino, hay que insertar en algún lugar intermedio
-            if (aux == (*l)) { //Hay que insertar en la primera posición
+        } else if (difftime(aux->tmp, tiempo) > 0) { //If the place of the new alarm is between the start and the end, whe have two options:
+            // 		- If anterior == l the new alarm must be inserted in the first position.
+            //		- Else, the new alarm must be inserted in an intermediate position.
+            if (aux == (*l)) { // We have to insert the new alarm in the first position
                 (*l) = malloc(sizeof (struct lalarm));
                 (*l)->pana_session = session;
-                (*l)->tmp = tiempo; //Guardo el tiempo de la alarma
+                (*l)->tmp = tiempo; 
                 (*l)->id = iden;
-                (*l)->sig = anterior; //El siguiente es el que ya había antes como "primero".
-                //Si hay que insertar en la primera posición, hay que quitar la alarma
-                //que ya había puesta y poner la nueva primera de la lista
+                (*l)->sig = anterior; //The next alarm is the old first alarm in the list.
                 
-            } else { //Inserta en un lugar que es intermedio.
+            } else { //Insert the new alarm in an intermediate position.
                 anterior->sig = malloc(sizeof (struct lalarm));
                 anterior->sig->pana_session = session;
-                anterior->sig->tmp = tiempo; //Guardo el tiempo de la alarma
+                anterior->sig->tmp = tiempo; 
                 anterior->sig->id = iden;
                 anterior->sig->sig = aux;
             }
-        } else if (difftime(aux->tmp, tiempo) == 0) { //Si dos alarmas coinciden, se inserta también
+        } else if (difftime(aux->tmp, tiempo) == 0) { //If two alarms are at the same time, they are inserted too.
             struct lalarm *aux2 = anterior->sig;
             anterior->sig = malloc(sizeof (struct lalarm));
             anterior->sig->pana_session = session;
-            anterior->sig->tmp = tiempo; //Guardo el tiempo de la alarma
+            anterior->sig->tmp = tiempo; 
             anterior->sig->id = iden;
             anterior->sig->sig = aux2;
         }
 
-
-
     }
+    //Unlock the mutex.
     pthread_mutex_unlock(&mutex);
     return (*l);
 
 }
 
 pana_ctx * get_alarm_session(struct lalarm** list, int id_session, int id_alarm) {
+
+	//Lock the mutex for entering in the critical section.
     pthread_mutex_lock(&mutex);
+    
     struct lalarm* session = NULL;
     struct lalarm* anterior = NULL;
-    if (list == NULL) {
+    if (list == NULL) { // If the alarms' list is empty.
         pthread_mutex_unlock(&mutex);
         return NULL;
     }
+    
     if ((*list) != NULL) {
 		if ((*list)->pana_session!=NULL){
 			if ((*list)->pana_session->session_id == id_session && (*list)->id == id_alarm) { //If the alarm is the first
@@ -193,7 +130,7 @@ pana_ctx * get_alarm_session(struct lalarm** list, int id_session, int id_alarm)
 				session->sig = NULL;
 			}
 
-			else {
+			else { //If the alarm is in an intermediate position.
 				session = (*list)->sig;
 				anterior = (*list);
 				while (session != NULL) {
@@ -223,45 +160,49 @@ pana_ctx * get_alarm_session(struct lalarm** list, int id_session, int id_alarm)
     return session->pana_session;
 }
 
+// Get the first alarm of the alarms' list if it is activated.
 struct lalarm * get_next_alarm(struct lalarm** list, time_t time) {
+
+	//Lock the mutex for entering in the critical section.
 	pthread_mutex_lock(&mutex);
-	if ((*list)==NULL){
+	if ((*list)==NULL){ //If the list is empty.
 		pthread_mutex_unlock(&mutex);
 		return NULL;
 	}
 	
-	if ((*list)->tmp<time){
+	if ((*list)->tmp<time){ //If the first alarm is activated.
 		struct lalarm* first = (*list);
 		(*list) = (*list)->sig;
 		first->sig = NULL;
 		pthread_mutex_unlock(&mutex);
 		return first;
 	}
-	else {
+	else { //If the first alarm is not activated.
 		pthread_mutex_unlock(&mutex);
 		return NULL;
 	}
 }
 
+// Remove the alarms associated to a PANA session.
 void remove_alarm(struct lalarm** list, int id_session){
+
+	//Lock the mutex for entering to the critical section.
 	pthread_mutex_lock(&mutex);
 	
-	if(list == NULL || (*list) == NULL){
+	if(list == NULL || (*list) == NULL){ //If the list is empty.
 		pthread_mutex_unlock(&mutex);
 		return;
 	}
 
 	if ((*list)->pana_session == NULL)
 		fprintf(stderr, "ERROR: Trying to remove a session in an alarm's list empty\n");
-	while( ((*list) != NULL) && ((*list)->pana_session->session_id == id_session)){
+	while( ((*list) != NULL) && ((*list)->pana_session->session_id == id_session)){ //Removed the firsts alarms associated with the PANA session searched.
 		struct lalarm * tofree = (*list);
 		(*list) = (*list)->sig;
 		free(tofree);
-		//pthread_mutex_unlock(&mutex);
-		//return;
 	}
 	
-	if (list != NULL && (*list) != NULL){
+	if (list != NULL && (*list) != NULL){ //If we don't reach the end of the list, search more alarms associated with the PANA session searched.
 		
 		struct lalarm* current = (*list)->sig;
 		struct lalarm* prev = (*list);
@@ -285,7 +226,7 @@ void remove_alarm(struct lalarm** list, int id_session){
 		
 	}
 
-	
+	//Unlock the mutex.
 	pthread_mutex_unlock(&mutex);
 	return;
 }
