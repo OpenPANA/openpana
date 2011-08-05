@@ -31,17 +31,18 @@
 
 #ifdef LIBXML_TREE_ENABLED
 
-/**
- * parse_xml_client:
- * @a_node: the initial xml node to consider.
- *
- * Parse all the xml client elements
- * that are siblings or children of a given xml node.
- */
+
 
 int pac =0;
 int paa =0;
 
+/**
+ * parse_xml_client:
+ * @param a_node: the initial xml node to consider.
+ *
+ * Parse all the xml client elements
+ * that are siblings or children of a given xml node.
+ */
 static void
 parse_xml_client(xmlNode * a_node)
 {
@@ -51,15 +52,15 @@ parse_xml_client(xmlNode * a_node)
 	
     for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
         if (cur_node->type == XML_ELEMENT_NODE) {
-			if (strcmp((char*) cur_node->name, "PAC")==0) {
+			if (strcmp((char*) cur_node->name, "PAC")==0) { //If the PaC configurable values are being checked
 				paa=0;
 				pac=1;
 			}
-			else if (strcmp((char *)cur_node->name, "PAA")==0) {
+			else if (strcmp((char *)cur_node->name, "PAA")==0) { //If the PAA configurable values are being checked
 				paa=1;
 				pac=0;
 			}
-			else if (strcmp((char *)cur_node->name, "IP")==0){
+			else if (strcmp((char *)cur_node->name, "IP")==0){  // IP configurable value
 				if (paa){
 
 					xmlChar * value = xmlNodeGetContent(cur_node);
@@ -74,7 +75,7 @@ parse_xml_client(xmlNode * a_node)
 					xmlFree (value);
 				}
 			}
-			else if (strcmp((char *)cur_node->name, "PORT")==0){
+			else if (strcmp((char *)cur_node->name, "PORT")==0){ // Port configurable value
 				if (paa){
 					char * value = (char *)xmlNodeGetContent(cur_node);
 					sscanf(value, "%hd", &DSTPORT);
@@ -95,18 +96,18 @@ parse_xml_client(xmlNode * a_node)
 					}
 				}
 			}
-			else if (strcmp((char *)cur_node->name, "TIMEOUT")==0){
+			else if (strcmp((char *)cur_node->name, "TIMEOUT")==0){ // Timeout configurable value
 				if (pac) {
 					char * value = (char *)xmlNodeGetContent(cur_node);
 					sscanf(value, "%d", &FAILED_SESS_TIMEOUT_CONFIG);
 					xmlFree(value);
-					if (FAILED_SESS_TIMEOUT_CONFIG <=0){
+					if (FAILED_SESS_TIMEOUT_CONFIG <=0){ 
 						fprintf(stderr, "ERROR: PaC Session Timeout must be set to a number higher than 0.\n");
 						checkconfig = 1;
 					}
 				}
 			}
-			else if (strcmp((char *)cur_node->name, "PRF")==0){
+			else if (strcmp((char *)cur_node->name, "PRF")==0){ // PRF algorithm configurable value
 				if (pac) {
 					char * value = (char *)xmlNodeGetContent(cur_node);
 					sscanf(value, "%d", &PRF_HMAC_SHA1);
@@ -117,7 +118,7 @@ parse_xml_client(xmlNode * a_node)
 					}
 				}
 			}
-			else if (strcmp((char *)cur_node->name, "INTEGRITY")==0){
+			else if (strcmp((char *)cur_node->name, "INTEGRITY")==0){ // Integrity algorithm configurable value
 				if (pac) {
 					char * value = (char *)xmlNodeGetContent(cur_node);
 					sscanf(value , "%d", &AUTH_HMAC_SHA1_160);
@@ -128,7 +129,7 @@ parse_xml_client(xmlNode * a_node)
 					}
 				}
 			}
-			else if (strcmp((char *)cur_node->name, "USER")==0){
+			else if (strcmp((char *)cur_node->name, "USER")==0){ // User name configurable value
 				if (pac){
 					char * value = (char*)xmlNodeGetContent(cur_node);
 					USER = malloc(strlen(value)*sizeof(char)); 
@@ -137,7 +138,7 @@ parse_xml_client(xmlNode * a_node)
 					
 				}
 			}
-			else if (strcmp((char *)cur_node->name, "PASSWORD")==0){
+			else if (strcmp((char *)cur_node->name, "PASSWORD")==0){ // Password configurable value
 				if (pac){
 					char * value = (char*)xmlNodeGetContent(cur_node);
 					PASSWORD = malloc(strlen(value)*sizeof(char)); 
@@ -145,7 +146,7 @@ parse_xml_client(xmlNode * a_node)
 					xmlFree(value);
 				}
 			}
-			else if (strcmp((char *)cur_node->name, "CA_CERT")==0){
+			else if (strcmp((char *)cur_node->name, "CA_CERT")==0){ // CA cert's name.
 				if (pac){
 					char * value = (char*)xmlNodeGetContent(cur_node);
 					
@@ -172,7 +173,7 @@ parse_xml_client(xmlNode * a_node)
 					xmlFree(value);
 				}
 			}
-			else if (strcmp((char *)cur_node->name, "CLIENT_CERT")==0){
+			else if (strcmp((char *)cur_node->name, "CLIENT_CERT")==0){// Client certificate's name configurable value
 				if (pac){
 					char * value = (char*)xmlNodeGetContent(cur_node);
 					
@@ -198,7 +199,7 @@ parse_xml_client(xmlNode * a_node)
 					xmlFree(value);
 				}
 			}
-			else if (strcmp((char *)cur_node->name, "CLIENT_KEY")==0){
+			else if (strcmp((char *)cur_node->name, "CLIENT_KEY")==0){// Client key certificate's name configurable value
 				if (pac){
 					char * value = (char*)xmlNodeGetContent(cur_node);
 					char * complete = malloc(strlen(value)+strlen(CONFIGDIR)+20);
@@ -223,7 +224,7 @@ parse_xml_client(xmlNode * a_node)
 					xmlFree(value);
 				}
 			}
-			else if (strcmp((char *)cur_node->name, "PRIVATE_KEY")==0){
+			else if (strcmp((char *)cur_node->name, "PRIVATE_KEY")==0){ // Client private key value
 				if (pac){
 					char * value = (char*)xmlNodeGetContent(cur_node);
 					PRIVATE_KEY = malloc(strlen(value)*sizeof(char)); 
@@ -231,7 +232,7 @@ parse_xml_client(xmlNode * a_node)
 					xmlFree(value);
 				}
 			}
-			else if (strcmp((char *)cur_node->name, "FRAGMENT_SIZE")==0){
+			else if (strcmp((char *)cur_node->name, "FRAGMENT_SIZE")==0){// Size of EAP fragments.
 				if (pac){
 					char * value = (char*)xmlNodeGetContent(cur_node);
 					sscanf(value, "%d", &FRAG_SIZE);
@@ -267,15 +268,15 @@ parse_xml_server(xmlNode * a_node)
 
     for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
         if (cur_node->type == XML_ELEMENT_NODE) {
-			if (strcmp((char *)cur_node->name, "PAC")==0) {
+			if (strcmp((char *)cur_node->name, "PAC")==0) {//If the PaC configurable values are being checked
 				paa=0;
 				pac=1;
 			}
-			else if (strcmp((char *)cur_node->name, "PAA")==0) {
+			else if (strcmp((char *)cur_node->name, "PAA")==0) {//If the PAA configurable values are being checked
 				paa=1;
 				pac=0;
 			}
-			else if (strcmp((char *)cur_node->name, "PORT")==0){
+			else if (strcmp((char *)cur_node->name, "PORT")==0){ // Port configurable value
 				if (paa){
 					char * value = (char *)xmlNodeGetContent(cur_node);
 					sscanf(value, "%d", &SRCPORT);
@@ -286,7 +287,7 @@ parse_xml_server(xmlNode * a_node)
 					}
 				}
 			}
-			else if (strcmp((char *)cur_node->name, "TIMEOUT")==0){
+			else if (strcmp((char *)cur_node->name, "TIMEOUT")==0){ // Timeout configurable value
 				if (paa){
 					char * value = (char *)xmlNodeGetContent(cur_node);
 					sscanf(value, "%d", &LIFETIME_SESSION_TIMEOUT_CONFIG);
@@ -297,7 +298,7 @@ parse_xml_server(xmlNode * a_node)
 					}
 				}
 			}
-			else if (strcmp((char *)cur_node->name, "PRF")==0){
+			else if (strcmp((char *)cur_node->name, "PRF")==0){// PRF algorithm configurable value
 				if (paa){
 					char * value = (char *)xmlNodeGetContent(cur_node);
 					sscanf(value, "%d", &PRF_HMAC_SHA1);
@@ -308,7 +309,7 @@ parse_xml_server(xmlNode * a_node)
 					}
 				}
 			}
-			else if (strcmp((char *)cur_node->name, "INTEGRITY")==0){
+			else if (strcmp((char *)cur_node->name, "INTEGRITY")==0){ // Integrity algorithm configurable value
 				if (paa){
 					char * value = (char *)xmlNodeGetContent(cur_node);
 					sscanf(value, "%d", &AUTH_HMAC_SHA1_160);
@@ -319,7 +320,7 @@ parse_xml_server(xmlNode * a_node)
 					}
 				}
 			}
-			else if (strcmp((char *)cur_node->name, "TIMEOUT_CLIENT")==0){
+			else if (strcmp((char *)cur_node->name, "TIMEOUT_CLIENT")==0){ // Timeout for client's session.
 				if (paa){
 					char * value = (char *)xmlNodeGetContent(cur_node);
 					sscanf(value, "%d", &LIFETIME_SESSION_CLIENT_TIMEOUT_CONFIG);
@@ -330,7 +331,7 @@ parse_xml_server(xmlNode * a_node)
 					}
 				}
 			}
-			else if (strcmp((char *)cur_node->name, "WORKERS")==0){
+			else if (strcmp((char *)cur_node->name, "WORKERS")==0){ // Number of workers to be executed.
 				if (paa){
 					char * value = (char *)xmlNodeGetContent(cur_node);
 					sscanf(value, "%d", &NUM_WORKERS);
@@ -342,7 +343,7 @@ parse_xml_server(xmlNode * a_node)
 				}
 			}
 			
-			else if (strcmp((char *)cur_node->name, "TIME_ANSWER")==0){
+			else if (strcmp((char *)cur_node->name, "TIME_ANSWER")==0){ // Timeout without a response to the first PANA request message.
 				if (paa){
 					char * value = (char *)xmlNodeGetContent(cur_node);
 					sscanf(value, "%d", &TIME_PCI);
@@ -353,7 +354,7 @@ parse_xml_server(xmlNode * a_node)
 					}
 				}
 			}
-			else if (strcmp((char *)cur_node->name, "CA_CERT")==0){
+			else if (strcmp((char *)cur_node->name, "CA_CERT")==0){ // CA cert's name.
 				if (paa){
 					char * value = (char *)xmlNodeGetContent(cur_node);
 					CA_CERT = malloc(strlen(value)*sizeof(char)); 
@@ -361,7 +362,7 @@ parse_xml_server(xmlNode * a_node)
 					xmlFree(value);
 				}
 			}
-			else if (strcmp((char *)cur_node->name, "SERVER_CERT")==0){
+			else if (strcmp((char *)cur_node->name, "SERVER_CERT")==0){ // Server certificate's name
 				if (paa){
 					char * value = (char *)xmlNodeGetContent(cur_node);
 					SERVER_CERT = malloc(strlen(value)*sizeof(char)); 
@@ -369,7 +370,7 @@ parse_xml_server(xmlNode * a_node)
 					xmlFree(value);
 				}
 			}
-			else if (strcmp((char *)cur_node->name, "SERVER_KEY")==0){
+			else if (strcmp((char *)cur_node->name, "SERVER_KEY")==0){ // Server key certificate's name
 				if (paa){
 					char * value = (char*)xmlNodeGetContent(cur_node);
 					SERVER_KEY = malloc(strlen(value)*sizeof(char)); 
@@ -377,7 +378,7 @@ parse_xml_server(xmlNode * a_node)
 					xmlFree(value);
 				}
 			}
-			else if (strcmp((char *)cur_node->name, "AS_IP")==0){
+			else if (strcmp((char *)cur_node->name, "AS_IP")==0){ // IP address of AS
 				if (paa){
 					char * value = (char*)xmlNodeGetContent(cur_node);
 					AS_IP = malloc(strlen(value)*sizeof(char)); 
@@ -385,7 +386,7 @@ parse_xml_server(xmlNode * a_node)
 					xmlFree(value);
 				}
 			}
-			else if (strcmp((char *)cur_node->name, "AS_PORT")==0){
+			else if (strcmp((char *)cur_node->name, "AS_PORT")==0){ // Port value for communication with the AS.
 				if (paa){
 					char * value = (char*)xmlNodeGetContent(cur_node);
 					sscanf(value, "%hd", &AS_PORT);
@@ -396,7 +397,7 @@ parse_xml_server(xmlNode * a_node)
 					}
 				}
 			}
-			else if (strcmp((char *)cur_node->name, "SHARED_SECRET")==0){
+			else if (strcmp((char *)cur_node->name, "SHARED_SECRET")==0){ // Shared secret between EAP auth & EAP server.
 				if (paa){
 					char * value = (char*)xmlNodeGetContent(cur_node);
 					AS_SECRET = malloc(strlen(value)*sizeof(char));

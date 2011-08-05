@@ -29,7 +29,13 @@
 #include "state_machines/session.h"
 #include "../config.h"
 
+/** A procedure to load client's configurable variables.
+ *
+ * @return 0 if the execution is correct.*/
 int load_config_client();
+/** A procedure to load server's configurable variables.
+ *
+ * @return 0 if the execution is correct.*/
 int load_config_server();
 
 #endif
