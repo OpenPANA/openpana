@@ -19,20 +19,31 @@
  *  
  *  https://sourceforge.net/projects/openpana/
  */
-#ifndef PACMACHINE
-#define PACMACHINE
+#ifndef PACMACHINE_H
+#define PACMACHINE_H
 
 // Events
+/** PaC-initiated Handshake event. */
 #define PAC_INIT_HANDSHAKE      4
+/** PAA-initiated Handshake event. */
 #define PAA_INIT_HANDSHAKE 	5
+/** PANA result event. */
 #define PANA_RESULT		6
+/** PAR-PAN exchange event. */
 #define PAR_PAN_EXCHANGE   	7
+/** Return PAN/PAR from EAP event. */
 #define RETURN_PAN_PAR_FROM_EAP	8
+/** EAP result event.*/
 #define EAP_RESULT		9
+/** Liveness test initiated by PaC event. */
 #define LIVENESS_TEST_INIT_PAC	10
+/** Session termination initiated by PAA event. */
 #define SESSION_TERM_INIT_PAA	11
+/** Session termination initiated by PaC event. */
 #define SESSION_TERM_INIT_PAC	12
+/** Re-authentication initiated by PaC event. */
 #define REAUTH_INIT_PAC		13
+/** Re-authentication initiated by PAA event. */
 #define REAUTH_INIT_PAA		14
 
 // Procedures
@@ -59,25 +70,150 @@ void eapRespTimerStart();
 void eapRespTimerStop();
 
 // Functions that check the exit condition and do the exit action
+/** Checks the exit condition of the event of equal name, doing meanwhile
+ * the operations needed. 
+ * See RFC 5609 Section 7.5 for further detail.
+ * 
+ * @return Next state to make the transition to.
+ * @return ERROR if an error ocurred.
+ * */
 int pacInitHandshake();
+/** Checks the exit condition of the event of equal name, doing meanwhile
+ * the operations needed. 
+ * See RFC 5609 Section 7.5 for further detail.
+ * 
+ * @return Next state to make the transition to.
+ * @return ERROR if an error ocurred.
+ * */
 int paaInitHandshake();
+/** Checks the exit condition of the event of equal name, doing meanwhile
+ * the operations needed. 
+ * See RFC 5609 Section 7.5 for further detail.
+ * 
+ * @return Next state to make the transition to.
+ * @return ERROR if an error ocurred.
+ * */
 int parPanExchange();
+/** Checks the exit condition of the event of equal name, doing meanwhile
+ * the operations needed. 
+ * See RFC 5609 Section 7.5 for further detail.
+ * 
+ * @return Next state to make the transition to.
+ * @return ERROR if an error ocurred.
+ * */
 int panaResult();
+/** Checks the exit condition of the event of equal name, doing meanwhile
+ * the operations needed. 
+ * See RFC 5609 Section 7.5 for further detail.
+ * 
+ * @return Next state to make the transition to.
+ * @return ERROR if an error ocurred.
+ * */
 int returnPanParFromEap();
+/** Checks the exit condition of the event of equal name, doing meanwhile
+ * the operations needed. 
+ * See RFC 5609 Section 7.5 for further detail.
+ * 
+ * @return Next state to make the transition to.
+ * @return ERROR if an error ocurred.
+ * */
 int eapResultStateWaitEapResult();
+/** Checks the exit condition of the event of equal name, doing meanwhile
+ * the operations needed. 
+ * See RFC 5609 Section 7.5 for further detail.
+ * 
+ * @return Next state to make the transition to.
+ * @return ERROR if an error ocurred.
+ * */
 int eapResultStateWaitEapResultClose();
+/** Checks the exit condition of the event of equal name, doing meanwhile
+ * the operations needed. 
+ * See RFC 5609 Section 7.5 for further detail.
+ * 
+ * @return Next state to make the transition to.
+ * @return ERROR if an error ocurred.
+ * */
 int livenessTestInitPacStateOpen();
+/** Checks the exit condition of the event of equal name, doing meanwhile
+ * the operations needed. 
+ * See RFC 5609 Section 7.5 for further detail.
+ * 
+ * @return Next state to make the transition to.
+ * @return ERROR if an error ocurred.
+ * */
 int livenessTestInitPacStateWaitPnaPing();
+/** Checks the exit condition of the event of equal name, doing meanwhile
+ * the operations needed. 
+ * See RFC 5609 Section 7.5 for further detail.
+ * 
+ * @return Next state to make the transition to.
+ * @return ERROR if an error ocurred.
+ * */
 int reauthInitPacStateOpen();
+/** Checks the exit condition of the event of equal name, doing meanwhile
+ * the operations needed. 
+ * See RFC 5609 Section 7.5 for further detail.
+ * 
+ * @return Next state to make the transition to.
+ * @return ERROR if an error ocurred.
+ * */
 int reauthInitPacStateWaitPnaReauth();
+/** Checks the exit condition of the event of equal name, doing meanwhile
+ * the operations needed. 
+ * See RFC 5609 Section 7.5 for further detail.
+ * 
+ * @return Next state to make the transition to.
+ * @return ERROR if an error ocurred.
+ * */
 int reauthInitPaaStateOpen();
+/** Checks the exit condition of the event of equal name, doing meanwhile
+ * the operations needed. 
+ * See RFC 5609 Section 7.5 for further detail.
+ * 
+ * @return Next state to make the transition to.
+ * @return ERROR if an error ocurred.
+ * */
 int reauthInitPaaStateWaitPnaPing();
+/** Checks the exit condition of the event of equal name, doing meanwhile
+ * the operations needed. 
+ * See RFC 5609 Section 7.5 for further detail.
+ * 
+ * @return Next state to make the transition to.
+ * @return ERROR if an error ocurred.
+ * */
 int sessionTermInitPacStateOpen();
+/** Checks the exit condition of the event of equal name, doing meanwhile
+ * the operations needed. 
+ * See RFC 5609 Section 7.5 for further detail.
+ * 
+ * @return Next state to make the transition to.
+ * @return ERROR if an error ocurred.
+ * */
 int sessionTermInitPacStateSessTerm();
+/** Checks the exit condition of the event of equal name, doing meanwhile
+ * the operations needed. 
+ * See RFC 5609 Section 7.5 for further detail.
+ * 
+ * @return Next state to make the transition to.
+ * @return ERROR if an error ocurred.
+ * */
 int sessionTermInitPaaStateOpen();
+/** Checks the exit condition of the event of equal name, doing meanwhile
+ * the operations needed. 
+ * See RFC 5609 Section 7.5 for further detail.
+ * 
+ * @return Next state to make the transition to.
+ * @return ERROR if an error ocurred.
+ * */
 int sessionTermInitPaaStateWaitPnaReauth();
+/** Checks the exit condition of the event of equal name, doing meanwhile
+ * the operations needed. 
+ * See RFC 5609 Section 7.5 for further detail.
+ * 
+ * @return Next state to make the transition to.
+ * @return ERROR if an error ocurred.
+ * */
 int sessionTermInitPaaStateWaitPnaPing();
-
 
 /**
  * Initializes the PaC transition table.

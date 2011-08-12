@@ -1,5 +1,6 @@
 OpenPANA is a free implementation of the PANA protocol (RFC 5191).
-Is intended to be a multithreading solution, allowing multiple users.
+It's a multithreading implementation, supported by a framework, which
+allows multiple users to authenticate.
 
 							May 19, 2011
 							Rafa Marín López
@@ -11,8 +12,6 @@ Is intended to be a multithreading solution, allowing multiple users.
 
 o DIRECTORIES
 
-  certs/ - Files needed for creating the certificates
-
   src/ - All the code, certs and example applications including client (openpac) and server (openpaa) and config file.
   
   src/wpa_supplicant/ - WPA Supplicant's implementation done by Jouni Malinen ( http://hostap.epitest.fi ) using v0.7.1
@@ -20,6 +19,8 @@ o DIRECTORIES
   src/libeapstack/ - Implementation of the wrapper done from EAP library by Rafa Marín López
   
   src/state_machines/ - Code implementing the conceptual state machines for PANA (RFC 5609)  
+
+  doxyfiles/ - Files needed for generating the documentation.
 
 o What is the OpenPANA?
 
@@ -66,11 +67,28 @@ o Install
 	- Session Timeout: Lifetime of the session. <SESSION><TIMEOUT>
 	- PRF Algorithms: Supported PRF Algorithms. <ALGORITHMS><PRF>
 	- Integrity Algorithms: Supported Integrity Algorithms. <ALGORITHMS><INTEGRITY>
-
+    - PaC's Settings <PAC>
+	- Client's EAP username <USER>
+	- Client's EAP password <PASSWORD>
+	- Client's Certificates files, located under the configuration directory after installation or otherwise under
+	  the directory where the executable is launched from. The name of the files may be changed by modifying this values.
+		- CA Certificate Filename <CA_CERT>
+		- Client's Certificate Filename <CLIENT_CERT>
+		- Client's key <CLIENT_KEY>
+		- Client's private key <PRIVATE_KEY>
+	- Fragment Size <FRAGMENT_SIZE>
     - PAA's Settings <PAA>
 	- Client's Timeout: Seconds before client's session expires. <TIMEOUT_CLIENT>
 	- Threads to use: Number of threads used to manage tasks on server. <WORKERS>
     	- PCI expire time: Time while a session is on the server without answer for the first PAR message. <TIME_ANSWER>
+	- Server's Certificates files, located under the AAA server folder. The name of the files may be changed by modifying this values.
+		- CA Certificate Filename <CA_CERT>
+		- Server's Certificate Filename <SERVER_CERT>
+		- Server's key <SERVER_KEY>
+	- Radius Server Information. <AUTH_SERVER>
+		- IP of the Radius Server <AS_IP>
+		- Port of the Radius Server <AS_PORT>
+		- Radius' shared secret <SHARED_SECRET>
 
  3. Building the OpenPANA softwares:
 
@@ -108,7 +126,6 @@ o  License
 
  Basically this software suites follows the GNU GPL v3 license.
  In short, the code is freely available but with no warranty.
-
 
 o Initial Authors
 

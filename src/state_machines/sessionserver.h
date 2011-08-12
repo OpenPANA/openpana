@@ -19,8 +19,8 @@
  *  
  *  https://sourceforge.net/projects/openpana/
  */
-#ifndef SESSIONSERVER
-#define SESSIONSERVER
+#ifndef SESSIONSERVER_H
+#define SESSIONSERVER_H
 
 /**
  * PANA context only for PAAs.

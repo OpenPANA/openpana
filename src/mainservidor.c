@@ -45,19 +45,29 @@
 
 //Global variables
 static int fin = FALSE;
-char * global_key_id;//Key id is generated from source port and ip of the client
 
-struct pana_ctx_list* list_pana_sessions = NULL; // head of linked list of pana sessions
+/** Keeps the last key-id assigned by the server. The first one is random
+ * generated and the following will be the result of increasing the 
+ * current global_key_id. */
+char * global_key_id;
 
-struct task_list* list_tasks = NULL; // head of linked list of tasks
-struct task_list* last_task = NULL; // pointer to last task
+/** Linked list of server's PANA sessions.*/
+struct pana_ctx_list* list_pana_sessions = NULL;
+/** Mutex associated to PANA sessions' list.*/
+pthread_mutex_t list_sessions_mutex;
 
-struct lalarm* list_alarms = NULL; // alarms' list
+/** Linked list of server's tasks.*/
+struct task_list* list_tasks = NULL;
+/** Last task. */
+struct task_list* last_task = NULL;
+/** Mutex associated to tasks' list. */
+pthread_mutex_t list_tasks_mutex;
 
-pthread_mutex_t list_sessions_mutex; //Mutex associated to PANA sessions' list
-pthread_mutex_t list_tasks_mutex; //Mutex associated to tasks' list
+/** Alarm's list. */
+struct lalarm* list_alarms = NULL;
 
-sem_t got_task; //Semaphore used to wait for new tasks by workers
+/** Semaphore used to wait for new tasks by workers. */
+sem_t got_task; 
 
 void signal_handler(int sig) {
     printf("\nStopping server, signal: %d\n", sig);
@@ -65,40 +75,33 @@ void signal_handler(int sig) {
 }
 
 void print_list_alarms(){
-
-	int rc; /* return code of pthreads functions.  */
-
+	#ifdef DEBUG
     struct lalarm* ptr = list_alarms;
-
-    /* lock the mutex, to assure exclusive access to the list */
-
-
+	
 	while (ptr != NULL) {
+		
 		printf("DEBUG: Showing session alarm id: %#X\n", ptr->pana_session->session_id);
 		printf("DEBUG: Showing alarm type: %#X\n", ptr->id);
 		ptr = ptr->sig;
-	} 
+	}
+	#endif
 }
 
 
 void print_list_sessions(){
-
-	int rc; /* return code of pthreads functions.  */
-
+	#ifdef DEBUG
     struct pana_ctx_list* ptr = list_pana_sessions;
-    
-    /* lock the mutex, to assure exclusive access to the list */
-    rc = pthread_mutex_lock(&list_sessions_mutex);
-
+    // lock the mutex, to assure exclusive access to the list
+    pthread_mutex_lock(&list_sessions_mutex);
 
 	while (ptr != NULL) {
 		printf("DEBUG: Showing session id: %#X\n", ptr->pana_session->session_id);
 		ptr = ptr->next;
 	}
     
-    
-    /* unlock mutex */
-    rc = pthread_mutex_unlock(&list_sessions_mutex);
+    // unlock mutex
+    pthread_mutex_unlock(&list_sessions_mutex);
+    #endif
 }
 
 void * process_receive_eap_ll_msg(void *arg) {
@@ -406,7 +409,6 @@ void remove_session(int id) {
             session = session->next;
         }
     }
-
 
     // unlock mutex 
     rc = pthread_mutex_unlock(&list_sessions_mutex);

@@ -19,8 +19,8 @@
  *  
  *  https://sourceforge.net/projects/openpana/
  */
-#ifndef STATEMACHINE
-#define STATEMACHINE
+#ifndef STATEMACHINE_H
+#define STATEMACHINE_H
 #include "session.h"
 
 //FIXME: Esto debería ir en un include.h???

@@ -1,9 +1,9 @@
 2011-05-09 - OpenPANA released
 We are proud to present the first release of OpenPANA.
 
-It's expected to be soon a full functional solution which implements the PANA protocol.
-By now its a multithreading implementation which allows multiple users to authenticate 
-using the hostapd EAP library.
+OpenPANA it'll be soon a full functional free solution which implements the PANA protocol.
+By now, it's a multithreading implementation, supported by a framework, which allows multiple
+users to authenticate.
 
 Many aspects defined in IETF RFC 5191 and 5609 are covered such as
 - Integrity check

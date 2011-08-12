@@ -22,8 +22,8 @@
  *  https://sourceforge.net/projects/openpana/
  */
 
-#ifndef _Alarmas_
-#define _Alarmas_
+#ifndef LALARM_H
+#define LALARM_H
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -35,10 +35,13 @@
 #include <signal.h> //Para el tratamiento y uso de señales entre procesos
 #include "state_machines/session.h"
 
-/** Alarm types identifiers*/
+/** Alarm type identifier: PCI Alarm.*/
 #define PCI_ALARM  1
+/** Alarm type identifier: Retransmission Alarm.*/
 #define RETR_ALARM 2
+/** Alarm type identifier: Session Timeout Alarm.*/
 #define SESS_ALARM 3
+/** Alarm type identifier: AAA Retransmission Alarm.*/
 #define RETR_AAA   4
 
 /** Struct that represents an alarms' list*/

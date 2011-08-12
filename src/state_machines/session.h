@@ -19,8 +19,8 @@
  *  
  *  https://sourceforge.net/projects/openpana/
  */
-#ifndef SESSION
-#define SESSION
+#ifndef SESSION_H
+#define SESSION_H
 
 #include <pthread.h>
 #include <stdlib.h>

@@ -27,7 +27,6 @@
 #include "statemachine.h"
 #include "../panamessages.h"
 #include "../panautils.h"
-#include "session.h"
 
 void initPaaTable(pana_ctx *pana_session) {
     initTable(); // Init the common state machine between pac and paa
@@ -162,8 +161,7 @@ void initPaaTable(pana_ctx *pana_session) {
 // Implementation of the functions that check the exit conditions
 
 int pciPaaInitPana() {
-
-    //The initial PAR must be saved
+    
     if ((current_session->PCI.receive) || (current_session->server_ctx.PAC_FOUND)) {
         if (current_session->server_ctx.OPTIMIZED_INIT == SET) {
             eapRestart();
@@ -183,6 +181,7 @@ int pciPaaInitPana() {
             if(current_session->I_PAR != NULL){
 				free(current_session->I_PAR);
 			}
+			//The initial PAR must be saved
             current_session->I_PAR = malloc(ntohs(((pana *)current_session->retr_msg)->msg_length));
 			memcpy(current_session->I_PAR,current_session->retr_msg,ntohs(((pana *)current_session->retr_msg)->msg_length));
         }

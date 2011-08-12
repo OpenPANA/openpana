@@ -112,17 +112,7 @@ void add_task(func funcion, void* arg);
  * @param *pana_session PANA session used in the transition.
  */ 
 void check_eap_status(pana_ctx *pana_session);
-/**
- * A procedure to generate a PANA session's identifier using
- * the PaC IP's address and the PaC port's number.
- *
- * @param *ip IP address of the PaC
- * @param port Port's number from which PaC sent the message
- *
- * @return Session identifier generated from IP and port's number of
- * the PaC.
- */ 
-int generateSessionId(char * ip, short port);
+
 /**
  * A procedure to get a PANA session from the PANA sessions' list
  * managed by the PAA.
@@ -162,11 +152,18 @@ void* handle_network_management();
  * @param *data Number for indentifying the worker.
  */ 
 void* handle_worker(void* data);
+ 
+/** PAA's main program.*/
+int main(int argc, char* argv[]);
+/** Procedure that prints the list of alarms for debugging.*/
+void print_list_alarms();
+/** Procedure that prints the list of sessions for debugging.*/
+void print_list_sessions();
 /**
  * A procedure to delete a PANA session with the identifier given.
  *
  * @param id Identifier of the PANA session to be deleted.
- */ 
+ */
 void remove_session(int id);
 /**
  * A procedure to retransmit an AAA message to AAA server.
@@ -175,7 +172,9 @@ void remove_session(int id);
  * with the retransmission.
  */ 
 void retransmitAAA (pana_ctx* current_session);
-
+/** Procedure in charge of handle exit signals sended to the program.
+ * @param sig Signal to be handled. */
+void signal_handler(int sig);
 
 // Functions used as task
 /**

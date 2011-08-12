@@ -20,8 +20,8 @@
  *  https://sourceforge.net/projects/openpana/
  */
  
-#ifndef SESSIONCLIENT
-#define SESSIONCLIENT
+#ifndef SESSIONCLIENT_H
+#define SESSIONCLIENT_H
 
 /**
  * PANA context only for PaCs.

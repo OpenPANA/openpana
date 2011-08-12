@@ -19,8 +19,8 @@
  *  https://sourceforge.net/projects/openpana/
  */
 
-#ifndef PANAMESSAGE
-#define PANAMESSAGE
+#ifndef PANAMESSAGE_H
+#define PANAMESSAGE_H
 #include <arpa/inet.h>
 
 //Flag definition: See RFC 5191 6.2

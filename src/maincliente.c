@@ -42,10 +42,15 @@
 
 
 static int signal_received = FALSE;
+/** Alarm's list, cointains all the alarms setted by the PaC to perform 
+ * future actions.*/
 struct lalarm* list_alarms = NULL; // alarms' list
+/** Mutex to access alarm's list list_alarms.*/
 pthread_mutex_t alarm_list_mutex;
-pthread_mutex_t session_mutex;
+/** PANA data of the client's session. */
 pana_ctx pana_session;
+/** Mutex to access to PANA session pana_session. */
+pthread_mutex_t session_mutex;
 
 void signal_handler(int sig) {
 	#ifdef DEBUG

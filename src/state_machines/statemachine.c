@@ -30,9 +30,8 @@
 #include "../prf_plus.h"
 #include "../lalarm.h"
 
-pana_ctx pana_session;
-// Init the state machine table's positions
 
+// Init the state machine table's positions
 void initTable() {
     table [INITIAL][RETRANSMISSION] = retransmission;
 

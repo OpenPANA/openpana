@@ -20,16 +20,21 @@
  *  https://sourceforge.net/projects/openpana/
  */
 
-#ifndef _MAINCLIENTE_H
-#define	_MAINCLIENTE_H
+#ifndef MAINCLIENTE_H
+#define	MAINCLIENTE_H
 
-#define PANA_PORT 716
+/** Time to wake up the alarm manager (in miliseconds).*/
+#define TIME_WAKE_UP 1000000
+/** Maximum size to use while receiving a packet. */
 #define MAX_DATA_LEN 2048
 
-#define TIME_WAKE_UP 1000000 //Time to wake up the alarm manager (in miliseconds).
-
+/** Procedure that periodically checks if there's any active alarm and 
+ * if needed calls the alarm function.*/
 void* handle_alarm_management(void* none);
+/** Procedure in charge of handle exit signals sended to the program.
+ * @param sig Signal to be handled. */
 void signal_handler(int sig);
+/** PaC's main program.*/
+int main(int argc, char *argv[]);
 
 #endif	/* _MAINCLIENTE_H */
-
