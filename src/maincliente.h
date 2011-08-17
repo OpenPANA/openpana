@@ -1,6 +1,8 @@
+/**
+ * @file maincliente.h
+ * @brief  PaC's headers.
+ **/
 /* 
- *  maincliente.h
- *	
  *  Copyright (C) Pedro Moreno Sánchez & Francisco Vidal Meca on 16/11/10.
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -22,6 +24,8 @@
 
 #ifndef MAINCLIENTE_H
 #define	MAINCLIENTE_H
+
+#include "include.h"
 
 /** Time to wake up the alarm manager (in miliseconds).*/
 #define TIME_WAKE_UP 1000000

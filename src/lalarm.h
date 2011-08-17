@@ -1,8 +1,8 @@
-/*
- *	lalarm.c 
- * 
- *  Implements a linked list to manage alarms.
- * 
+/**
+ * @file lalarm.h
+ * @brief Headers to use linked list to manage alarms.
+ */
+/* 
  *  Copyright (C) Pedro Moreno Sánchez & Francisco Vidal Meca on 13/04/09.
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -24,15 +24,7 @@
 
 #ifndef LALARM_H
 #define LALARM_H
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <pthread.h>
-#include <time.h> //Para el tratamiento de las estructuras time_t y los tiempos 
-#include <signal.h> //Para el tratamiento y uso de señales entre procesos
+#include "include.h"
 #include "state_machines/session.h"
 
 /** Alarm type identifier: PCI Alarm.*/
@@ -46,14 +38,10 @@
 
 /** Struct that represents an alarms' list*/
 struct lalarm {
-	/** PANA session associated to the alarm. */
-    pana_ctx* pana_session;
-    /** Alarm's start time.*/ 
-    time_t tmp;
-    /** Next element */
-    struct lalarm * sig;
-    /** Alarm's id.*/
-    int id;
+    pana_ctx* pana_session;/**< PANA session associated to the alarm. */
+    double tmp;/**< Alarm's start time.*/ 
+    struct lalarm * sig;/**< Next element */
+    int id;/**< Alarm's id.*/
 };
 /** Creates a new alarm list.
  *
@@ -66,7 +54,7 @@ struct lalarm* init_alarms();
  * @param iden Type identifier of the alarm added.
  *
  * @return A pointer to the alarms' list with the new alarm added.*/
-struct lalarm* add_alarma(struct lalarm ** l, pana_ctx* session, time_t tiempo, int iden);
+struct lalarm* add_alarma(struct lalarm ** l, pana_ctx* session, double tiempo, int iden);
 
 /** Returns the alarm requested and removes it from the list.
  * @param **list Alarms' list where the alarm must be obtained.
@@ -83,7 +71,7 @@ pana_ctx * get_alarm_session(struct lalarm** list, int id_session, int id_alarm)
  *
  * @return The first alarm in the list if it is activated. A NULL pointer if the alarms' list is empty or the
  * first is not activated.*/
-struct lalarm * get_next_alarm(struct lalarm** list, time_t time);
+struct lalarm * get_next_alarm(struct lalarm** list, double time);
 /**
  * A procedure to remove the alarms associated to a PANA session.
  *

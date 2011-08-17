@@ -1,6 +1,8 @@
+/**
+ * @file panamessages.h
+ * @brief  Headers of functions to work with PANA messages.
+ **/
 /*
- *  panamessages.h
- *
  *  Copyright (C) Pedro Moreno Sánchez & Francisco Vidal Meca on 07/09/10.
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -21,7 +23,7 @@
 
 #ifndef PANAMESSAGE_H
 #define PANAMESSAGE_H
-#include <arpa/inet.h>
+#include "include.h"
 
 //Flag definition: See RFC 5191 6.2
 /** PANA message flag definition. If set, the message is a request.
@@ -144,10 +146,10 @@
 typedef struct {
     /** This 16-bit field is reserved for future use. It MUST be set to
      * zero and ignored by the receiver. */
-    short reserved;
+    uint16_t reserved;
     /** The Message Length field is two octets and indicates the length
      *  of the PANA message including the header fields.*/
-    short msg_length;
+    uint16_t msg_length;
 
     /** The Flags field is two octets. The following bits are assigned:
      * \code
@@ -157,15 +159,15 @@ typedef struct {
      * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ \endcode
      * The flags marked as 'r' are reserved for future use. They MUST be
      * set to zero and ignored by the receiver. */
-    short flags;
+    uint16_t flags;
     /** The Message Type field is two octets, and it is used in order to
      * communicate the message type with the message. Message Type
      * allocation is managed by IANA. */
-    short msg_type;
+    uint16_t msg_type;
     /** This field contains a 32-bit session identifier. */
-    int session_id;
+    uint32_t session_id;
     /** This field contains a 32-bit sequence number. */
-    int seq_number;
+    uint32_t seq_number;
 } __attribute__((packed)) pana;
 
 /**
@@ -194,7 +196,7 @@ typedef struct {
      * then the Vendor-Id is not present and the AVP Code refers to an
      * IETF attribute.
      */
-    unsigned short code;
+    uint16_t code;
     /**
      * The AVP Flags field is two octets. The following bits are
      * assigned: \code
@@ -211,19 +213,19 @@ typedef struct {
      * r (reserved): These flag bits are reserved for future use.
      * They MUST be set to zero and ignored by the receiver.
      */
-    unsigned short flags;
+    uint16_t flags;
     /**
      * The AVP Length field is two octets, and indicates the number of
      * octets in the Value field. The length of the AVP Code, AVP
      * Length, AVP Flags, Reserved and Vendor-Id fields are not counted
      * in the AVP Length value.
      */
-    unsigned short length;
+    uint16_t length;
     /**
      * This two-octet field is reserved for future use.
      * It MUST be set to zero and ignored by the receiver.
      * */
-    unsigned short reserved;
+    uint16_t reserved;
 } __attribute__((packed)) avp_pana;
 
 /**

@@ -1,6 +1,8 @@
+/**
+ * @file mainservidor.c
+ * @brief  PAA's main program.
+ **/
 /*
- *  mainservidor.c
- *
  *  Created by Rafa Marin Lopez
  *  Copyright 2010 Universidad de Murcia. All rights reserved.
  *
@@ -23,15 +25,7 @@
  *  https://sourceforge.net/projects/openpana/
  */
 
-#include <stdio.h>
-#include <stdlib.h> //Function exit
-#include <unistd.h> //Function sleep
-#include <pthread.h>     /* pthread functions and data structures     */
-#include <semaphore.h>
-#include <signal.h>
-#include <sys/time.h>
-#include <unistd.h>
-#include <config.h>
+#include "mainservidor.h"
 
 #include "state_machines/statemachine.h"
 #include "state_machines/paamachine.h"
@@ -39,7 +33,6 @@
 #include "panamessages.h"
 #include "state_machines/paamachine.h"
 #include "panautils.h"
-#include "mainservidor.h"
 #include "lalarm.h"
 #include "prf_plus.h"
 
@@ -118,7 +111,7 @@ void * process_receive_eap_ll_msg(void *arg) {
         pana_session = malloc(sizeof (pana_ctx));
         if(pana_session == NULL){
 			fprintf(stderr,"ERROR: Out of memory.\n");
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
         initSession(pana_session); 
 		
@@ -254,7 +247,7 @@ void* process_receive_radius_msg(void* arg) {
     return NULL;
 }
 
-void add_task(func funcion, void * arg) {
+void add_task(task_function funcion, void * arg) {
 
 	int rc; // return code of pthreads functions.
     // lock the mutex, to assure exclusive access to the list
@@ -266,7 +259,7 @@ void add_task(func funcion, void * arg) {
     new_element = malloc(sizeof (struct task_list));
     if (!new_element) { // malloc failed?? 
         fprintf(stderr, "add_request: out of memory\n");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
     
     new_element->use_function = funcion;
@@ -307,7 +300,7 @@ void add_session(pana_ctx * session) {
     new_element = malloc(sizeof (struct pana_ctx_list));
     if (!new_element) { /* malloc failed?? */
         fprintf(stderr, "add_session: out of memory\n");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
     new_element->pana_session = session;
     new_element->next = NULL;
@@ -321,7 +314,7 @@ void add_session(pana_ctx * session) {
         list_pana_sessions = new_element;
     } 
     else {
-		struct pana_ctx_list* ptr = new_element;
+//		struct pana_ctx_list* ptr = new_element;
         new_element->next = list_pana_sessions;
         list_pana_sessions = new_element;
     }
@@ -490,7 +483,7 @@ void* handle_worker(void* data) {
         /* and after we return from pthread_cond_wait, the mutex  */
         /* is locked again, so we don't need to lock it ourselves */
     }
-
+	return NULL;
 }
 
 void* handle_network_management() {
@@ -596,7 +589,7 @@ void* handle_network_management() {
             }
         }
     }
-
+	return NULL;
 }
 
 void* handle_alarm_management() {
@@ -606,11 +599,10 @@ void* handle_alarm_management() {
 		struct retr_func_parameter retrans_params;
 
 		// Get the actual timestamp.
-		struct timeval tv;
-		gettimeofday(&tv,NULL);
+		double time = getTime();
 		
 		struct lalarm* alarm = NULL;
-		while ((alarm=get_next_alarm(&list_alarms, tv.tv_sec)) != NULL){ //Look for the activated alarms.
+		while ((alarm=get_next_alarm(&list_alarms, time)) != NULL){ //Look for the activated alarms.
 			 retrans_params.session = (pana_ctx *)alarm->pana_session;
 			 retrans_params.id = 0;
 			 if (alarm->id == PCI_ALARM) { // A PCI alarm is activated.
@@ -650,8 +642,9 @@ void* handle_alarm_management() {
 	#endif
 			}
 		}
-		usleep(TIME_WAKE_UP);
+		waitusec(TIME_WAKE_UP);
 	}
+	return NULL;
 }
 
 
@@ -702,7 +695,7 @@ void* process_retr(void *arg){
 		fprintf(stderr, "DEBUG: An UNKNOWN alarm ocurred\n");
 #endif
 	}
-	
+	return NULL;
 }
 
 int main(int argc, char* argv[]) {

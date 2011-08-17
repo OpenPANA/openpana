@@ -1,8 +1,9 @@
+/**
+ * @file loadconfig.c
+ * @brief  Contains functions wich performs the parser xml file for the
+ * PaC and PAA.
+ **/
 /*
- *  loadconfig.c
- *  
- * 	Contains functions wich performs the parser xml file for the PaC and PAA.
- *
  *  Copyright (C) Pedro Moreno Sánchez & Francisco Vidal Meca on 06/07/10.
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -22,16 +23,7 @@
  *  https://sourceforge.net/projects/openpana/
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <libxml/parser.h>
-#include <libxml/tree.h>
 #include "loadconfig.h"
-
-#ifdef LIBXML_TREE_ENABLED
-
-
 
 int pac =0;
 int paa =0;
@@ -64,13 +56,13 @@ parse_xml_client(xmlNode * a_node)
 				if (paa){
 
 					xmlChar * value = xmlNodeGetContent(cur_node);
-					DESTIP = malloc(strlen(value)*sizeof(char));
+					DESTIP = malloc(strlen((char*)value)*sizeof(char));
 					sprintf(DESTIP, "%s",(char *) value);
 					xmlFree(value);
 				}
 				else if (pac) {
 					xmlChar * value = xmlNodeGetContent(cur_node);
-					LOCALIP = malloc(strlen(value)*sizeof(char));
+					LOCALIP = malloc(strlen((char*)value)*sizeof(char));
 					sprintf(LOCALIP, "%s", (char *)value);
 					xmlFree (value);
 				}
@@ -246,7 +238,7 @@ parse_xml_client(xmlNode * a_node)
     
     if(checkconfig){
 		fprintf(stderr,"ERROR: Check configuration to continue.\n");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 #endif
 }
@@ -283,7 +275,7 @@ parse_xml_server(xmlNode * a_node)
 					xmlFree(value);
 					if (SRCPORT != 716){
 						fprintf(stderr, "ERROR: PAA Port must be set to 716.\n");
-						exit(1);
+						exit(EXIT_FAILURE);
 					}
 				}
 			}
@@ -294,7 +286,7 @@ parse_xml_server(xmlNode * a_node)
 					xmlFree(value);
 					if (LIFETIME_SESSION_TIMEOUT_CONFIG <=0){
 						fprintf(stderr, "ERROR: PAA Session Timeout must be set to a number higher than 0.\n");
-						exit(1);
+						exit(EXIT_FAILURE);
 					}
 				}
 			}
@@ -305,7 +297,7 @@ parse_xml_server(xmlNode * a_node)
 					xmlFree(value);
 					if (PRF_HMAC_SHA1 <=0 || PRF_HMAC_SHA1 > 4){
 						fprintf(stderr, "ERROR: PAA PRF algorithm must be set to a number between 1 and 4.\n");
-						exit(1);
+						exit(EXIT_FAILURE);
 					}
 				}
 			}
@@ -316,7 +308,7 @@ parse_xml_server(xmlNode * a_node)
 					xmlFree(value);
 					if (AUTH_HMAC_SHA1_160 <=0 || AUTH_HMAC_SHA1_160 > 7){
 						fprintf(stderr, "ERROR: PAA Integrity algorithm must be set to a number between 1 and 7.\n");
-						exit(1);
+						exit(EXIT_FAILURE);
 					}
 				}
 			}
@@ -327,7 +319,7 @@ parse_xml_server(xmlNode * a_node)
 					xmlFree(value);
 					if (LIFETIME_SESSION_CLIENT_TIMEOUT_CONFIG <=0){
 						fprintf(stderr, "ERROR: PAA TIMEOUT CLIENT must be set to a number higher than 0.\n");
-						exit(1);
+						exit(EXIT_FAILURE);
 					}
 				}
 			}
@@ -338,7 +330,7 @@ parse_xml_server(xmlNode * a_node)
 					xmlFree(value);
 					if (NUM_WORKERS <=0){
 						fprintf(stderr, "ERROR: The worker's number must be set to a number higher than 0.\n");
-						exit(1);
+						exit(EXIT_FAILURE);
 					}
 				}
 			}
@@ -350,7 +342,7 @@ parse_xml_server(xmlNode * a_node)
 					xmlFree(value);
 					if (TIME_PCI <=0){
 						fprintf(stderr, "ERROR: The answer's time must be set to a number higher than 0.\n");
-						exit(1);
+						exit(EXIT_FAILURE);
 					}
 				}
 			}
@@ -393,7 +385,7 @@ parse_xml_server(xmlNode * a_node)
 					xmlFree(value);
 					if (AS_PORT <= 0){
 						fprintf(stderr, "ERROR, The Authentication Server's Port must be higher than 0.\n");
-						exit(1);
+						exit(EXIT_FAILURE);
 					}
 				}
 			}
@@ -444,7 +436,7 @@ load_config_client()
  	
 	if(doc==NULL){
 		fprintf(stderr,"ERROR: could not parse file config.xml. \nThe application can't run without this file.\n" );
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
     /*Get the root element node */
@@ -495,7 +487,7 @@ load_config_server()
  	
 	if(doc==NULL){
 		fprintf(stderr,"ERROR: could not parse file config.xml. \nThe application can't run without this file.\n" );
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
  
     /*Get the root element node */
@@ -514,10 +506,3 @@ load_config_server()
 
     return 0;
 }
-
-#else
-int main(void) {
-    fprintf(stderr, "Tree support not compiled in\n");
-    exit(1);
-}
-#endif

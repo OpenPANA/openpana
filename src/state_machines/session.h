@@ -1,6 +1,8 @@
+/**
+ * @file session.h
+ * @brief Headers of functions to manage PANA sessions.
+ **/
 /*
- *  session.h
- *
  *  Copyright (C) Pedro Moreno Sánchez & Francisco Vidal Meca on 2010.
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -21,10 +23,7 @@
  */
 #ifndef SESSION_H
 #define SESSION_H
-
-#include <pthread.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include "include.h"
 #ifdef ISCLIENT //Include session variables only for PANA clients
 #include "sessionclient.h"
 #include "../libeapstack/eap_peer_interface.h"

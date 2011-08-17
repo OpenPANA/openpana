@@ -7,4 +7,4 @@ EXTRA_DIST = doxygen.cfg doxyfiles/doxygen_header.html doxyfiles/doxygen_footer.
 
 #deletes subversion files during distribution
 dist-hook:
-	find $(distdir) -path "*.svn*" -delete
+	find $(distdir) -path "*.svn*" -delete && make -f Makefile.real -C $(distdir)/src/libeapstack clean

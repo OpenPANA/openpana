@@ -26,16 +26,19 @@ AC_CHECK_LIB([xml2], [xmlCleanupParser],[],[
         ])
 
 # Checks for header files.
-AC_CHECK_HEADERS([arpa/inet.h netinet/in.h stdlib.h string.h sys/socket.h sys/time.h unistd.h])
+AC_CHECK_HEADERS([arpa/inet.h inttypes.h math.h netinet/in.h stdlib.h string.h sys/socket.h sys/time.h time.h unistd.h stdio.h signal.h semaphore.h pthread.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
 AC_TYPE_SIZE_T
+AC_TYPE_UINT16_T
+AC_TYPE_UINT32_T
 
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_CHECK_FUNCS([gettimeofday inet_ntoa memset pow select socket])
+AC_CHECK_FUNCS([nanosleep usleep],break)
 
 # Set default AM_CFLAGS for the complete project.
 AM_CFLAGS=" $AM_CFLAGS "

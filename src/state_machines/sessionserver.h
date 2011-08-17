@@ -1,6 +1,8 @@
+/**
+ * @file sessionserver.h
+ * @brief PAA's session attributes.
+ **/
 /*
- *  sessionserver.h
- *
  *  Copyright (C) Pedro Moreno Sánchez & Francisco Vidal Meca on 2011.
  *
  *  This program is free software: you can redistribute it and/or modify

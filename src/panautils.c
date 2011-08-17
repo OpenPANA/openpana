@@ -1,9 +1,9 @@
+/**
+ * @file panautils.c
+ * @brief  Contains functions wich performs various helpful actions
+ * on the OpenPANA software.
+ **/
 /*
- *  panautils.c
- *  
- * 	Contains functions wich performs differents helpful actions on PANA
- * 	messages.
- *
  *  Copyright (C) Pedro Moreno Sánchez & Francisco Vidal Meca on 18/10/10.
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -22,17 +22,6 @@
  *  
  *  https://sourceforge.net/projects/openpana/
  */
- 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <math.h>
 
 #include "panautils.h"
 #include "prf_plus.h"
@@ -169,7 +158,7 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
         data = malloc(size * sizeof (char));
         if(data == NULL){
 			fprintf(stderr,"Out of memory\n");
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 		//fprintf(stderr,"AUTH_AVP salvado\n");
 		//debug_avp(elmnt);
@@ -219,7 +208,7 @@ int generateSessionId(char * ip, short port) {
     seed = malloc(size * sizeof (char));
     if (NULL == seed) {
         fprintf(stderr, "ERROR: Out of memory.\n");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
     
     memcpy(seed, &port, sizeof (short)); //port + ip
@@ -228,7 +217,7 @@ int generateSessionId(char * ip, short port) {
     result = malloc(20 * sizeof (char));
     if (NULL == result) {
         fprintf(stderr, "ERROR: Out of memory.\n");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
     
     PRF((u8 *) "session id", 10, (u8*) seed, size, (u8*) result);
@@ -338,7 +327,7 @@ u8 * generateAUTH(pana_ctx * session) {
     sequence = malloc(seq_length * sizeof (char));
     if(sequence == NULL){
 		fprintf(stderr,"ERROR: Out of memory\n");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	
     //Once the memory is correctly reserved and allocated, we start copying
@@ -368,7 +357,7 @@ u8 * generateAUTH(pana_ctx * session) {
     result = malloc(40); //To get the 320bits result key
 	if(result == NULL){
 		fprintf(stderr,"ERROR: Out of memory\n");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	
 	#ifdef DEBUG
@@ -431,9 +420,8 @@ void increase_one(char *value, int length) {
 }
 
 int generateRandomKeyID (char** global_key_id) {
-    struct timeval seed;
-    gettimeofday(&seed, NULL);
-    srand(seed.tv_usec); //initialize random generator using usecs
+
+    srand(getTime()); //initialize random generator using time
     int key_id_length = 4; //FIXME: shouldn't be here?
     (*global_key_id) = (char *) malloc(key_id_length * (sizeof (char)));
     for (int i = 0; i <= key_id_length; i += sizeof (int)) {
@@ -459,4 +447,34 @@ int Hex2Dec (char * value, int length) {
 		j++;
 	}
 	return res;
+}
+
+double getTime(){
+	double time;
+	
+	#ifdef HAVE_GETTIMEOFDAY
+		struct timeval tv; 
+		gettimeofday(&tv, NULL);
+		time = tv.tv_sec;
+		time += tv.tv_usec / 1000000.0;
+	#else
+		time = time(NULL);
+	#endif
+		
+    return time;
+}
+
+void waitusec(unsigned int wait){
+	waitnano(wait*1000);
+}
+void waitnano(long wait){
+	
+	#ifdef HAVE_NANOSLEEP
+		struct timespec req;
+		req.tv_sec=0;
+		req.tv_nsec=wait;
+		nanosleep(&req,NULL);	
+	#elif HAVE_USLEEP
+		usleep(wait/1000);
+	#endif
 }

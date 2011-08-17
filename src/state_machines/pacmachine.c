@@ -1,6 +1,8 @@
+/**
+ * @file pacmachine.c
+ * @brief  Implementation of PaC's state machine specific functions.
+ **/
 /*
- *  pacmachine.c
- *
  *  Copyright (C) Pedro Moreno Sánchez & Francisco Vidal Meca on 2011.
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -19,10 +21,6 @@
  *  
  *  https://sourceforge.net/projects/openpana/
  */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include "pacmachine.h"
 #include "statemachine.h"

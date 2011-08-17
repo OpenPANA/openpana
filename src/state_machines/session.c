@@ -1,6 +1,8 @@
+/**
+ * @file session.c
+ * @brief Functions to manage PANA sessions.
+ **/
 /*
- *  session.c
- *
  *  Copyright (C) Pedro Moreno Sánchez & Francisco Vidal Meca on 2010.
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -19,10 +21,7 @@
  *  
  *  https://sourceforge.net/projects/openpana/
  */
-#include <stdlib.h>
-#include <netinet/in.h> //Function htons()
-#include <stdio.h>
-#include <string.h>
+
 #include "session.h"
 #include "statemachine.h"
 #include "../panamessages.h"
@@ -89,9 +88,7 @@ void initSession(pana_ctx * pana_session) {
     //Init the Retransmission Times
     pana_session->IRT = 1; //See rfc 3315
     //Calculates an random value as RAND value
-    struct timeval seed;
-    gettimeofday(&seed, NULL);
-    srand(seed.tv_usec); //initialize random generator using usecs
+    srand(getTime()); //initialize random generator using time
     float aux_random = rand();
     float random = ((float)aux_random * 0.00000000001); //Generating decimal values
     
@@ -137,6 +134,8 @@ void initSession(pana_ctx * pana_session) {
     pana_session->session_id = 0;
 	
     //Init the EAP user
+    //FIXME: warning: passing argument 9 of ‘eap_peer_init’ makes pointer
+    //from integer without a cast: expected ‘char *’ but argument is of type ‘int’
     eap_peer_init(&(pana_session->eap_ctx), pana_session,USER,PASSWORD,CA_CERT,CLIENT_CERT,CLIENT_KEY,PRIVATE_KEY,FRAG_SIZE);
 
 #endif
@@ -219,7 +218,7 @@ void updateSession(char *message, pana_ctx *pana_session) {
 		int number = Hex2Dec(value, 4);//FIXME: Magic number (4 porque es el tamaño del campo value)
 		if (number != PRF_HMAC_SHA1) {
 			fprintf(stderr, "ERROR: The prf algorithm specified: %d, is not supported\n", PRF_HMAC_SHA1);
-			exit(0);
+			exit(EXIT_FAILURE);
 		}
 
 		// Updated the PRF algorithm negociated.
@@ -234,7 +233,7 @@ void updateSession(char *message, pana_ctx *pana_session) {
 		int number = Hex2Dec(value, 4);//FIXME: Magic number (4 porque es el tamaño del campo value)
 		if (number != AUTH_HMAC_SHA1_160) {
 			fprintf(stderr, "ERROR: The integrity algorithm specified: %d, is not supported\n", AUTH_HMAC_SHA1_160);
-			exit(0);
+			exit(EXIT_FAILURE);
 		}
 
 		// Updated the Integrity algoritm negociated.
@@ -321,7 +320,7 @@ void updateSession(char *message, pana_ctx *pana_session) {
                     pana_session->key_id = malloc(avpsize);
                     if(pana_session->key_id == NULL){
 						fprintf(stderr,"ERROR: Out of memory.\n");
-						exit(1);
+						exit(EXIT_FAILURE);
 					}
                     memcpy(pana_session->key_id, ((char*)elmnt)+sizeof(avp_pana),avpsize);
                 }

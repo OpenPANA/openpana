@@ -1,6 +1,8 @@
+/**
+ * @file sessionclient.h
+ * @brief PaC's session attributes.
+ **/
 /*
- *  sessionclient.h
- *
  *  Copyright (C) Pedro Moreno Sánchez & Francisco Vidal Meca on 2010.
  *
  *  This program is free software: you can redistribute it and/or modify

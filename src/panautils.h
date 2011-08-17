@@ -1,9 +1,9 @@
+/**
+ * @file panautils.h
+ * @brief  Headers of functions wich performs various helpful actions
+ * on the OpenPANA software.
+ **/
 /*
- *  panautils.h
- *  
- * 	Contains functions wich performs differents helpful actions on PANA
- * 	messages.
- * 
  *  Copyright (C) Pedro Moreno Sánchez & Francisco Vidal Meca on 18/10/10.
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -24,6 +24,8 @@
 
 #ifndef PANAUTILS_H
 #define PANAUTILS_H
+
+#include "include.h"
 
 #include "panamessages.h"
 #include "./state_machines/session.h"
@@ -118,4 +120,21 @@ int Hex2Dec (char * value, int length) ;
  * @return Number of bytes sended.
  * */
 int sendPana(struct sockaddr_in destaddr, char *msg, int sock);
+/**
+ * Returns the actual time of the system.
+ * 
+ * @return Time of the system.
+ * */
+double getTime();
+
+/** 
+ * Suspends execution for microseconds intervals.
+ * @param wait Microseconds.
+ * */
+void waitusec(unsigned int wait);
+/** 
+ * Suspends execution for nanoseconds intervals.
+ * @param wait Nanoseconds.
+ * */
+void waitnano(long wait);
 #endif

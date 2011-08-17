@@ -1,7 +1,8 @@
+/**
+ * @file maincliente.c
+ * @brief  PaC's main program.
+ **/
 /*
- *  maincliente.c
- *  
- *
  *  Created by Rafa Marin Lopez on 27/10/10.
  *  Copyright 2010 Universidad de Murcia. All rights reserved.
  *
@@ -23,13 +24,8 @@
  *  
  *  https://sourceforge.net/projects/openpana/
  */
-
-#include <stdio.h>
-#include <stdlib.h> //Function exit
-#include <unistd.h> //Function sleep
-#include <pthread.h>     /* pthread functions and data structures     */
-#include <arpa/inet.h>
-#include <config.h>
+ 
+#include "maincliente.h"
 
 #include "state_machines/statemachine.h"
 #include "panamessages.h"
@@ -37,7 +33,6 @@
 #include "panautils.h"
 #include "state_machines/session.h"
 #include "./libeapstack/eap_peer_interface.h"
-#include "maincliente.h"
 #include "lalarm.h"
 
 
@@ -63,10 +58,10 @@ void* handle_alarm_management(void* none) {
 
     while (1){
 		
-		struct timeval tv;
-		gettimeofday(&tv,NULL);
+		double time = getTime();
+
 		struct lalarm* alarm = NULL;
-		while ((alarm=get_next_alarm(&list_alarms, tv.tv_sec)) != NULL){
+		while ((alarm=get_next_alarm(&list_alarms, time)) != NULL){
 			 if (alarm->id == RETR_ALARM) {
 	#ifdef DEBUG
 				fprintf(stderr, "DEBUG: A PANA_RETRANSMISSION alarm ocurred\n");
@@ -93,7 +88,7 @@ void* handle_alarm_management(void* none) {
 	#endif
 			}
 		}
-		usleep(TIME_WAKE_UP);
+		waitusec(TIME_WAKE_UP);
 	}
 }
 

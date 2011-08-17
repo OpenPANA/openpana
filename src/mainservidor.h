@@ -1,6 +1,8 @@
+/**
+ * @file mainservidor.h
+ * @brief  PAA's headers.
+ **/
 /*
- *  mainservidor.h
- *
  *  Created by Rafa Marin Lopez
  *  Copyright 2010 Universidad de Murcia. All rights reserved.
  *
@@ -25,6 +27,9 @@
 
 #ifndef MAINSERVIDOR_H
 #define MAINSERVIDOR_H
+
+#include "include.h"
+
 #include "./libeapstack/eap_auth_interface.h"
 #include "state_machines/session.h"
 
@@ -38,7 +43,7 @@
 #define TIME_WAKE_UP 1000000
 
 /** Task's callback.*/
-typedef void* (*func)(void* data);
+typedef void* (*task_function)(void* data);
 
 /** List of PANA contexts.*/
 struct pana_ctx_list {
@@ -51,7 +56,7 @@ struct pana_ctx_list {
 /** List of tasks.*/
 struct task_list {
 	/** Function to be used with the task.*/
-    func use_function;
+    task_function use_function;
     /** Data of the task.*/
     void* data;
     /** Id session of the task.*/
@@ -103,7 +108,7 @@ void add_session(pana_ctx * session);
  * @param *arg Arguments of the function pointed by the
  * callback.
  */
-void add_task(func funcion, void* arg);
+void add_task(task_function funcion, void* arg);
 /**
  * A procedure to check if exists a new EAP event
  * available. In that case, a PANA state machine's transition

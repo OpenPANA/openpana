@@ -1,8 +1,8 @@
+/**
+ * @file lalarm.c
+ * @brief Implements a linked list to manage alarms.
+ */
 /*
- *	lalarm.c 
- * 
- *  Implements a linked list to manage alarms.
- * 
  *  Copyright (C) Pedro Moreno Sánchez & Francisco Vidal Meca on 13/04/09.
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -23,7 +23,7 @@
  */
 
 #include "lalarm.h"
-#include <time.h>
+#include "panautils.h"
 
 /** Global mutex used for controling the access to the critical lines of code.*/
 pthread_mutex_t mutex;
@@ -39,15 +39,14 @@ struct lalarm *init_alarms() {
 /* Add an alarm*/
 struct lalarm * add_alarma(struct lalarm ** l, 
 							pana_ctx* session, 
-							time_t time, 
+							double time, 
 							int iden) {
 	// Set the mutex for entering in the critical section.
     pthread_mutex_lock(&mutex);
 
     // Get the actual timestamp
-    struct timeval tv; 
-    gettimeofday(&tv, NULL);
-    time_t tiempo = tv.tv_sec;
+
+    double tiempo = getTime();
     tiempo += time;
     
     struct lalarm *anterior = *l;
@@ -161,7 +160,7 @@ pana_ctx * get_alarm_session(struct lalarm** list, int id_session, int id_alarm)
 }
 
 // Get the first alarm of the alarms' list if it is activated.
-struct lalarm * get_next_alarm(struct lalarm** list, time_t time) {
+struct lalarm * get_next_alarm(struct lalarm** list, double time) {
 
 	//Lock the mutex for entering in the critical section.
 	pthread_mutex_lock(&mutex);
@@ -210,7 +209,7 @@ void remove_alarm(struct lalarm** list, int id_session){
 			#ifdef DEBUG
 			if(current->pana_session == NULL){
 				fprintf(stderr,"DEBUG: remove_alarm: NULL Session \n");
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 			#endif
 			if(current->pana_session->session_id == id_session){

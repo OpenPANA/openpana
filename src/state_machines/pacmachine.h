@@ -1,6 +1,8 @@
+/**
+ * @file pacmachine.h
+ * @brief  Headers of PaC's state machine specific functions.
+ **/
 /*
- *  pacmachine.h
- *
  *  Copyright (C) Pedro Moreno Sánchez & Francisco Vidal Meca on 18/03/10.
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -21,6 +23,8 @@
  */
 #ifndef PACMACHINE_H
 #define PACMACHINE_H
+
+#include "../include.h"
 
 // Events
 /** PaC-initiated Handshake event. */

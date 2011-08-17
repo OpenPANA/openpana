@@ -1,8 +1,9 @@
+/**
+ * @file loadconfig.h
+ * @brief  Headers of functions wich performs the parser xml file for
+ * the PaC and PAA.
+ **/
 /*
- *  loadconfig.h
- *  
- * 	Contains functions wich performs the parser xml file for the PaC and PAA.
- *
  *  Copyright (C) Pedro Moreno Sánchez & Francisco Vidal Meca on 06/07/10.
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -26,8 +27,8 @@
 #ifndef LOADCONFIG_H
 #define LOADCONFIG_H
 
+#include "include.h"
 #include "state_machines/session.h"
-#include "../config.h"
 
 /** A procedure to load client's configurable variables.
  *

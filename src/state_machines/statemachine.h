@@ -1,6 +1,8 @@
+/**
+ * @file statemachine.h
+ * @brief State machine's common functions headers.
+ **/
 /*
- *  statemachine.h
- *
  *  Copyright (C) Pedro Moreno Sánchez & Francisco Vidal Meca on 2011.
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -21,15 +23,8 @@
  */
 #ifndef STATEMACHINE_H
 #define STATEMACHINE_H
+#include "include.h"
 #include "session.h"
-
-//FIXME: Esto debería ir en un include.h???
-/** SET state.*/
-#define SET		1
-/** UNSET state. */
-#define UNSET 	0
-/** ERROR state.*/
-#define ERROR	-666
 
 // Values of a result code avp
 /**
@@ -117,7 +112,7 @@
 
 /** General callback function definition, it corresponds to a function
  * to be called in a position of the state machine table */
-typedef int (*function)();
+typedef int (*sm_action)();
 
 /** State transition table is used to represent the operation of the 
  * protocol by a number of cooperating state machines each comprising a 
@@ -125,7 +120,7 @@ typedef int (*function)();
  * machine can be active at any given time. Rows are the states and
  * columns are the events. By invoking the table with a state and
  * associated event, the corresponding callback function is called. */
-function table [NUM_STATES][NUM_EVENTS];
+sm_action table [NUM_STATES][NUM_EVENTS];
 
 /** Pointer to the current PANA session.*/
 pana_ctx * current_session;

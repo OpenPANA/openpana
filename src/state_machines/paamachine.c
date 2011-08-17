@@ -1,6 +1,8 @@
+/**
+ * @file paamachine.c
+ * @brief  Implementation of PAA's state machine specific functions.
+ **/
 /* 
- *  paamachine.c
- *
  *  Copyright (C) Pedro Moreno Sánchez & Francisco Vidal Meca on 2010.
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -19,9 +21,6 @@
  *  
  *  https://sourceforge.net/projects/openpana/
  */
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include "paamachine.h"
 #include "statemachine.h"
@@ -568,7 +567,7 @@ int newKeyAvailable() {
 			session->msk_key = calloc(1, key_len);
 			if(session->msk_key == NULL){
 				fprintf(stderr,"ERROR: Out of memory.\n");
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 			memcpy(session->msk_key, key, key_len);
 /*

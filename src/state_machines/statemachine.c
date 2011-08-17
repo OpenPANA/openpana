@@ -1,6 +1,8 @@
+/**
+ * @file statemachine.c
+ * @brief  State machine's common functions implementation.
+ **/
 /*
- *  statemachine.c
- *
  *  Copyright (C) Pedro Moreno Sánchez & Francisco Vidal Meca on 2011.
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -20,9 +22,6 @@
  *  https://sourceforge.net/projects/openpana/
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "statemachine.h"
 #include "session.h"
 #include "../panamessages.h"
@@ -245,7 +244,7 @@ void disconnect() {
 	}
 
     printf("PANA: Client disconnected.\n");
-    exit(0);
+    exit(EXIT_SUCCESS);
     //free(current_session->avp_data);
 #endif
 
@@ -286,7 +285,7 @@ void retransmit() {
     numbytes = sendPana(current_session->eap_ll_dst_addr, current_session->retr_msg, current_session->socket);
     if (0 >= numbytes) {
         fprintf(stderr, "ERROR: sendPana in rentransmit.\n");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
     current_session->RTX_COUNTER += 1;
     current_session->RT = 2 * current_session->RT + current_session->RAND * current_session->RT;
@@ -491,7 +490,7 @@ int keyAvailable() {
 			session->msk_key = calloc(1, key_len);
 			if(session->msk_key == NULL){
 				fprintf(stderr,"ERROR: Out of memory.\n");
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 			memcpy(session->msk_key, key, key_len);
 

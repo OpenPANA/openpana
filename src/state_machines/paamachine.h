@@ -1,7 +1,8 @@
+/**
+ * @file paamachine.h
+ * @brief  Headers of PAA's state machine specific functions.
+ **/
 /*
- *  paamachine.h
- *
- *
  *  Copyright (C) Pedro Moreno Sánchez & Francisco Vidal Meca on 2011.
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -23,6 +24,7 @@
 #ifndef PAAMACHINE_H
 #define PAAMACHINE_H
 
+#include "include.h"
 #include "session.h"
 
 // Events

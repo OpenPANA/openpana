@@ -1,6 +1,8 @@
+/**
+ * @file panamessages.c
+ * @brief  Functions to work with PANA messages.
+ **/
 /*
- *  panamessages.c
- *
  *  Copyright (C) Pedro Moreno Sánchez & Francisco Vidal Meca on 07/09/10.
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -19,11 +21,6 @@
  *  
  *  https://sourceforge.net/projects/openpana/
  */
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <netinet/in.h> //Function htons()
-#include <time.h> //To get random values
 
 #include "panamessages.h"
 #include "state_machines/statemachine.h"
@@ -76,7 +73,7 @@ int AVPgenerateflags(char * avps){
 	
 	if(NULL == names){
 		fprintf(stderr,"Out of memory.\n");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	strcpy(names, avps);
 	if (strcmp(names, "") != 0) { //If you're not going to insert any avp, skip this part
@@ -254,7 +251,7 @@ char * transmissionMessage(char * msgtype, short flags, int *sequence_number, in
     pana * msg = (pana*) pana_message;
     if (NULL == msg) {
         fprintf(stderr, "ERROR: Out of memory.\n");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
     
     //We add the values needed to the message
@@ -286,7 +283,7 @@ char * transmissionMessage(char * msgtype, short flags, int *sequence_number, in
     numbytes = sendPana(destaddr, (char*)msg, sock);
     if (0 >= numbytes) {
         fprintf(stderr, "ERROR: sendPana in transmissionMessage.\n");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 	return (char*)msg;
 }
@@ -372,7 +369,7 @@ int insertAvps(char** message, int avps, void **data) {
 		msg = realloc(msg,totalsize);
 		if(msg == NULL){
 			fprintf(stderr,"Out of memory\n");
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 		position = msg + stride;
 		elmnt = (avp_pana*) position;
@@ -409,7 +406,7 @@ int insertAvps(char** message, int avps, void **data) {
 		msg = realloc(msg,totalsize);
 		if(msg == NULL){
 			fprintf(stderr,"Out of memory\n");
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 		
 		position = msg + stride;
@@ -448,7 +445,7 @@ int insertAvps(char** message, int avps, void **data) {
 		msg = realloc(msg,totalsize);
 		if(msg == NULL){
 			fprintf(stderr,"Out of memory\n");
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 		
 		position = msg + stride;
@@ -463,9 +460,7 @@ int insertAvps(char** message, int avps, void **data) {
 		//See section 8.5 RFC 5191
         elmnt->code = htons(NONCE_AVP);
 		
-        struct timeval seed;
-        gettimeofday(&seed, NULL);
-        srand(seed.tv_usec); //initialize random generator using usecs
+        srand(getTime()); //initialize random generator using time
 
         for (unsigned int i = 0; i <= (avpsize - sizeof(avp_pana)); i += sizeof (int)) {
             int random = rand();
@@ -495,7 +490,7 @@ int insertAvps(char** message, int avps, void **data) {
 		msg = realloc(msg,totalsize);
 		if(msg == NULL){
 			fprintf(stderr,"Out of memory\n");
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 		position = msg + stride;
 		elmnt = (avp_pana*) position;
@@ -510,8 +505,8 @@ int insertAvps(char** message, int avps, void **data) {
 		elmnt->length =htons(avpsize - sizeof(avp_pana));
         elmnt->code = htons(PRFALG_AVP);
 
-        int option = ntohl((int) data[PRFALG_AVP]);
-        memcpy(position + sizeof(avp_pana), &option, sizeof (int));
+        uint32_t option = ntohl((uint32_t) data[PRFALG_AVP]);
+        memcpy(position + sizeof(avp_pana), &option, sizeof (uint32_t));
         //debug_avp(elmnt);
         //Update message values
         stride += avpsize;
@@ -532,7 +527,7 @@ int insertAvps(char** message, int avps, void **data) {
 		msg = realloc(msg,totalsize);
 		if(msg == NULL){
 			fprintf(stderr,"Out of memory\n");
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 		position = msg + stride;
 		elmnt = (avp_pana*) position;
@@ -547,8 +542,8 @@ int insertAvps(char** message, int avps, void **data) {
 		elmnt->length =htons(avpsize - sizeof(avp_pana));
         elmnt->code = htons(RESULTCODE_AVP);
 
-        int option = ntohl((int) data[RESULTCODE_AVP]);
-        memcpy(position + sizeof(avp_pana), &option, sizeof (int));
+        uint32_t option = ntohl((uint32_t) data[RESULTCODE_AVP]);
+        memcpy(position + sizeof(avp_pana), &option, sizeof (uint32_t));
         //debug_avp(elmnt);
         //Update message values
         stride += avpsize;
@@ -564,7 +559,7 @@ int insertAvps(char** message, int avps, void **data) {
 		msg = realloc(msg,totalsize);
 		if(msg == NULL){
 			fprintf(stderr,"Out of memory\n");
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 		position = msg + stride;
 		elmnt = (avp_pana*) position;
@@ -580,8 +575,8 @@ int insertAvps(char** message, int avps, void **data) {
         elmnt->code = htons(SESSIONLIFETIME_AVP);
 
         //FIXME: De momento el servidor siempre manda el hmac_sha1. Ver como se manda una lista de varios
-        int option = ntohl((int) data[SESSIONLIFETIME_AVP]);
-        memcpy(position + sizeof(avp_pana), &option, sizeof (int));
+        uint32_t option = ntohl((uint32_t) data[SESSIONLIFETIME_AVP]);
+        memcpy(position + sizeof(avp_pana), &option, sizeof (uint32_t));
         //debug_avp(elmnt);
         //Update message values
         stride += avpsize;
@@ -596,7 +591,7 @@ int insertAvps(char** message, int avps, void **data) {
 		msg = realloc(msg,totalsize);
 		if(msg == NULL){
 			fprintf(stderr,"Out of memory\n");
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 		position = msg + stride;
 		elmnt = (avp_pana*) position;
@@ -612,10 +607,10 @@ int insertAvps(char** message, int avps, void **data) {
         elmnt->code = htons(TERMINATIONCAUSE_AVP);
 
         //FIXME: De momento el servidor siempre manda el hmac_sha1. Ver como se manda una lista de varios
-        int * valor;
-        valor = (int *)(position + sizeof(avp_pana));
-        *valor = ntohs((int) data[TERMINATIONCAUSE_AVP]);
-        memcpy(position + sizeof(avp_pana), valor, sizeof (int));
+        uint32_t * valor;
+        valor = (uint32_t *)(position + sizeof(avp_pana));
+        *valor = ntohs((uint32_t) data[TERMINATIONCAUSE_AVP]);
+        memcpy(position + sizeof(avp_pana), valor, sizeof (uint32_t));
         //debug_avp(elmnt);
         //Update message values
         stride += avpsize;
@@ -655,7 +650,7 @@ int insertAvps(char** message, int avps, void **data) {
 		msg = realloc(msg,totalsize);
 		if(msg == NULL){
 			fprintf(stderr,"Out of memory\n");
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 		
 		position = msg + stride;
@@ -691,7 +686,7 @@ int insertAvps(char** message, int avps, void **data) {
 		msg = realloc(msg,totalsize);
 		if(msg == NULL){
 			fprintf(stderr,"Out of memory\n");
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 		
 		position = msg + stride;
