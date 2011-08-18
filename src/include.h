@@ -4,7 +4,8 @@
  * (RFC 5191). It's a multithreading implementation, supported by a
  * framework, which allows multiple users to authenticate.
  * 
- * @author Pedro Moreno Sánchez & Francisco Vidal Meca
+ * @author Pedro Moreno Sánchez <p.morenosanchez@um.es>
+ * @author Francisco Vidal Meca <f.vidalmeca@um.es>
  * \n\n\n
  * Further information such as configuration, installation contact info
  * or acknowledgments can be found on the README file.
@@ -12,7 +13,7 @@
  * @file include.h
  * @brief This header file is included into all C files so that commonly
  * used header files can be selected with specific ifdef blocks in one
- * place instead of having to have specific selection in many files. 
+ * place instead of having to have specific selection in many files.
  */
  
 /*

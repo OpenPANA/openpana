@@ -37,7 +37,7 @@ AC_TYPE_UINT32_T
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
-AC_CHECK_FUNCS([gettimeofday inet_ntoa memset pow select socket])
+AC_CHECK_FUNCS([gettimeofday inet_ntoa memset pow select socket bzero])
 AC_CHECK_FUNCS([nanosleep usleep],break)
 
 # Set default AM_CFLAGS for the complete project.

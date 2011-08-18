@@ -539,9 +539,10 @@ void* handle_network_management() {
 	return NULL;
 }
 
-void* handle_alarm_management() {
+void* handle_alarm_management(void* param) {
 
-    while (!fin){ // Do it while the PAA is activated.
+	struct lalarm* list_alarms = (struct lalarm*) param;
+    while (TRUE){ // Do it while the PAA is activated.
     
 		struct retr_func_parameter retrans_params;
 
@@ -666,7 +667,7 @@ int main(int argc, char* argv[]) {
     //Create alarm manager thread
     i+=1;
     thr_id[i] = i;
-    pthread_create(&p_threads[i], NULL, handle_alarm_management, (void*) &thr_id[i]);
+    pthread_create(&p_threads[i], NULL, handle_alarm_management, (void*) list_alarms);
 	
 	//Once the workers are executed, the network manager function starts
 	handle_network_management();

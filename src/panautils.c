@@ -500,6 +500,10 @@ void * xrealloc (void *p, size_t num){
 
 void * xcalloc (size_t num, size_t size){
   void *new = xmalloc (num * size);
-  bzero (new, num * size);
+  #ifdef HAVE_MEMSET
+    memset(new,0,num*size);
+  #else
+	bzero (new, num * size);
+  #endif
   return new;
 }
