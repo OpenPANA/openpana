@@ -55,6 +55,8 @@ typedef struct {
      *  is available.
      */ 
     char * global_key_id;
+    
+    int RTX_COUNTER_AAA;/**< Number of retransmission to AAA*/
 } pana_server_ctx;
 
 #endif

@@ -247,8 +247,8 @@ static int eap_peer_register_methods(struct eap_method **eap_methods)
 	
 	return ret;
 }
-
-int eap_peer_init(struct eap_peer_ctx *eap_ctx, void *eap_ll_ctx, char * user, char * passwd, char * cacert, char * ccert, char * ckey, char * pkey, char * fsize)
+//FIXME Paco: char * fsize debería ser un entero, ya que eap_ctx->eap_config.fragment_size de eap_config.h es un int.
+int eap_peer_init(struct eap_peer_ctx *eap_ctx, void *eap_ll_ctx, char * user, char * passwd, char * cacert, char * ccert, char * ckey, char * pkey, int fsize)
 {
 	struct eapol_callbacks * eap_cb = (struct eapol_callbacks *)os_malloc(sizeof(struct eapol_callbacks));
 	os_memset(eap_cb, 0, sizeof(*eap_cb));

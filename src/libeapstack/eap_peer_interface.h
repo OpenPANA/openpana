@@ -37,7 +37,7 @@ struct eap_peer_ctx {
 	void *eap_ll_ctx;
 };
 
-int eap_peer_init(struct eap_peer_ctx *eap_ctx, void *eap_ll_ctx,char * user, char * passwd, char * cacert, char * ccert, char * ckey, char * pkey, char * fsize);
+int eap_peer_init(struct eap_peer_ctx *eap_ctx, void *eap_ll_ctx,char * user, char * passwd, char * cacert, char * ccert, char * ckey, char * pkey, int fsize);
 int eap_peer_step(struct eap_peer_ctx *eap_ctx);
 void eap_peer_set_eapReq(struct eap_peer_ctx* eap_ctx, Boolean value);
 void eap_peer_set_eapReqData(struct eap_peer_ctx* eap_ctx, const u8 *eap_packet, size_t eap_packet_len);

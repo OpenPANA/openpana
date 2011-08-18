@@ -95,42 +95,63 @@
 #include <unistd.h>
 #endif
 
+#include <stdarg.h>
+
+#ifndef EXIT_SUCCESS
+	#define EXIT_SUCCESS  0
+	#define EXIT_FAILURE  1
+#endif
+
+
 #define SET		1 /**< SET state. */
 #define UNSET 	0 /**< UNSET state.*/
 #define ERROR	-666 /**< ERROR state.*/
 
-// External files' documentation
+// Memory managment wrappers' headers, they'll be implemented on
+// panautils.c, but they'll need to be included every file 
+/** Macro to use xcalloc */
+#define XCALLOC(type, num)                                  \
+        ((type *) xcalloc ((num), sizeof(type)))
+/** Macro to use xmalloc */
+#define XMALLOC(type, num)                                  \
+        ((type *) xmalloc ((num) * sizeof(type)))
+/** Macro to use xrealloc */
+#define XREALLOC(type, p, num)                              \
+        ((type *) xrealloc ((p), (num) * sizeof(type)))
+/** Macro to use free */
+#define XFREE(stale)                            do {        \
+        if (stale) { free (stale);  stale = 0; }            \
+                                                } while (0)
+/** calloc wrapper to handle 'out of memory' problems*/
+extern void *xcalloc    (size_t num, size_t size);
+/** malloc wrapper to handle 'out of memory' problems*/
+extern void *xmalloc    (size_t num);
+/** realloc wrapper to handle 'out of memory' problems*/
+extern void *xrealloc   (void *p, size_t num);
+
+// External files' documentation, in order to create doxygen
+// documentation without modifying them
 /** 
  * @file prf_plus.c
  * @brief Implements PRF functions to be used with OpenPANA.
  * @author Fernando Bernal Hidalgo
- */
- 
- /** 
+ * 
  * @file prf_plus.h
  * @brief Headers of PRF functions to be used with OpenPANA.
  * @author Fernando Bernal Hidalgo
- */
- 
- /** 
+ * 
  * @file eap_auth_interface.c
  * @brief EAP Authenticator's interface implementation.
  * @author Rafa Marín López
- */
- 
- /** 
+ * 
  * @file eap_auth_interface.h
  * @brief EAP Authenticator's interface headers.
  * @author Rafa Marín López
- */
- 
- /** 
+ * 
  * @file eap_peer_interface.c
  * @brief EAP Peer's interface implementation.
  * @author Rafa Marín López
- */
- 
- /** 
+ * 
  * @file eap_peer_interface.h
  * @brief EAP Peer's interface headers.
  * @author Rafa Marín López

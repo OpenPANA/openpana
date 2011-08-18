@@ -342,7 +342,7 @@ int isOctetString(int type);
 /** Debug function, shows in a friendly way the information contained in
  * a PANA message (includes AVPs in the value area).
  * @param *hdr panaMessage to be shown. */
-void debug_pana(pana *hdr);
+void debug_msg(pana *hdr);
 
 /** Debug function, shows in a friendly way the information contained in
  * an AVP.

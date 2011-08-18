@@ -31,15 +31,11 @@ int sendPana(struct sockaddr_in destaddr, char *msg, int sock) {
 
 
     if (msg == NULL) { //If no message is provided
-		#ifdef DEBUG
-			fprintf(stderr,"ERROR: sendPana NULL message parameter.\n");
-		#endif
+		pana_debug("sendPana ERROR NULL message parameter");
         return -1;
     }
     if(sock == 0){
-		#ifdef DEBUG
-			fprintf(stderr,"ERROR: sendPana socket it's 0.\n");
-		#endif
+		pana_debug("sendPana ERROR socket it's 0");
 		return -1;
 	}
 	
@@ -80,10 +76,8 @@ int sendPana(struct sockaddr_in destaddr, char *msg, int sock) {
         bytesleft -= n;
     }
 
-#ifdef DEBUG
-    fprintf(stderr,"DEBUG: Sended to IP: %s , port %d \n", inet_ntoa(destaddr.sin_addr), ntohs(destaddr.sin_port));
-    fprintf(stderr,"PANA: Sended %d bytes to %s\n", total, inet_ntoa(destaddr.sin_addr));
-#endif
+	pana_debug("Sended to IP: %s , port %d", inet_ntoa(destaddr.sin_addr), ntohs(destaddr.sin_port));
+	pana_debug("Sended %d bytes to %s", total, inet_ntoa(destaddr.sin_addr));
 
     if (n == -1) return -1;
     else return total;
@@ -92,11 +86,11 @@ int sendPana(struct sockaddr_in destaddr, char *msg, int sock) {
 int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
 	/*#ifdef DEBUG
 	fprintf(stderr, "DEBUG: MESSAGE TO BE CHECKED\n");
-	debug_pana(msg);
+	debug_msg(msg);
 	#endif*/
     //Checks pana header fields.
     if (msg->reserved != 0) {
-        fprintf(stderr, "ERROR: Reserved field is not set to zero. Dropping message\n");
+		pana_error("Reserved field is not set to zero. Dropping message");
         return 0;
     }
     short flags = ntohs(msg->flags) & 0XFFFF;
@@ -105,19 +99,19 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
 	
     if ((ntohs(msg->flags) != 0 && ntohs(msg->flags) < I_FLAG) || //The I FLAG is the smallest
             (ntohs(msg->flags) > (I_FLAG | R_FLAG | S_FLAG | C_FLAG | A_FLAG | P_FLAG))) { //0xFC00 is the result of adding all the flags.
-        fprintf(stderr, "ERROR: Invalid message flags. Dropping message\n");
+        pana_error("Invalid message flags. Dropping message");
         return 0;
     }
     
     if (msg_type < PCI_MSG || msg_type > PNA_MSG) {
-        fprintf(stderr, "ERROR: Invalid message type. Dropping message\n");
+		pana_error("Invalid message type. Dropping message");
         return 0;
     }
     
 	//Checks session-id  !(sess=0 && PCI)
 	if (session_id!=pana_session->session_id && !(session_id==0 && msg_type == PCI_MSG)){
-			fprintf(stderr,"ERROR: The message session id is not valid. Dropping message\n");
-			return 0;
+		pana_error("The message session id is not valid. Dropping message");
+		return 0;
 	}
 	//FIXME no debería actualizarse el seq-number hasta comprobar auth
 	//Check sequence numbers
@@ -128,7 +122,7 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
         //Aunque en el servidor no se va a dar nunca el 0, puede suceder con el PCI en el cliente
         
         if (pana_session->SEQ_NUMBER != 0 && pana_session->SEQ_NUMBER != ( seq_number - 1)) {
-            fprintf(stderr, "ERROR: Wrong Request secuence number. Dropping message.\n");
+			pana_error("Wrong Request secuence number. Dropping message");
             return 0;
         }
         //Si recibes un request válido, hay que actualizar el número de secuencia para el answer
@@ -136,8 +130,8 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
     } else if (msg_type != PCI_MSG) { //No es PCI, es un Answer
 		
         if (pana_session->SEQ_NUMBER != seq_number) { //Si se recibe un answer erroneo
-			fprintf(stderr, "ERROR: Wrong Answer secuence number. Dropping message.\n");
-			fprintf(stderr, "Valores: session -> %d, mensaje -> %d\n", pana_session->SEQ_NUMBER, seq_number);
+			pana_error("Wrong Answer secuence number. Dropping message");
+			pana_debug("Values: session -> %d, message -> %d", pana_session->SEQ_NUMBER, seq_number);
             return 0;
         }
     }
@@ -155,11 +149,7 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
 
         //Now, avp elmnt points to auth avp
         size = ntohs(elmnt->length);
-        data = malloc(size * sizeof (char));
-        if(data == NULL){
-			fprintf(stderr,"Out of memory\n");
-			exit(EXIT_FAILURE);
-		}
+        data = XMALLOC(char,size);
 		//fprintf(stderr,"AUTH_AVP salvado\n");
 		//debug_avp(elmnt);
         memcpy(data, avpbytes + sizeof(avp_pana), size);
@@ -182,16 +172,13 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
             if (newAuth[i] != data[i])
                 break;
         }
-		free(data); //Once its compared, data can be freed
+		XFREE(data); //Once its compared, data can be freed
 		
         if (i == size) { //If both are the same, the AUTH is correct
-            #ifdef DEBUG
-            fprintf(stderr, "DEBUG: AUTH AVP checked. Correct\n");
-            #endif
+			pana_debug("AUTH AVP checked. Correct");
         } else {
-        #ifdef DEBUG
-            fprintf(stderr, "DEBUG: AUTH AVP checked. INCORRECT\n");
-        #endif
+			pana_debug("AUTH AVP checked. INCORRECT");
+			pana_error("Wrong AUTH AVP value. Dropping message");
             return FALSE; //Invalid, message is ignored
         }
     }
@@ -205,58 +192,38 @@ int generateSessionId(char * ip, short port) {
     int size = sizeof (short) +strlen(ip);
     char * result = NULL; //To store the result
     
-    seed = malloc(size * sizeof (char));
-    if (NULL == seed) {
-        fprintf(stderr, "ERROR: Out of memory.\n");
-        exit(EXIT_FAILURE);
-    }
+    seed = XMALLOC(char,size);
     
     memcpy(seed, &port, sizeof (short)); //port + ip
     memcpy(seed + sizeof (short), ip, strlen(ip));
     
-    result = malloc(20 * sizeof (char));
-    if (NULL == result) {
-        fprintf(stderr, "ERROR: Out of memory.\n");
-        exit(EXIT_FAILURE);
-    }
+    result = XMALLOC(char,20);
     
     PRF((u8 *) "session id", 10, (u8*) seed, size, (u8*) result);
     int * point = (int *) result;
     int rc = (*point);
-    #ifdef DEBUG
-    fprintf(stderr,"DEBUG: Session Id %d generated with port %d and ip %s\n",rc,port,ip);
-    #endif
-    free(seed);
-    free(result);
+    pana_debug("Session Id %d generated with port %d and ip %s",rc,port,ip);
+    XFREE(seed);
+    XFREE(result);
     return rc;
 }
 
 u8 * generateAUTH(pana_ctx * session) {
 
     if (session->PaC_nonce == NULL) {
-        #ifdef DEBUG
-        fprintf(stderr, "DEBUG: Unable to generate AUTH. Null PAC_NONCE\n");
-        #endif
+		pana_debug("Unable to generate AUTH. Null PAC_NONCE");
         return NULL;
     } else if (session->PAA_nonce == NULL) {
-        #ifdef DEBUG
-        fprintf(stderr, "DEBUG: Unable to generate AUTH. Null PAA_NONCE\n");
-        #endif
+		pana_debug("Unable to generate AUTH. Null PAA_NONCE");
         return NULL;
     } else if (session->msk_key == NULL) {
-        #ifdef DEBUG
-        fprintf(stderr, "DEBUG: Unable to generate AUTH. Null Msk_key\n");
-        #endif
+		pana_debug("Unable to generate AUTH. Null Msk_key");
         return NULL;
     }else if (session->I_PAR == NULL) {
-        #ifdef DEBUG
-        fprintf(stderr, "DEBUG: Unable to generate AUTH. Null I_PAR\n");
-        #endif
+		pana_debug("Unable to generate AUTH. Null I_PAR");
         return NULL;
     } else if (session->I_PAN == NULL) {
-        #ifdef DEBUG
-        fprintf(stderr, "DEBUG: Unable to generate AUTH. Null I_PAN\n");
-        #endif
+		pana_debug("Unable to generate AUTH. Null I_PAN");
         return NULL;
     }
     else if (session->key_id == NULL || session->key_id_length <=0){
@@ -265,27 +232,25 @@ u8 * generateAUTH(pana_ctx * session) {
         #endif
         return NULL;
 	}
-    #ifdef DEBUG
-    fprintf(stderr, "DEBUG: Starting AUTH generation.\n");
+    pana_debug("Starting AUTH generation");
     /*fprintf(stderr, "DEBUG: PaC Nonce:\n");
-    debug_pana((pana*)session->PaC_nonce);
+    debug_msg((pana*)session->PaC_nonce);
     fprintf(stderr, "DEBUG: PAA Nonce:\n");
-    debug_pana((pana*)session->PAA_nonce);
+    debug_msg((pana*)session->PAA_nonce);
     fprintf(stderr, "DEBUG: MSK Key:\n");
     for(unsigned int i =0; i< session->key_len;i++){
 		fprintf(stderr,"%02X",session->msk_key[i]);
 	}
     fprintf(stderr,"\n");
     fprintf(stderr, "DEBUG: I_PAN:\n");
-    debug_pana((pana*)session->I_PAN);
+    debug_msg((pana*)session->I_PAN);
     fprintf(stderr, "DEBUG: I_PAR:\n");
-    debug_pana((pana*)session->I_PAR);
+    debug_msg((pana*)session->I_PAR);
     fprintf(stderr, "DEBUG: Key-ID:\n");
     for(int i =0; i< session->key_id_length;i++){
 		fprintf(stderr,"%02X",session->key_id[i]);
 	}
     */
-    #endif
 
     pana * msg;
 
@@ -324,11 +289,7 @@ u8 * generateAUTH(pana_ctx * session) {
 
     seq_length += session->key_id_length;
 	//fprintf(stderr,"DEBUG: antes malloc seq_length\n");
-    sequence = malloc(seq_length * sizeof (char));
-    if(sequence == NULL){
-		fprintf(stderr,"ERROR: Out of memory\n");
-		exit(EXIT_FAILURE);
-	}
+    sequence = XMALLOC(char,seq_length);
 	
     //Once the memory is correctly reserved and allocated, we start copying
     //The values to form the seed's secuence
@@ -353,34 +314,28 @@ u8 * generateAUTH(pana_ctx * session) {
     memcpy(sequence + seq_length, session->key_id, session->key_id_length);
     seq_length += session->key_id_length;
 
-    if (result != NULL) free(result);
-    result = malloc(40); //To get the 320bits result key
-	if(result == NULL){
-		fprintf(stderr,"ERROR: Out of memory\n");
-		exit(EXIT_FAILURE);
-	}
+    XFREE(result);
+    result = XMALLOC(char,40); //To get the 320bits result key
 	
-	#ifdef DEBUG
-	/*fprintf(stderr,"DEBUG: PRF Seed is: \n");
+	/*#ifdef DEBUG
+	fprintf(stderr,"DEBUG: PRF Seed is: \n");
 	for (int j=0; j<seq_length; j++){
 		fprintf(stderr, "%02x ", sequence[j]);
-	}*/
-	#endif
+	}
+	#endif*/
 	
     PRF_plus(2, session->msk_key, session->key_len, (u8*) sequence, seq_length, result);
     
-    #ifdef DEBUG
     if (result != NULL) {
-        fprintf(stderr,"DEBUG: Generated PANA_AUTH_KEY.\n");
+		pana_debug("Generated PANA_AUTH_KEY");
     }
 
     /*int i;
     for (i = 0; i < 40; i++) {
         fprintf(stderr, "%02x ", (u8) result[i]);
     }*/
-    #endif
 
-    free(sequence); //Seed's memory is freed
+    XFREE(sequence); //Seed's memory is freed
     return result;
 }
 
@@ -388,13 +343,11 @@ int hashAuth(char *msg, char* key, int key_len) {
 	//The AVP code (AUTH) to compare with the one in the panaMessage
     char * elmnt = getAvp(msg, AUTH_AVP);
     //debug_avp((avp_pana*)elmnt);
-    #ifdef DEBUG
 	/*fprintf(stderr,"DEBUG: Key to use: ");
 	for (int i =0; i<key_len; i++){
 		fprintf(stderr,"%2X ",key[i] & 0xFF);
 	}
 	fprintf(stderr,"\n");*/
-    #endif
     
     if (elmnt == NULL) //If there's no AUTH return an error
         return 1;
@@ -423,7 +376,7 @@ int generateRandomKeyID (char** global_key_id) {
 
     srand(getTime()); //initialize random generator using time
     int key_id_length = 4; //FIXME: shouldn't be here?
-    (*global_key_id) = (char *) malloc(key_id_length * (sizeof (char)));
+    (*global_key_id) = (char *) XMALLOC(char,key_id_length);
     for (int i = 0; i <= key_id_length; i += sizeof (int)) {
         int random = rand();
         //If we need the whole int value
@@ -468,13 +421,85 @@ void waitusec(unsigned int wait){
 	waitnano(wait*1000);
 }
 void waitnano(long wait){
-	
 	#ifdef HAVE_NANOSLEEP
 		struct timespec req;
-		req.tv_sec=0;
+		long seconds = 0;
+		while(wait > 999999999){//If the limit of nsecs is reached.
+			seconds++;
+			wait -= 1000000000;
+		}
+		req.tv_sec=seconds;
 		req.tv_nsec=wait;
-		nanosleep(&req,NULL);	
+		nanosleep(&req,NULL);
 	#elif HAVE_USLEEP
 		usleep(wait/1000);
 	#endif
+}
+
+void pana_warning (const char *message, ...){
+	va_list args;
+    fprintf (stderr,"PANA: warning: ");
+    va_start( args, message );
+    vfprintf( stderr, message, args );
+    va_end( args );
+    fprintf( stderr, ".\n" );
+}
+
+void pana_error (const char *message, ...){
+	va_list args;
+    fprintf (stderr,"PANA: ERROR: ");
+    va_start( args, message );
+    vfprintf( stderr, message, args );
+    va_end( args );
+    fprintf( stderr, ".\n" );
+}
+
+void pana_fatal (const char *message, ...){
+	va_list args;
+    fprintf (stderr,"PANA: FATAL: ");
+    va_start( args, message );
+    vfprintf( stderr, message, args );
+    va_end( args );
+    fprintf( stderr, ".\n" );
+	exit(EXIT_FAILURE);
+}
+
+void pana_debug (const char *message, ...) {
+	#ifdef DEBUG
+	va_list args;
+    fprintf (stderr,"PANA: DEBUG: ");
+    va_start( args, message );
+    vfprintf( stderr, message, args );
+    va_end( args );
+    fprintf( stderr, ".\n" );
+	#endif
+}
+
+// Memory managment wrappers implementation, their headers are in
+// include.h
+
+void * xmalloc (size_t num){
+  void *new = malloc (num);
+  if (!new)
+    pana_fatal ("Out of memory");
+  return new;
+}
+
+void * xrealloc (void *p, size_t num){
+  void *new;
+
+  if (!p)
+    return xmalloc (num);
+
+  new = realloc (p, num);
+  if (!new)
+    pana_fatal ("Out of memory");
+
+  return new;
+}
+
+void * xcalloc (size_t num, size_t size){
+  void *new = xmalloc (num * size);
+  bzero (new, num * size);
+  return new;
 }

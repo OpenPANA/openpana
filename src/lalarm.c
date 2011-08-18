@@ -53,7 +53,7 @@ struct lalarm * add_alarma(struct lalarm ** l,
     int final = 0; //Bool for searching the place of the new alarm in the list.
     if (anterior == NULL) { // If the list is empty
 		// Save the alarm's information
-        (*l) = malloc(sizeof (struct lalarm));
+        (*l) = XMALLOC(struct lalarm,1);
         (*l)->pana_session = session;
         (*l)->tmp = tiempo; 
         (*l)->id = iden;
@@ -71,7 +71,7 @@ struct lalarm * add_alarma(struct lalarm ** l,
         }
 
         if (final == 1) {// If the new alarm must be inserted in the end of the alarms' list
-            aux->sig = malloc(sizeof (struct lalarm));
+            aux->sig = XMALLOC(struct lalarm,1);
             aux->sig->pana_session = session;
             aux->sig->tmp = tiempo; 
             aux->sig->id = iden;
@@ -80,14 +80,14 @@ struct lalarm * add_alarma(struct lalarm ** l,
             // 		- If anterior == l the new alarm must be inserted in the first position.
             //		- Else, the new alarm must be inserted in an intermediate position.
             if (aux == (*l)) { // We have to insert the new alarm in the first position
-                (*l) = malloc(sizeof (struct lalarm));
+                (*l) = XMALLOC(struct lalarm,1);
                 (*l)->pana_session = session;
                 (*l)->tmp = tiempo; 
                 (*l)->id = iden;
                 (*l)->sig = anterior; //The next alarm is the old first alarm in the list.
                 
             } else { //Insert the new alarm in an intermediate position.
-                anterior->sig = malloc(sizeof (struct lalarm));
+                anterior->sig = XMALLOC(struct lalarm,1);
                 anterior->sig->pana_session = session;
                 anterior->sig->tmp = tiempo; 
                 anterior->sig->id = iden;
@@ -95,7 +95,7 @@ struct lalarm * add_alarma(struct lalarm ** l,
             }
         } else if (difftime(aux->tmp, tiempo) == 0) { //If two alarms are at the same time, they are inserted too.
             struct lalarm *aux2 = anterior->sig;
-            anterior->sig = malloc(sizeof (struct lalarm));
+            anterior->sig = XMALLOC(struct lalarm,1);
             anterior->sig->pana_session = session;
             anterior->sig->tmp = tiempo; 
             anterior->sig->id = iden;
@@ -149,9 +149,7 @@ pana_ctx * get_alarm_session(struct lalarm** list, int id_session, int id_alarm)
 
     /* return the request to the caller. */
     if (session == NULL) {
-#ifdef DEBUG
-        fprintf(stderr, "DEBUG: Session with id %d not found in the alarm list.\n", id_session);
-#endif
+		pana_debug("Session with id %d not found in the alarm list", id_session);
         pthread_mutex_unlock(&mutex);
         return NULL;
     }
@@ -193,12 +191,13 @@ void remove_alarm(struct lalarm** list, int id_session){
 		return;
 	}
 
-	if ((*list)->pana_session == NULL)
-		fprintf(stderr, "ERROR: Trying to remove a session in an alarm's list empty\n");
+	if ((*list)->pana_session == NULL){
+		pana_error("Trying to remove a session in an alarm's list empty");
+	}
 	while( ((*list) != NULL) && ((*list)->pana_session->session_id == id_session)){ //Removed the firsts alarms associated with the PANA session searched.
 		struct lalarm * tofree = (*list);
 		(*list) = (*list)->sig;
-		free(tofree);
+		XFREE(tofree);
 	}
 	
 	if (list != NULL && (*list) != NULL){ //If we don't reach the end of the list, search more alarms associated with the PANA session searched.
@@ -206,17 +205,14 @@ void remove_alarm(struct lalarm** list, int id_session){
 		struct lalarm* current = (*list)->sig;
 		struct lalarm* prev = (*list);
 		while(current!=NULL){
-			#ifdef DEBUG
 			if(current->pana_session == NULL){
-				fprintf(stderr,"DEBUG: remove_alarm: NULL Session \n");
-				exit(EXIT_FAILURE);
+				pana_fatal("remove_alarm used with a NULL Session");
 			}
-			#endif
 			if(current->pana_session->session_id == id_session){
 					struct lalarm * tofree = current;
 					prev->sig = current->sig;
 					tofree->sig = NULL;
-					free(tofree);
+					XFREE(tofree);
 			}
 			
 			prev = current;

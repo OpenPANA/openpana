@@ -51,9 +51,7 @@ int AVPname2flag(char * avp_name){
     } else if (strcmp(avp_name, "Termination-Cause") == 0) {
         type = F_TERM;
     } else {
-#ifdef DEBUG
-        fprintf(stderr,"\nDEBUG: AVPname2floag function, invalid AVP name %s \n", avp_name);
-#endif
+		pana_debug("WARNING AVPname2flag function, invalid AVP name %s", avp_name);
         type = 0;
     }
     
@@ -69,12 +67,8 @@ int AVPgenerateflags(char * avps){
 	//Get the avp lists names parameter to a local variable.
 	char * names = NULL;
 	//an extra space is required to insert an extra separation token later
-	names = calloc(strlen(avps) +2,sizeof(char));
+	names = XCALLOC(char,strlen(avps) +2);
 	
-	if(NULL == names){
-		fprintf(stderr,"Out of memory.\n");
-		exit(EXIT_FAILURE);
-	}
 	strcpy(names, avps);
 	if (strcmp(names, "") != 0) { //If you're not going to insert any avp, skip this part
 
@@ -96,17 +90,13 @@ int AVPgenerateflags(char * avps){
 			result = result | AVPname2flag(ptr);
         }
     }
-#ifdef DEBUG
     else {
-        fprintf(stderr,"DEBUG: AVPname2flag function used without AVP.\n");
-    }
-#endif
+		pana_debug("WARNING: AVPname2flag function used without AVP");
+	}
 	
 	//Ignore AUTH AVP if present
 	if(result & F_AUTH){
-		#ifdef DEBUG
-		fprintf(stderr,"DEBUG: WARNING function AVPgenerateflags received \"AUTH\" AVP as a parameter, it'll be IGNORED.\n");
-		#endif
+		pana_debug("WARNING function AVPgenerateflags received \"AUTH\" AVP as a parameter, it'll be IGNORED");
 		//FIXME: Debería hacerse lógicamente, pero no va
 		result = (result - F_AUTH);
 	}
@@ -130,16 +120,12 @@ char * transmissionMessage(char * msgtype, short flags, int *sequence_number, in
 		msgtype[2] == 'N')) || (msgtype[1] == 'C' && msgtype[2] == 'I') || 
 		((msgtype[1] == 'N' || msgtype[1] == 'T') && (msgtype[2] == 'A' || 
 											  msgtype[2] == 'R')) )    )){
-		#ifdef DEBUG
-		fprintf(stderr,"DEBUG: transmissionMessage ERROR: Invalid Message: %s\n",msgtype);
-		#endif
+		pana_debug("transmissionMessage ERROR: Invalid Message: %s",msgtype);
 		return NULL;
 	}
 	
 	if(sequence_number == NULL){
-		#ifdef DEBUG
-		fprintf(stderr,"DEBUG: transmissionMessage ERROR: sequence number its NULL.\n");
-		#endif
+		pana_debug("transmissionMessage ERROR: sequence number its NULL");
 		return NULL;
 	}
 	
@@ -147,9 +133,7 @@ char * transmissionMessage(char * msgtype, short flags, int *sequence_number, in
 	
     if (flags & R_FLAG) { //The R_FLAG mustn't be specified in
         // the parameters, it'll be ignored
-#ifdef DEBUG
-        fprintf(stderr,"DEBUG: WARNING, trasmissionMessage received R_FLAG as a parameter, it'll be ignored!.\n");
-#endif
+        pana_debug("WARNING, trasmissionMessage received R_FLAG as a parameter, it'll be ignored!");
         flags = (flags & !(R_FLAG));
     }
 
@@ -172,9 +156,7 @@ char * transmissionMessage(char * msgtype, short flags, int *sequence_number, in
 		*(sequence_number) = 0;
         session_id = 0;
         msg_type = PCI_MSG;
-        #ifdef DEBUG
-        fprintf(stderr,"DEBUG: Tx PCI \n");
-		#endif
+        pana_debug("Tx PCI");
 	} else if ( msgtype[1] == 'A' ){ //PANA Auth Message see RFC 5191 7.2 & 7.3
 
         msg_type = PAR_MSG; // or it could be PAN_MSG, same value
@@ -182,23 +164,17 @@ char * transmissionMessage(char * msgtype, short flags, int *sequence_number, in
         //The message MUST NOT have both the ’S’ (Start) and ’C’
         //(Complete) bits set.
         if ((flags & S_FLAG) && (flags & C_FLAG)) {
-			#ifdef DEBUG
-			fprintf(stderr,"DEBUG: INVALID MESSAGE, transmissionMessage, a wrong message %s has been built, C and S flags enabled at the same time.\n", msgtype);
-			#endif
+			pana_debug("INVALID MESSAGE, transmissionMessage, a wrong message %s has been built, C and S flags enabled at the same time", msgtype);
 			return NULL;
         }
         
         if( msgtype[2] == 'R'){//See if its a request or not
 			flags = flags | R_FLAG;
-			#ifdef DEBUG
-			fprintf(stderr,"DEBUG: Tx PAR \n");
-			#endif
+			pana_debug("Tx PAR");
 		}
-		#ifdef DEBUG
         else {
-			fprintf(stderr,"DEBUG: Tx PAN \n");
+			pana_debug("Tx PAN");
 		}
-		#endif
     } else if (msgtype[1] == 'T'){//PANA-Termination message see RFC 5191 7.4
 
         msg_type = PTR_MSG;// or it could be PTA_MSG, same value
@@ -208,15 +184,11 @@ char * transmissionMessage(char * msgtype, short flags, int *sequence_number, in
 			
 			//"Termination-Cause" AVP must be added to the avp list
 			avpsflags = avpsflags | F_TERM ;
-			#ifdef DEBUG
-			fprintf(stderr,"DEBUG: Tx PTR \n");
-			#endif
+			pana_debug("Tx PTR");
 		}
-		#ifdef DEBUG
         else {
-			fprintf(stderr,"DEBUG: Tx PTA \n");
+			pana_debug("Tx PTA");
 		}
-		#endif
 	} else if(msgtype[1] == 'N'){//PANA-Notification message
         msg_type = PNR_MSG;//Or it could be PNA_MSG, same value
         
@@ -224,35 +196,25 @@ char * transmissionMessage(char * msgtype, short flags, int *sequence_number, in
         //’P’	(Ping) bits exclusively set.
         // (A||P)&&!(A&&P) <- Show an error if it isn't true
         if (!(((A_FLAG & flags) || (P_FLAG & flags)) && !((A_FLAG & flags) && (P_FLAG & flags)))) {
-			#ifdef DEBUG
-			fprintf(stderr,"DEBUG: INVALID MESSAGE, transmissionMessage, a wrong message %s has been built, A and P flags are not set exclusively.\n", msgtype);
-			#endif
+			pana_debug("INVALID MESSAGE, transmissionMessage, a wrong message %s has been built, A and P flags are not set exclusively", msgtype);
 			return NULL;
         }
         
 		if( msgtype[2] == 'R'){//See if its a request or not
 			flags = flags | R_FLAG;
-			#ifdef DEBUG
-			fprintf(stderr,"DEBUG: Tx PNR \n");
-			#endif
+			pana_debug("Tx PNR");
 		}
-		#ifdef DEBUG
         else {
-			fprintf(stderr,"DEBUG: Tx PNA \n");
+			pana_debug("Tx PNA");
 		}
-		#endif      
     }
 
     //The memory needed to create the PANA Header is reserved,
     //the memory for the AVPs will be reserved later
     char ** message;
-    char *pana_message = calloc(1, sizeof (pana)); //The message is set to 0 by default    
+    char *pana_message = XCALLOC(pana,1); //The message is set to 0 by default    
     message = & pana_message;
     pana * msg = (pana*) pana_message;
-    if (NULL == msg) {
-        fprintf(stderr, "ERROR: Out of memory.\n");
-        exit(EXIT_FAILURE);
-    }
     
     //We add the values needed to the message
     msg->flags = htons(flags); //Flags are added
@@ -274,10 +236,8 @@ char * transmissionMessage(char * msgtype, short flags, int *sequence_number, in
     insertAvps(message, avpsflags, data); //The AVPs are inserted on the message
 	msg =(pana*) *message; //Update from insertAvps parameter 
 
-#ifdef DEBUG
-    fprintf(stderr, "DEBUG: Message to be sent.\n");
-    debug_pana(msg);
-#endif
+    pana_debug("Message to be sent");
+    debug_msg(msg);
 	
     int numbytes;
     numbytes = sendPana(destaddr, (char*)msg, sock);
@@ -319,14 +279,12 @@ int existAvp(char * message, char *avp_name) {
     } else if (strcmp(avp_name, "Termination-Cause") == 0) {
         type = TERMINATIONCAUSE_AVP;
     } else {
-#ifdef DEBUG
-        fprintf(stderr,"\nDEBUG: existAvp function, invalid AVP name %s \n", avp_name);
-#endif
+		pana_debug("existAvp function, invalid AVP name %s", avp_name);
         return FALSE;
     }
     /*#ifdef DEBUG
     fprintf(stderr,"\nDEBUG: existAvp function, AVP name %s, AVP CODE:%d \n***\n***\nMENSAJE PANA COMPLETO:\n", avp_name,type);
-    debug_pana(msg);
+    debug_msg(msg);
     #endif*/
     if(getAvp(message,type)==NULL){
 		return FALSE;
@@ -338,22 +296,16 @@ int existAvp(char * message, char *avp_name) {
 int insertAvps(char** message, int avps, void **data) {
 	char * msg = *message;
 	if (avps == 0){ //If you're not going to insert any avp
-		#ifdef DEBUG
-		fprintf(stderr,"DEBUG: insertAVPs function used without AVP.\n");
-		#endif
+		pana_debug("insertAVPs function used without AVP");
 		return 0;
 	}
 
     if (msg == NULL) {//If there is no message given
-		#ifdef DEBUG
-		fprintf(stderr,"DEBUG: insertAVPs hasn't got any message, it MUST be used with a valid pana message.");
-		#endif
+		pana_debug("insertAVPs hasn't got any message, it MUST be used with a valid pana message");
         return 0;
     }
-    //fprintf(stderr,"AVPS: %x\n",avps);
+    
     int totalsize = sizeof(pana);
-    //fprintf(stderr,"Totalsize: %d\n",totalsize);
-
     int stride = totalsize;
     char * position = msg;
     avp_pana * elmnt = NULL;
@@ -366,11 +318,8 @@ int insertAvps(char** message, int avps, void **data) {
 		//it will be needed 12 bytes
 		avpsize = sizeof(avp_pana) + 4; //FIXME Magic Number
 		totalsize += avpsize;
-		msg = realloc(msg,totalsize);
-		if(msg == NULL){
-			fprintf(stderr,"Out of memory\n");
-			exit(EXIT_FAILURE);
-		}
+		msg = XREALLOC(char,msg,totalsize);
+		
 		position = msg + stride;
 		elmnt = (avp_pana*) position;
 		
@@ -403,11 +352,7 @@ int insertAvps(char** message, int avps, void **data) {
 		//it will be needed 12 bytes
 		avpsize = sizeof(avp_pana) + 4; //FIXME Magic Number
 		totalsize += avpsize;
-		msg = realloc(msg,totalsize);
-		if(msg == NULL){
-			fprintf(stderr,"Out of memory\n");
-			exit(EXIT_FAILURE);
-		}
+		msg = XREALLOC(char,msg,totalsize);
 		
 		position = msg + stride;
 		elmnt = (avp_pana*) position;
@@ -442,11 +387,7 @@ int insertAvps(char** message, int avps, void **data) {
 		int padding = paddingOctetString((avpsize - sizeof(avp_pana)));
 		totalsize += avpsize + padding;
 
-		msg = realloc(msg,totalsize);
-		if(msg == NULL){
-			fprintf(stderr,"Out of memory\n");
-			exit(EXIT_FAILURE);
-		}
+		msg = XREALLOC(char,msg,totalsize);
 		
 		position = msg + stride;
 		elmnt = (avp_pana*) position;
@@ -487,11 +428,7 @@ int insertAvps(char** message, int avps, void **data) {
 		//it will be needed 12 bytes
 		avpsize = sizeof(avp_pana) + 4; //FIXME Magic Number
 		totalsize += avpsize;
-		msg = realloc(msg,totalsize);
-		if(msg == NULL){
-			fprintf(stderr,"Out of memory\n");
-			exit(EXIT_FAILURE);
-		}
+		msg = XREALLOC(char,msg,totalsize);
 		position = msg + stride;
 		elmnt = (avp_pana*) position;
 		
@@ -524,11 +461,7 @@ int insertAvps(char** message, int avps, void **data) {
 		//it will be needed 12 bytes
 		avpsize = sizeof(avp_pana) + 4; //FIXME Magic Number
 		totalsize += avpsize;
-		msg = realloc(msg,totalsize);
-		if(msg == NULL){
-			fprintf(stderr,"Out of memory\n");
-			exit(EXIT_FAILURE);
-		}
+		msg = XREALLOC(char,msg,totalsize);
 		position = msg + stride;
 		elmnt = (avp_pana*) position;
 		
@@ -556,11 +489,7 @@ int insertAvps(char** message, int avps, void **data) {
 		//it will be needed 12 bytes
 		avpsize = sizeof(avp_pana) + 4; //FIXME Magic Number
 		totalsize += avpsize;
-		msg = realloc(msg,totalsize);
-		if(msg == NULL){
-			fprintf(stderr,"Out of memory\n");
-			exit(EXIT_FAILURE);
-		}
+		msg = XREALLOC(char,msg,totalsize);
 		position = msg + stride;
 		elmnt = (avp_pana*) position;
 		
@@ -588,11 +517,7 @@ int insertAvps(char** message, int avps, void **data) {
 		//it will be needed 12 bytes
 		avpsize = sizeof(avp_pana) + 4; //FIXME Magic Number
 		totalsize += avpsize;
-		msg = realloc(msg,totalsize);
-		if(msg == NULL){
-			fprintf(stderr,"Out of memory\n");
-			exit(EXIT_FAILURE);
-		}
+		msg = XREALLOC(char,msg,totalsize);
 		position = msg + stride;
 		elmnt = (avp_pana*) position;
 		
@@ -624,11 +549,9 @@ int insertAvps(char** message, int avps, void **data) {
         //trusted with regard to the computation of a random nonce
         //A 20 octets random value will be generated
         
-        #ifdef DEBUG
         if (data[EAPPAYLOAD_AVP] == NULL) {
-            fprintf(stderr,"DEBUG: Generating an EAP-Payload AVP without Payload.\n");
+			pana_debug("Generating an EAP-Payload AVP without Payload");
         }
-		#endif
         
         //Now eap packet is gonna be built
         struct wpabuf * aux = (struct wpabuf *) data[EAPPAYLOAD_AVP];
@@ -647,11 +570,7 @@ int insertAvps(char** message, int avps, void **data) {
 		int padding = paddingOctetString((avpsize - sizeof(avp_pana)));
 		totalsize += avpsize + padding;
 
-		msg = realloc(msg,totalsize);
-		if(msg == NULL){
-			fprintf(stderr,"Out of memory\n");
-			exit(EXIT_FAILURE);
-		}
+		msg = XREALLOC(char,msg,totalsize);
 		
 		position = msg + stride;
 		elmnt = (avp_pana*) position;
@@ -683,11 +602,7 @@ int insertAvps(char** message, int avps, void **data) {
 		int padding = paddingOctetString((avpsize - sizeof(avp_pana)));
 		totalsize += avpsize + padding;
 
-		msg = realloc(msg,totalsize);
-		if(msg == NULL){
-			fprintf(stderr,"Out of memory\n");
-			exit(EXIT_FAILURE);
-		}
+		msg = XREALLOC(char,msg,totalsize);
 		
 		position = msg + stride;
 		elmnt = (avp_pana*) position;
@@ -717,7 +632,7 @@ int insertAvps(char** message, int avps, void **data) {
 	//Finally totalsize is changed on PANA message
 	((pana *)msg)->msg_length = htons(totalsize);
 	//fprintf(stderr,"Totalsize: %d\n",ntohs(((pana *)msg)->msg_length));
-	//debug_pana((pana*)msg);
+	//debug_msg((pana*)msg);
 	*message = msg;
 	return totalsize;
 }
@@ -753,9 +668,7 @@ char * getAvpName(int avp_code) {
     if (avp_code >= AUTH_AVP && avp_code <= TERMINATIONCAUSE_AVP) {
         return avp_names[avp_code - 1];
     } else {
-    #ifdef DEBUG
-        fprintf(stderr, "DEBUG: ERROR getAvpName, wrong AVP code (%d).\n",avp_code);
-    #endif
+		pana_debug("ERROR getAvpName, wrong AVP code (%d)",avp_code);
         return NULL;
     }
 }
@@ -766,9 +679,7 @@ char * getMsgName(int msg_type) {
     if (msg_type >= PCI_MSG && msg_type <= PNA_MSG) {
         return pana_msg_type[msg_type - 1];
     } else {
-        #ifdef DEBUG
-        fprintf(stderr, "DEBUG: ERROR getMsgName, wrong message type (%d).\n",msg_type);
-        #endif
+		pana_debug("ERROR getMsgName, wrong message type (%d)",msg_type);
         return NULL;
     }
 }
@@ -788,7 +699,7 @@ int paddingOctetString(int size) {
     return padding;
 }
 
-void debug_pana(pana *hdr){
+void debug_msg(pana *hdr){
 	#ifdef DEBUG
     fprintf(stderr,"Pana Message Name: %s \n", getMsgName(ntohs(hdr->msg_type)));
     //fprintf(stderr," 0                   1                   2                   3\n");
@@ -813,7 +724,6 @@ void debug_pana(pana *hdr){
 
     int size = ntohs(hdr->msg_length) - sizeof (pana);
     int offset = 0;
-    //printf("DEBUG: debugmessage Value=%s \n", (msg->avp_list + 4 * sizeof (short)));
     char * msg = (char *) hdr;
     while (size > 0) {
         avp_pana * elmnt = (avp_pana *) (msg + sizeof(pana) + offset);

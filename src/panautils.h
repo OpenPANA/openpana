@@ -137,4 +137,26 @@ void waitusec(unsigned int wait);
  * @param wait Nanoseconds.
  * */
 void waitnano(long wait);
+/**
+ * Prints a warning message. Its used the same exact way printf() would.
+ * @param *message warning message.
+ * */
+void pana_warning (const char *message, ...);
+/**
+ * Prints an error message. Its used the same exact way printf() would.
+ * @param *message error message.
+ * */
+void pana_error (const char *message, ...);
+/**
+ * Prints a fatal error message and exits with a failure status. 
+ * Its used the same exact way printf() would.
+ * @param *message fatal error message.
+ * */
+void pana_fatal (const char *message, ...);
+/**
+ * Prints a debug message, it'll only print in debug mode.
+ * Its used the same exact way printf() would.
+ * @param *message debug message.
+ * */
+void pana_debug (const char *message, ...);
 #endif

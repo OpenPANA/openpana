@@ -246,9 +246,6 @@ typedef struct {
     pana_server_ctx server_ctx;
 	/** EAP variables only for PANA Servers. */
     struct eap_auth_ctx eap_ctx;
-
-    /** Number of retransmission to AAA*/
-    int RTX_COUNTER_AAA;
 #endif
 
 	/** Contains the information about PAA, needed for messages exchanging */

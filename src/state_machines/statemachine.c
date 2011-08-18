@@ -162,11 +162,9 @@ int transition(pana_ctx *pana_session) {
         "OPEN", "WAIT_PNA_REAUTH", "SESS_TERM",
         "WAIT_PAN_OR_PAR", "WAIT_FAIL_PAN",
         "WAIT_SUCC_PAN"};
-        
-	#ifdef DEBUG
-    fprintf(stderr, "DEBUG: Trying a transition...\n");
-    fprintf(stderr, "DEBUG: Session ID: %d, current state: %s .\n", current_session->session_id, state_name[current_session->CURRENT_STATE + 1]);
-    #endif
+     
+    pana_debug("Trying a transition..");
+    pana_debug("Session ID: %d, current state: %s", current_session->session_id, state_name[current_session->CURRENT_STATE + 1]);
 
     int i; // Events' iterator
     int rs = ERROR; // result state
@@ -192,64 +190,35 @@ int transition(pana_ctx *pana_session) {
 // Common Procedures
 
 void none() {
-#ifdef DEBUG
-    fprintf(stderr,"DEBUG: none  function \n");
-#endif
+	pana_debug("none function");
 }
 
 void disconnect() {
-#ifdef DEBUG
-    fprintf(stderr,"DEBUG: disconnect function \n");
-#endif
+	pana_debug("disconnect function");
 #ifdef ISCLIENT
-	if(current_session->LAST_MESSAGE !=NULL){
-		//FIXME: Hay que ponerlo? creo que no hace falta
-		//free(current_session->LAST_MESSAGE);
-	}
-	if(current_session->key_id !=NULL){
-		#ifdef DEBUG
-		fprintf(stderr,"DEBUG: freeing key_id \n");
-		#endif
-		free(current_session->key_id);
-	}
-    if(current_session->msk_key !=NULL){
-		#ifdef DEBUG
-		fprintf(stderr,"DEBUG: freeing msk_key \n");
-		#endif
-		free(current_session->msk_key);
-	}
-    if(current_session->I_PAR !=NULL){
-		#ifdef DEBUG
-		fprintf(stderr,"DEBUG: freeing I_PAR \n");
-		#endif
-		free(current_session->I_PAR);
-	}
-    if(current_session->I_PAN !=NULL){	
-		#ifdef DEBUG
-		fprintf(stderr,"DEBUG: freeing I_PAN \n");
-		#endif
-		free(current_session->I_PAN);
-	}
-    if(current_session->PAA_nonce !=NULL){
-		#ifdef DEBUG
-		fprintf(stderr,"DEBUG: freeing PAA_Nonce \n");
-		#endif
-		free(current_session->PAA_nonce);
-	}
-    if(current_session->PaC_nonce !=NULL){
-		#ifdef DEBUG
-		fprintf(stderr,"DEBUG: freeing PaC_nonce \n");
-		#endif
-		free(current_session->PaC_nonce);
-	}
+
+	//FIXME: Hay que ponerlo? creo que no hace falta
+	//XFREE(current_session->LAST_MESSAGE);
+	pana_debug("freeing key_id");
+	XFREE(current_session->key_id);
+	pana_debug("freeing msk_key");
+	XFREE(current_session->msk_key);
+	pana_debug("freeing I_PAR");
+	XFREE(current_session->I_PAR);
+	pana_debug("freeing I_PAN");
+	XFREE(current_session->I_PAN);
+	pana_debug("freeing PAA_Nonce");
+	XFREE(current_session->PAA_nonce);
+	pana_debug("freeing PaC_Nonce");
+	XFREE(current_session->PaC_nonce);
 
     printf("PANA: Client disconnected.\n");
     exit(EXIT_SUCCESS);
-    //free(current_session->avp_data);
+    //XFREE(current_session->avp_data);
 #endif
 
 #ifdef ISSERVER
-    //free(current_session);
+    //XFREE(current_session);
 #endif
 }
 
@@ -261,9 +230,7 @@ int authorize() {
      * method is used but a PANA SA is required after successful
      * authentication (generate_pana_sa() returns TRUE), authorize()
      * procedure must return FALSE.  */
-#ifdef DEBUG
-    fprintf(stderr,"DEBUG: authorize function \n"); //TODO: Falta la implementación
-#endif
+	 pana_debug("authorize function"); //TODO: Falta la implementación
 
      #ifdef ISCLIENT// It is assumed that authorize() procedure of PaC 
      return TRUE;	// state machine always returns TRUE.
@@ -274,18 +241,14 @@ int authorize() {
 }
 
 void retransmit() {
-#ifdef DEBUG
-    fprintf(stderr,"DEBUG: retransmit function \n");
-    fprintf(stderr,"DEBUG: Message to retransmit: \n");
-    debug_pana((pana*)current_session->retr_msg);
-#endif
+	pana_debug("Message to retransmit:");
+    debug_msg((pana*)current_session->retr_msg);
 
     current_session->RTX_TIMEOUT = 0;
     int numbytes;
     numbytes = sendPana(current_session->eap_ll_dst_addr, current_session->retr_msg, current_session->socket);
     if (0 >= numbytes) {
-        fprintf(stderr, "ERROR: sendPana in rentransmit.\n");
-        exit(EXIT_FAILURE);
+        pana_fatal("sendPana in rentransmit");
     }
     current_session->RTX_COUNTER += 1;
     current_session->RT = 2 * current_session->RT + current_session->RAND * current_session->RT;
@@ -303,9 +266,7 @@ void retransmit() {
 }
 
 void rtxTimerStart() {
-#ifdef DEBUG
-    fprintf(stderr,"DEBUG: rtxTimerStart function \n");
-#endif
+	pana_debug("rtxTimerStart function");
 
     current_session->RTX_COUNTER = 0; // Reset retransmission's counter
     //current_session->RTX_MAX_NUM; //This value is updated in the session's initialization
@@ -317,23 +278,17 @@ void rtxTimerStart() {
 }
 
 void rtxTimerStop() {
-#ifdef DEBUG
-    fprintf(stderr, "DEBUG:  rtxTimerStop  function\n");
-#endif
+	pana_debug("rtxTimerStop  function");
 
     if (current_session == NULL) {
-#ifdef DEBUG
-        fprintf(stderr, "DEBUG: There isn't any session associated\n");
-#endif
+		pana_debug("There isn't any session associated");
         return;
     }
     pana_ctx * session = get_alarm_session(current_session->list_of_alarms, current_session->session_id, RETR_ALARM);
 }
 
 void sessionTimerReStart(int timeout) {
-#ifdef DEBUG
-    fprintf(stderr,"DEBUG: Función sessionTimerReStart. Timeout: %d \n", timeout); 
-#endif
+	pana_debug("sessionTimerReStart function. Timeout: %d", timeout); 
 	//Get the alarm of this session
     pana_ctx * session = get_alarm_session(current_session->list_of_alarms, current_session->session_id, SESS_ALARM);
 	
@@ -342,9 +297,7 @@ void sessionTimerReStart(int timeout) {
 }
 
 void eapRestart() {
-#ifdef DEBUG
-    fprintf(stderr,"DEBUG: eapRestart function\n");
-#endif
+	pana_debug("eapRestart function");
 
 	//It is necesary reset the session's variables used to generate the pana auth key
 	// due to the eap conversation will be reinited
@@ -353,7 +306,7 @@ void eapRestart() {
 	current_session->msk_key = NULL;
 	current_session->key_len = 0;
 	/*if (current_session->avp_data!=NULL){
-		//free(current_session->avp_data[AUTH_AVP]);
+		//XFREE(current_session->avp_data[AUTH_AVP]);
 		current_session->avp_data[AUTH_AVP] = NULL;
 	}*/
 	
@@ -367,21 +320,17 @@ void eapRestart() {
     eap_auth_set_eapRestart(&(current_session->eap_ctx), TRUE);
     eap_auth_step(&(current_session->eap_ctx));
 #endif
-#ifdef DEBUG
-    fprintf(stderr, "DEBUG: eapReStart: EAP has been properly restarted.\n");
-#endif
-
+	pana_debug("eapReStart: EAP has been properly restarted.\n");
 }
 
 void txEAP() {
-#ifdef DEBUG
-    fprintf(stderr,"DEBUG: txEAP function\n");
-#endif
+	
+	pana_debug("txEAP function");
     //Get the EAP_Payload Avp
 
     avp_pana * elmnt = (avp_pana *) getAvp(current_session->LAST_MESSAGE, EAPPAYLOAD_AVP);
     if (elmnt==NULL){
-		printf("txEAP: There isn't EAP Payload AVP.\n");
+		pana_warning("txEAP: There isn't EAP Payload AVP");
 		return;
 	}
 
@@ -403,28 +352,19 @@ void txEAP() {
     add_alarma(current_session->list_of_alarms, current_session, 1, RETR_AAA); //FIXME: El tiempo de retransmsiones
 																		       // de eap no se cual es
 #endif
-#ifdef DEBUG
-   fprintf(stderr,"DEBUG: Finished txEAP function\n");
-#endif
+	pana_debug("Finished txEAP function\n");
 }
 
 void sessionTimerStop() {
 
-#ifdef DEBUG
-    fprintf(stderr,"DEBUG: sessionTimerStop function\n"); 
-#endif
+	pana_debug("sessionTimerStop function");
 	//Get the alarm of this session
 	pana_ctx * session = get_alarm_session(current_session->list_of_alarms, current_session->session_id,SESS_ALARM);
-#ifdef DEBUG
-    fprintf(stderr, "DEBUG: sessionTimerStop finished.\n"); 
-#endif
+	pana_debug("sessionTimerStop finished");
 }
 
 int generatePanaSa() { // See RFC 5609 Page 8
-#ifdef DEBUG
-    fprintf(stderr,"DEBUG: generatePanaSa function\n");
-    //FIXME: Falta la implementación
-#endif
+	pana_debug("generatePanaSa function");
     //TODO: Falta la implementación
     //If the EAP method does not generate a key (MSK)
     // return FALSE;
@@ -455,11 +395,9 @@ int keyAvailable() {
 	eapKeyAvailable = eap_auth_get_eapKeyAvailable(&(current_session->eap_ctx));
 	#endif
 	
-	
-	#ifdef DEBUG
-	if(current_session->avp_data[AUTH_AVP] == NULL)
-		fprintf(stderr,"DEBUG: KeyAvailable: AUTH KEY equals NULL\n");
-	#endif
+	if(current_session->avp_data[AUTH_AVP] == NULL){
+		pana_debug("KeyAvailable: AUTH KEY equals NULL");
+	}
 	
 	//If the state machine already has a PANA_AUTH_KEY, it returns TRUE.
 	if(current_session->avp_data[AUTH_AVP] != NULL && eapKeyAvailable == FALSE){
@@ -469,9 +407,7 @@ int keyAvailable() {
 	else{
 	//Tries to retrieve a Master Session Key (MSK) from the EAP entity
 		if (eapKeyAvailable == TRUE) {
-#ifdef DEBUG
-			fprintf(stderr,"DEBUG: EAP lower-layer Key Available!!!\n");
-#endif
+			pana_debug("EAP lower-layer Key Available");
 			unsigned int key_len;
 			u8* key = NULL;
 			#ifdef ISCLIENT
@@ -484,23 +420,18 @@ int keyAvailable() {
 			pana_ctx * session = current_session;
 			session->key_len = key_len;
 			if(session->msk_key != NULL){
-				free(session->msk_key);
+				XFREE(session->msk_key);
 				session->msk_key = NULL;
 			}
-			session->msk_key = calloc(1, key_len);
-			if(session->msk_key == NULL){
-				fprintf(stderr,"ERROR: Out of memory.\n");
-				exit(EXIT_FAILURE);
-			}
+			session->msk_key = XCALLOC(char, key_len);
 			memcpy(session->msk_key, key, key_len);
 
-#ifdef DEBUG
 			//Prints the EAP MSK key for debugging purposes
 			/*unsigned int i;
 			for (i = 0; i < key_len; i++)
 				fprintf(stderr,"%02x", key[i]);
 			fprintf(stderr,"\n");*/
-#endif
+
 			//If an MSK is retrieved, it computes a PANA_AUTH_KEY from
 			//the MSK and returns TRUE
 			
@@ -519,13 +450,11 @@ int keyAvailable() {
 			u8 * new_auth_key = NULL;
 			new_auth_key = generateAUTH(current_session);
 			if(new_auth_key != NULL){
-				if(current_session->avp_data[AUTH_AVP] != NULL){
-					free(current_session->avp_data[AUTH_AVP]);
-				}
+				XFREE(current_session->avp_data[AUTH_AVP]);
 				current_session->avp_data[AUTH_AVP] = new_auth_key;
 			}
 			else{
-				fprintf(stderr,"DEBUG: newKeyAvailable - Generated AUTH key is NULL!\n");
+				pana_debug("newKeyAvailable - Generated AUTH key is NULL!");
 			}
 			//If !=NULL the key generation was successful
 			return current_session->avp_data[AUTH_AVP]!=NULL;
@@ -556,7 +485,7 @@ int reachMaxNumRt() {
 int livenessTestPeer() {
     if ((current_session->PNR.receive) && (current_session->PNR.flags & P_FLAG)) {
         char * unused = transmissionMessage("PNA", P_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, "", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
-        free(unused);
+        XFREE(unused);
         return NO_CHANGE;
     } else
         return ERROR;

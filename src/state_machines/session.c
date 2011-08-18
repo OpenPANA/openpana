@@ -110,16 +110,14 @@ void initSession(pana_ctx * pana_session) {
     pana_session->avp_data[TERMINATIONCAUSE_AVP] = NULL;
     pthread_mutex_init(&(pana_session->mutex), NULL);
 
-    // Init client's variables
-#ifdef ISCLIENT //Include session variables only for PANA clients
-    pana_session->client_ctx.FAILED_SESS_TIMEOUT = FAILED_SESS_TIMEOUT_CONFIG; //Until the authentication is done, the client doesn't know his session expiration time
-
-
-    //FIXME: De momento, tanto cliente como servidor solamente tienen el prf_alg y el integrity algorithm estáticos
+	//FIXME: De momento, tanto cliente como servidor solamente tienen el prf_alg y el integrity algorithm estáticos
     // definidos aquí.
     pana_session->avp_data[PRFALG_AVP] = (void*) PRF_HMAC_SHA1; //see rfc4306 page 50
     pana_session->avp_data[INTEGRITYALG_AVP] = (void*) AUTH_HMAC_SHA1_160; //see rfc4306 page 50
     
+    // Init client's variables
+#ifdef ISCLIENT //Include session variables only for PANA clients
+    pana_session->client_ctx.FAILED_SESS_TIMEOUT = FAILED_SESS_TIMEOUT_CONFIG; //Until the authentication is done, the client doesn't know his session expiration time
     pana_session->client_ctx.AUTH_USER = 0;
 
     pana_session->src_port = SRCPORT;
@@ -136,18 +134,11 @@ void initSession(pana_ctx * pana_session) {
     //Init the EAP user
     //FIXME: warning: passing argument 9 of ‘eap_peer_init’ makes pointer
     //from integer without a cast: expected ‘char *’ but argument is of type ‘int’
-    eap_peer_init(&(pana_session->eap_ctx), pana_session,USER,PASSWORD,CA_CERT,CLIENT_CERT,CLIENT_KEY,PRIVATE_KEY,FRAG_SIZE);
+    eap_peer_init(&(pana_session->eap_ctx), pana_session,USER,PASSWORD,CA_CERT,CLIENT_CERT,CLIENT_KEY,PRIVATE_KEY,1398);
 
 #endif
 
 #ifdef ISSERVER //Include session variables only for PANA servers
-
-
-	//FIXME: De momento, tanto cliente como servidor solamente tienen el prf_alg y el integrity algorithm estáticos
-    // definidos aquí.
-    pana_session->avp_data[PRFALG_AVP] = (void*) PRF_HMAC_SHA1; //see rfc4306 page 50
-    pana_session->avp_data[INTEGRITYALG_AVP] = (void*) AUTH_HMAC_SHA1_160; //see rfc4306 page 50
-    
 	pana_session->eap_ll_dst_addr.sin_family = AF_INET;
     pana_session->src_port = SRCPORT;
     
@@ -155,11 +146,11 @@ void initSession(pana_ctx * pana_session) {
     pana_session->server_ctx.OPTIMIZED_INIT = 0;
     pana_session->server_ctx.PAC_FOUND = 0;
     pana_session->server_ctx.REAUTH_TIMEOUT = 0;
-    pana_session->RTX_COUNTER_AAA = 0;
+    pana_session->server_ctx.RTX_COUNTER_AAA = 0;
     
     //RCF 5191 11.1: Secuence numbers are randomly initialized at the
     //beginning of the session.
-    pana_session->SEQ_NUMBER = rand(); 
+    pana_session->SEQ_NUMBER = rand(); //rand has been initialized before
 	
 	pana_session->server_ctx.global_key_id = NULL;
 	// Init EAP authenticator.
@@ -168,10 +159,8 @@ void initSession(pana_ctx * pana_session) {
 }
 
 void updateSession(char *message, pana_ctx *pana_session) {
-	#ifdef DEBUG
-	fprintf(stderr,"DEBUG: Update session with message:\n");
-	debug_pana((pana*) message);
-	#endif
+	pana_debug("Update session with the following message:");
+	debug_msg((pana*) message);
 
 	// Reset the session for being updated.
     resetSession(pana_session);
@@ -187,9 +176,7 @@ void updateSession(char *message, pana_ctx *pana_session) {
     // S_FLAG active
     if ((flags & S_FLAG) && (flags & R_FLAG) && ntohs(msg->msg_type) == PAR_MSG) {
 		pana_session->session_id = ntohl(msg->session_id);
-		#ifdef DEBUG
-		fprintf(stderr,"DEBUG: Client's session updated with Session Id from PAA: %d\n",pana_session->session_id);
-		#endif
+		pana_debug("Client's session updated with Session Id from PAA: %d",pana_session->session_id);
 	}
 	#endif
     
@@ -202,7 +189,7 @@ void updateSession(char *message, pana_ctx *pana_session) {
 	//Update the last received message
 	if(pana_session->LAST_MESSAGE != NULL){
 		//FIXME Hay que ponerlo
-		//free(pana_session->LAST_MESSAGE);
+		//XFREE(pana_session->LAST_MESSAGE);
 	}
     pana_session->LAST_MESSAGE = message;
     
@@ -217,8 +204,7 @@ void updateSession(char *message, pana_ctx *pana_session) {
 
 		int number = Hex2Dec(value, 4);//FIXME: Magic number (4 porque es el tamaño del campo value)
 		if (number != PRF_HMAC_SHA1) {
-			fprintf(stderr, "ERROR: The prf algorithm specified: %d, is not supported\n", PRF_HMAC_SHA1);
-			exit(EXIT_FAILURE);
+			pana_fatal("The prf algorithm specified: %d, is not supported\n", number);
 		}
 
 		// Updated the PRF algorithm negociated.
@@ -232,8 +218,7 @@ void updateSession(char *message, pana_ctx *pana_session) {
 
 		int number = Hex2Dec(value, 4);//FIXME: Magic number (4 porque es el tamaño del campo value)
 		if (number != AUTH_HMAC_SHA1_160) {
-			fprintf(stderr, "ERROR: The integrity algorithm specified: %d, is not supported\n", AUTH_HMAC_SHA1_160);
-			exit(EXIT_FAILURE);
+			pana_fatal("The integrity algorithm specified: %d, is not supported\n", number);
 		}
 
 		// Updated the Integrity algoritm negociated.
@@ -250,47 +235,34 @@ void updateSession(char *message, pana_ctx *pana_session) {
 		// Updated the session lifetime value generated by PAA
         pana_session->LIFETIME_SESS_TIMEOUT = number;
 	}
-
-#ifdef DEBUG
-    fprintf(stderr,"DEBUG: Session updated with message: \n");
-#endif
+	
+	pana_debug("Session updated with message:");
 
     if (type == PCI_MSG) { // PCI
         pana_session->PCI.receive = TRUE;
         pana_session->PCI.flags = flags;
-#ifdef DEBUG
-        fprintf(stderr,"DEBUG: PCI \n");
-#endif
+        pana_debug("PCI");
     } else if (type == PAR_MSG) { //Authentication type Message, it could also be PAN_MSG
-		//debug_pana(msg);
+		//debug_msg(msg);
         //Check if it contains the Nonce AVP and update its value
         if (existAvp(message, "Nonce")) { //Depending if you are server or client
+			pana_debug("It's been detected a Nonce AVP");
 #ifdef ISSERVER
-			fprintf(stderr,"DEBUG: Server's detected a Nonce AVP.\n");
-			if(pana_session->PaC_nonce != NULL){
-				free(pana_session->PaC_nonce);
-			}
-
+			XFREE(pana_session->PaC_nonce);
 			// The PAA saves the Nonce value generated by the PaC 
-			pana_session->PaC_nonce = malloc(ntohs(((pana*)message)->msg_length));
+			pana_session->PaC_nonce = XMALLOC(char,ntohs(((pana*)message)->msg_length));
 			memcpy(pana_session->PaC_nonce,message,(ntohs(((pana*)message)->msg_length)));
 #endif
 #ifdef ISCLIENT
-			fprintf(stderr,"DEBUG: Client's detected a Nonce AVP.\n");
-			if(pana_session->PAA_nonce != NULL){
-				free(pana_session->PAA_nonce);
-			}
-
+			XFREE(pana_session->PAA_nonce);
 			// The PaC saves the Nonce value generated by the PAA 
-			pana_session->PAA_nonce = malloc(ntohs(((pana*)message)->msg_length));
+			pana_session->PAA_nonce = XMALLOC(char,ntohs(((pana*)message)->msg_length));
 			memcpy(pana_session->PAA_nonce,message,(ntohs(((pana*)message)->msg_length)));
 #endif
         }
-        #ifdef DEBUG
         else{
-			fprintf(stderr,"DEBUG: There isn't any Nonce AVP in the message.\n");
+			pana_debug("There isn't any Nonce AVP in the message");
 		}
-		#endif
 
         if (flags & R_FLAG) { //PAR
             pana_session->PAR.receive = TRUE;
@@ -300,10 +272,8 @@ void updateSession(char *message, pana_ctx *pana_session) {
             //saved in the pana session to be used in AUTH key generation
             //Also you must keep the sequence number
             if (flags & S_FLAG) {
-				if(pana_session->I_PAR != NULL){
-					free(pana_session->I_PAR);
-				}
-                pana_session->I_PAR = malloc(ntohs(msg->msg_length));
+				XFREE(pana_session->I_PAR);
+                pana_session->I_PAR = XMALLOC(char,ntohs(msg->msg_length));
                 memcpy(pana_session->I_PAR,message,ntohs(msg->msg_length));
                 pana_session->SEQ_NUMBER = ntohl(msg->seq_number);
             }
@@ -317,22 +287,14 @@ void updateSession(char *message, pana_ctx *pana_session) {
                 //elmnt is pointed to Key-Id AVP, the key-id value is copied
                 if (pana_session->key_id == NULL) {
 					int avpsize = ntohs(elmnt->length);
-                    pana_session->key_id = malloc(avpsize);
-                    if(pana_session->key_id == NULL){
-						fprintf(stderr,"ERROR: Out of memory.\n");
-						exit(EXIT_FAILURE);
-					}
+                    pana_session->key_id = XMALLOC(char,avpsize);
                     memcpy(pana_session->key_id, ((char*)elmnt)+sizeof(avp_pana),avpsize);
                 }
-#ifdef DEBUG
                 else {
-                    fprintf(stderr, "DEBUG: Generado Key-Id cuando no hace falta en cliente?.\n");
+					pana_debug("Generated Key-Id when it's not needed by client?");
                 }
-#endif
             }
-#ifdef DEBUG
-            fprintf(stderr,"DEBUG: PAR \n");
-#endif
+            pana_debug("PAR");
         } else { // PAN
             pana_session->PAN.receive = TRUE;
             pana_session->PAN.flags = flags;
@@ -340,44 +302,32 @@ void updateSession(char *message, pana_ctx *pana_session) {
             //If the PAN is the first one (bit S enabled), it must be
             //saved in the pana session to be used in AUTH key generation
             if (flags & S_FLAG) {
-				if(pana_session->I_PAN != NULL){
-					free(pana_session->I_PAN);
-				}
-                pana_session->I_PAN = malloc(ntohs(msg->msg_length));
+				XFREE(pana_session->I_PAN);
+                pana_session->I_PAN = XMALLOC(char,ntohs(msg->msg_length));
                 memcpy(pana_session->I_PAN,message,ntohs(msg->msg_length));
                 pana_session->SEQ_NUMBER = ntohl(msg->seq_number);
             }
-#ifdef DEBUG
-            fprintf(stderr,"DEBUG: PAN \n");
-#endif
+            pana_debug("PAN");
         }
     } else if (type == PTA_MSG) { //Transmission Message PTR or PTA
         if (flags & R_FLAG) { //PTR
             pana_session->PTR.receive = TRUE;
             pana_session->PTR.flags = flags;
-#ifdef DEBUG
-            fprintf(stderr,"DEBUG: PTR \n");
-#endif
+            pana_debug("PTR");
         } else { // PTA
             pana_session->PTA.receive = TRUE;
             pana_session->PTA.flags = flags;
-#ifdef DEBUG
-            fprintf(stderr,"DEBUG: PTA \n");
-#endif
+            pana_debug("PTA");
         }
     } else if (type == PNA_MSG) { //Notification Message PNR or PNA
         if (flags & R_FLAG) { //PNR
             pana_session->PNR.receive = TRUE;
             pana_session->PNR.flags = flags;
-#ifdef DEBUG
-            fprintf(stderr,"DEBUG: PNR \n");
-#endif
+            pana_debug("PNR");
         } else { // PNA
             pana_session->PNA.receive = TRUE;
             pana_session->PNA.flags = flags;
-#ifdef DEBUG
-            fprintf(stderr,"DEBUG: PNA \n");
-#endif
+            pana_debug("PNA");
         }
     }
 
@@ -426,6 +376,6 @@ void resetSession(pana_ctx *pana_session) {
     pana_session->server_ctx.OPTIMIZED_INIT = 0;
     pana_session->server_ctx.PAC_FOUND = 0;
     pana_session->server_ctx.REAUTH_TIMEOUT = 0;
-	pana_session->RTX_COUNTER_AAA = 0;
+	pana_session->server_ctx.RTX_COUNTER_AAA = 0;
 #endif
 }

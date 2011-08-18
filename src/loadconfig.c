@@ -24,6 +24,7 @@
  */
 
 #include "loadconfig.h"
+#include "panautils.h"
 
 int pac =0;
 int paa =0;
@@ -35,12 +36,10 @@ int paa =0;
  * Parse all the xml client elements
  * that are siblings or children of a given xml node.
  */
-static void
-parse_xml_client(xmlNode * a_node)
-{
+static void parse_xml_client(xmlNode * a_node) {
 #ifdef ISCLIENT
     xmlNode *cur_node = NULL;
-	int checkconfig = 0;
+	int checkconfig = FALSE;
 	
     for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
         if (cur_node->type == XML_ELEMENT_NODE) {
@@ -56,13 +55,13 @@ parse_xml_client(xmlNode * a_node)
 				if (paa){
 
 					xmlChar * value = xmlNodeGetContent(cur_node);
-					DESTIP = malloc(strlen((char*)value)*sizeof(char));
+					DESTIP = XMALLOC(char,strlen((char*)value));
 					sprintf(DESTIP, "%s",(char *) value);
 					xmlFree(value);
 				}
 				else if (pac) {
 					xmlChar * value = xmlNodeGetContent(cur_node);
-					LOCALIP = malloc(strlen((char*)value)*sizeof(char));
+					LOCALIP = XMALLOC(char,strlen((char*)value));
 					sprintf(LOCALIP, "%s", (char *)value);
 					xmlFree (value);
 				}
@@ -73,8 +72,8 @@ parse_xml_client(xmlNode * a_node)
 					sscanf(value, "%hd", &DSTPORT);
 					xmlFree(value);
 					if (DSTPORT != 716){
-						fprintf(stderr, "ERROR: PAA Port must be set to 716.\n");
-						checkconfig = 1;
+						pana_error("PAA Port must be set to 716");
+						checkconfig = TRUE;
 					}
 				}
 				else if (pac) {
@@ -83,8 +82,8 @@ parse_xml_client(xmlNode * a_node)
 					sscanf((char *) value, "%hd", &SRCPORT);
 					xmlFree(value);
 					if (SRCPORT <=1024){
-						fprintf(stderr, "ERROR: PaC Port must be set to a number higher than 1024.\n");
-						checkconfig = 1;
+						pana_error("PaC Port must be set to a number higher than 1024.");
+						checkconfig = TRUE;
 					}
 				}
 			}
@@ -94,8 +93,8 @@ parse_xml_client(xmlNode * a_node)
 					sscanf(value, "%d", &FAILED_SESS_TIMEOUT_CONFIG);
 					xmlFree(value);
 					if (FAILED_SESS_TIMEOUT_CONFIG <=0){ 
-						fprintf(stderr, "ERROR: PaC Session Timeout must be set to a number higher than 0.\n");
-						checkconfig = 1;
+						pana_error("PaC Session Timeout must be set to a number higher than 0");
+						checkconfig = TRUE;
 					}
 				}
 			}
@@ -105,8 +104,8 @@ parse_xml_client(xmlNode * a_node)
 					sscanf(value, "%d", &PRF_HMAC_SHA1);
 					xmlFree(value);
 					if (PRF_HMAC_SHA1 <=0 || PRF_HMAC_SHA1 > 4){
-						fprintf(stderr, "ERROR: PaC PRF algorithm must be set to a number between 1 and 4.\n");
-						checkconfig = 1;
+						pana_error("PaC PRF algorithm must be set to a number between 1 and 4");
+						checkconfig = TRUE;
 					}
 				}
 			}
@@ -116,15 +115,15 @@ parse_xml_client(xmlNode * a_node)
 					sscanf(value , "%d", &AUTH_HMAC_SHA1_160);
 					xmlFree(value);
 					if (AUTH_HMAC_SHA1_160 <=0 || AUTH_HMAC_SHA1_160 > 7){
-						fprintf(stderr, "ERROR: PaC Integrity algorithm must be set to a number between 1 and 7.\n");
-						checkconfig = 1;
+						pana_error("PaC Integrity algorithm must be set to a number between 1 and 7");
+						checkconfig = TRUE;
 					}
 				}
 			}
 			else if (strcmp((char *)cur_node->name, "USER")==0){ // User name configurable value
 				if (pac){
 					char * value = (char*)xmlNodeGetContent(cur_node);
-					USER = malloc(strlen(value)*sizeof(char)); 
+					USER = XMALLOC(char,strlen((char*)value));
 					sprintf(USER, "%s",(char *) value);
 					xmlFree(value);
 					
@@ -133,7 +132,7 @@ parse_xml_client(xmlNode * a_node)
 			else if (strcmp((char *)cur_node->name, "PASSWORD")==0){ // Password configurable value
 				if (pac){
 					char * value = (char*)xmlNodeGetContent(cur_node);
-					PASSWORD = malloc(strlen(value)*sizeof(char)); 
+					PASSWORD = XMALLOC(char,strlen((char*)value));
 					sprintf(PASSWORD, "%s",(char *) value);
 					xmlFree(value);
 				}
@@ -141,19 +140,19 @@ parse_xml_client(xmlNode * a_node)
 			else if (strcmp((char *)cur_node->name, "CA_CERT")==0){ // CA cert's name.
 				if (pac){
 					char * value = (char*)xmlNodeGetContent(cur_node);
-					
-					char * complete = malloc(strlen(value)+strlen(CONFIGDIR)+20);
+					char * complete = XMALLOC(char,strlen((char*)value)+strlen(CONFIGDIR)+20);
 					sprintf(complete,"%s/%s",CONFIGDIR,(char*)value);
 					//Check if the file exists
 					if( access( complete, F_OK ) == -1 ) {
 						// file doesn't exist in config directory
 						if( access( value, F_OK ) == -1 ) {
-							fprintf(stderr,"ERROR: CA Certificate \"%s\" needed to run doesn't exist.\n",value);
-							checkconfig = 1;
+							//FIXME
+							pana_error("CA Certificate \"%s\" needed to run doesn't exist",value);
+							checkconfig = TRUE;
 						}
 						else{
 							printf("PANA: Loading %s from current directory.\n",value);
-							CA_CERT = malloc(strlen(value)*sizeof(char)); 
+							CA_CERT = XMALLOC(char,strlen((char*)value));
 							sprintf(CA_CERT, "%s",(char *) value);
 						}
 					}
@@ -169,18 +168,18 @@ parse_xml_client(xmlNode * a_node)
 				if (pac){
 					char * value = (char*)xmlNodeGetContent(cur_node);
 					
-					char * complete = malloc(strlen(value)+strlen(CONFIGDIR)+20);
+					char * complete = XMALLOC(char,strlen((char*)value)+strlen(CONFIGDIR)+20);
 					sprintf(complete,"%s/%s",CONFIGDIR,(char*)value);
 					//Check if the file exists
 					if( access( complete, F_OK ) == -1 ) {
 						// file doesn't exist in config directory
 						if( access( value, F_OK ) == -1 ) {
-							fprintf(stderr,"ERROR: Client's certificate \"%s\" needed to run doesn't exist.\n",value);
-							checkconfig = 1;
+							pana_error("Client's certificate \"%s\" needed to run doesn't exist",value);
+							checkconfig = TRUE;
 						}
 						else{
 							printf("PANA: Loading %s from current directory.\n",value);
-							CLIENT_CERT = malloc(strlen(value)*sizeof(char)); 
+							CLIENT_CERT = XMALLOC(char,strlen((char*)value));
 							sprintf(CLIENT_CERT, "%s",(char *) value);
 						}
 					}
@@ -194,18 +193,18 @@ parse_xml_client(xmlNode * a_node)
 			else if (strcmp((char *)cur_node->name, "CLIENT_KEY")==0){// Client key certificate's name configurable value
 				if (pac){
 					char * value = (char*)xmlNodeGetContent(cur_node);
-					char * complete = malloc(strlen(value)+strlen(CONFIGDIR)+20);
+					char * complete = XMALLOC(char,strlen((char*)value)+strlen(CONFIGDIR)+20);
 					sprintf(complete,"%s/%s",CONFIGDIR,(char*)value);
 					//Check if the file exists
 					if( access( complete, F_OK ) == -1 ) {
 						// file doesn't exist in config directory
 						if( access( value, F_OK ) == -1 ) {
-							fprintf(stderr,"ERROR: Client's key file \"%s\" needed to run doesn't exist.\n",value);
-							checkconfig = 1;
+							pana_error("Client's key file \"%s\" needed to run doesn't exist",value);
+							checkconfig = TRUE;
 						}
 						else{
 							printf("PANA: Loading %s from current directory.\n",value);
-							CLIENT_KEY = malloc(strlen(value)*sizeof(char)); 
+							CLIENT_KEY = XMALLOC(char,strlen((char*)value));
 							sprintf(CLIENT_KEY, "%s",(char *) value);
 						}
 					}
@@ -219,7 +218,7 @@ parse_xml_client(xmlNode * a_node)
 			else if (strcmp((char *)cur_node->name, "PRIVATE_KEY")==0){ // Client private key value
 				if (pac){
 					char * value = (char*)xmlNodeGetContent(cur_node);
-					PRIVATE_KEY = malloc(strlen(value)*sizeof(char)); 
+					PRIVATE_KEY = XMALLOC(char,strlen((char*)value));
 					sprintf(PRIVATE_KEY, "%s",(char *) value);
 					xmlFree(value);
 				}
@@ -237,8 +236,7 @@ parse_xml_client(xmlNode * a_node)
     }
     
     if(checkconfig){
-		fprintf(stderr,"ERROR: Check configuration to continue.\n");
-		exit(EXIT_FAILURE);
+		pana_fatal("Check configuration to continue");
 	}
 #endif
 }
@@ -252,12 +250,11 @@ parse_xml_client(xmlNode * a_node)
  * that are siblings or children of a given xml node.
  */
 
-static void
-parse_xml_server(xmlNode * a_node)
-{
+static void parse_xml_server(xmlNode * a_node){
 #ifdef ISSERVER
     xmlNode *cur_node = a_node;
-
+	int checkconfig = FALSE;
+	
     for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
         if (cur_node->type == XML_ELEMENT_NODE) {
 			if (strcmp((char *)cur_node->name, "PAC")==0) {//If the PaC configurable values are being checked
@@ -274,8 +271,8 @@ parse_xml_server(xmlNode * a_node)
 					sscanf(value, "%d", &SRCPORT);
 					xmlFree(value);
 					if (SRCPORT != 716){
-						fprintf(stderr, "ERROR: PAA Port must be set to 716.\n");
-						exit(EXIT_FAILURE);
+						pana_error("PAA Port must be set to 716");
+						checkconfig = TRUE;
 					}
 				}
 			}
@@ -285,8 +282,8 @@ parse_xml_server(xmlNode * a_node)
 					sscanf(value, "%d", &LIFETIME_SESSION_TIMEOUT_CONFIG);
 					xmlFree(value);
 					if (LIFETIME_SESSION_TIMEOUT_CONFIG <=0){
-						fprintf(stderr, "ERROR: PAA Session Timeout must be set to a number higher than 0.\n");
-						exit(EXIT_FAILURE);
+						pana_error("PAA Session Timeout must be set to a number higher than 0");
+						checkconfig = TRUE;
 					}
 				}
 			}
@@ -296,8 +293,8 @@ parse_xml_server(xmlNode * a_node)
 					sscanf(value, "%d", &PRF_HMAC_SHA1);
 					xmlFree(value);
 					if (PRF_HMAC_SHA1 <=0 || PRF_HMAC_SHA1 > 4){
-						fprintf(stderr, "ERROR: PAA PRF algorithm must be set to a number between 1 and 4.\n");
-						exit(EXIT_FAILURE);
+						pana_error("PAA PRF algorithm must be set to a number between 1 and 4");
+						checkconfig = TRUE;
 					}
 				}
 			}
@@ -307,8 +304,8 @@ parse_xml_server(xmlNode * a_node)
 					sscanf(value, "%d", &AUTH_HMAC_SHA1_160);
 					xmlFree(value);
 					if (AUTH_HMAC_SHA1_160 <=0 || AUTH_HMAC_SHA1_160 > 7){
-						fprintf(stderr, "ERROR: PAA Integrity algorithm must be set to a number between 1 and 7.\n");
-						exit(EXIT_FAILURE);
+						pana_error("PAA Integrity algorithm must be set to a number between 1 and 7");
+						checkconfig = TRUE;
 					}
 				}
 			}
@@ -318,8 +315,8 @@ parse_xml_server(xmlNode * a_node)
 					sscanf(value, "%d", &LIFETIME_SESSION_CLIENT_TIMEOUT_CONFIG);
 					xmlFree(value);
 					if (LIFETIME_SESSION_CLIENT_TIMEOUT_CONFIG <=0){
-						fprintf(stderr, "ERROR: PAA TIMEOUT CLIENT must be set to a number higher than 0.\n");
-						exit(EXIT_FAILURE);
+						pana_error("PAA TIMEOUT CLIENT must be set to a number higher than 0");
+						checkconfig = TRUE;
 					}
 				}
 			}
@@ -329,8 +326,8 @@ parse_xml_server(xmlNode * a_node)
 					sscanf(value, "%d", &NUM_WORKERS);
 					xmlFree(value);
 					if (NUM_WORKERS <=0){
-						fprintf(stderr, "ERROR: The worker's number must be set to a number higher than 0.\n");
-						exit(EXIT_FAILURE);
+						pana_error("The worker's number must be set to a number higher than 0");
+						checkconfig = TRUE;
 					}
 				}
 			}
@@ -341,15 +338,15 @@ parse_xml_server(xmlNode * a_node)
 					sscanf(value, "%d", &TIME_PCI);
 					xmlFree(value);
 					if (TIME_PCI <=0){
-						fprintf(stderr, "ERROR: The answer's time must be set to a number higher than 0.\n");
-						exit(EXIT_FAILURE);
+						pana_error("The answer's time must be set to a number higher than 0");
+						checkconfig = TRUE;
 					}
 				}
 			}
 			else if (strcmp((char *)cur_node->name, "CA_CERT")==0){ // CA cert's name.
 				if (paa){
 					char * value = (char *)xmlNodeGetContent(cur_node);
-					CA_CERT = malloc(strlen(value)*sizeof(char)); 
+					CA_CERT = XMALLOC(char,strlen((char*)value));
 					sprintf(CA_CERT, "%s",(char *) value);
 					xmlFree(value);
 				}
@@ -357,7 +354,7 @@ parse_xml_server(xmlNode * a_node)
 			else if (strcmp((char *)cur_node->name, "SERVER_CERT")==0){ // Server certificate's name
 				if (paa){
 					char * value = (char *)xmlNodeGetContent(cur_node);
-					SERVER_CERT = malloc(strlen(value)*sizeof(char)); 
+					SERVER_CERT = XMALLOC(char,strlen((char*)value));
 					sprintf(SERVER_CERT, "%s",(char *) value);
 					xmlFree(value);
 				}
@@ -365,7 +362,7 @@ parse_xml_server(xmlNode * a_node)
 			else if (strcmp((char *)cur_node->name, "SERVER_KEY")==0){ // Server key certificate's name
 				if (paa){
 					char * value = (char*)xmlNodeGetContent(cur_node);
-					SERVER_KEY = malloc(strlen(value)*sizeof(char)); 
+					SERVER_KEY = XMALLOC(char,strlen((char*)value));
 					sprintf(SERVER_KEY, "%s",(char *) value);
 					xmlFree(value);
 				}
@@ -373,7 +370,7 @@ parse_xml_server(xmlNode * a_node)
 			else if (strcmp((char *)cur_node->name, "AS_IP")==0){ // IP address of AS
 				if (paa){
 					char * value = (char*)xmlNodeGetContent(cur_node);
-					AS_IP = malloc(strlen(value)*sizeof(char)); 
+					AS_IP = XMALLOC(char,strlen((char*)value));
 					sprintf(AS_IP, "%s",(char *) value);
 					xmlFree(value);
 				}
@@ -384,15 +381,15 @@ parse_xml_server(xmlNode * a_node)
 					sscanf(value, "%hd", &AS_PORT);
 					xmlFree(value);
 					if (AS_PORT <= 0){
-						fprintf(stderr, "ERROR, The Authentication Server's Port must be higher than 0.\n");
-						exit(EXIT_FAILURE);
+						pana_error("The Authentication Server's Port must be higher than 0");
+						checkconfig = TRUE;
 					}
 				}
 			}
 			else if (strcmp((char *)cur_node->name, "SHARED_SECRET")==0){ // Shared secret between EAP auth & EAP server.
 				if (paa){
 					char * value = (char*)xmlNodeGetContent(cur_node);
-					AS_SECRET = malloc(strlen(value)*sizeof(char));
+					AS_SECRET = XMALLOC(char,strlen((char*)value));
 					sprintf(AS_SECRET, "%s",(char *) value);
 					xmlFree(value);
 				}
@@ -401,6 +398,9 @@ parse_xml_server(xmlNode * a_node)
 
         parse_xml_server(cur_node->children);
     }
+    if(checkconfig){
+		pana_fatal("Check configuration to continue");
+	}
 #endif
 }
 
@@ -430,13 +430,12 @@ load_config_client()
 		doc = xmlReadFile(CONFIGDIR"/config.xml", NULL, 0);
 	} else {
 		// file doesn't exist
-		fprintf(stderr,"WARNING: Loading config.xml from current directory.\n");
+		pana_warning("Loading config.xml from current directory");
 		doc = xmlReadFile("config.xml", NULL, 0);
 	}
  	
 	if(doc==NULL){
-		fprintf(stderr,"ERROR: could not parse file config.xml. \nThe application can't run without this file.\n" );
-		exit(EXIT_FAILURE);
+		pana_fatal("Could not parse file config.xml. \nThe application can't run without this file");
 	}
 
     /*Get the root element node */
@@ -481,13 +480,12 @@ load_config_server()
 		doc = xmlReadFile(CONFIGDIR"/config.xml", NULL, 0);
 	} else {
 		// file doesn't exist
-		fprintf(stderr,"WARNING: Loading config.xml from current directory.\n");
+		pana_warning("Loading config.xml from current directory");
 		doc = xmlReadFile("config.xml", NULL, 0);
 	}
  	
 	if(doc==NULL){
-		fprintf(stderr,"ERROR: could not parse file config.xml. \nThe application can't run without this file.\n" );
-		exit(EXIT_FAILURE);
+		pana_fatal("Could not parse file config.xml. \nThe application can't run without this file" );
 	}
  
     /*Get the root element node */
