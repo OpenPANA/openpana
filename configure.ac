@@ -6,6 +6,9 @@ AC_CONFIG_AUX_DIR(config)
 AM_INIT_AUTOMAKE()
 AC_CONFIG_HEADERS([config.h])
 
+# store current user given compiler flags to avoid default setup via AC_PROG_CC_C99
+OLD_CFLAGS=$CFLAGS
+
 # Checks for programs.
 AC_PROG_AWK
 AC_PROG_CC_C99
@@ -13,6 +16,9 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_RANLIB
+
+# reset compiler flags to initial flags
+CFLAGS=$OLD_CFLAGS
 
 # Checks for libraries.
 AC_CHECK_LIB([pthread], [pthread_mutex_lock])
@@ -72,18 +78,23 @@ AC_MSG_RESULT([$debugit])
 
 if test x"$debugit" = x"yes"; then
     AC_DEFINE([DEBUG],[],[Debug Mode])
-    AM_CFLAGS="$AM_CFLAGS -g -Wall -Wextra -pedantic -O0 "
+    AM_CFLAGS="$AM_CFLAGS -g -Wall -Wextra -pedantic "
 else
     AC_DEFINE([NDEBUG],[],[No-debug Mode])
-    AM_CFLAGS="$AM_CFLAGS -O2"
+    AM_CFLAGS="$AM_CFLAGS -Os -ffunction-sections -fdata-sections "
+    #AM_CPPFLAGS="$AM_CPPFLAGS -Wl --gc-sections "
 fi
 
 ##########################################################################
+
+
 AC_SUBST([AM_CFLAGS])
 # Set the preprocessor flags for the entire project
 XML_FLAGS=$(xml2-config --cflags) # Adds the includes needed to build using xml2
 
-AC_SUBST(AM_CPPFLAGS, " -L./state_machines -L./libeapstack -I./wpa_supplicant/src -I./wpa_supplicant/src/utils  -I./wpa_supplicant/src -I./wpa_supplicant/src/utils $XML_FLAGS ")
+#AM_CPPFLAGS="$AM_CPPFLAGS -L./state_machines -L./libeapstack -I./wpa_supplicant/src -I./wpa_supplicant/src/utils  -I./wpa_supplicant/src -I./wpa_supplicant/src/utils $XML_FLAGS "
+AC_SUBST(AM_CPPFLAGS, " $AM_CPPFLAGS -L./state_machines -L./libeapstack -I./wpa_supplicant/src -I./wpa_supplicant/src/utils  -I./wpa_supplicant/src -I./wpa_supplicant/src/utils $XML_FLAGS ")
+#AC_SUBST([AM_CPPFLAGS])
 
 ##To include empty targets on libeapstack, in order to allow distribution
 #AC_CONFIG_FILES(src/libeapstack/Makefile)
