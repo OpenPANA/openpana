@@ -55,7 +55,7 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session);
  * 
  * @return Session Id generated.
  * */
-int generateSessionId (char * ip, short port);
+uint32_t generateSessionId (char * ip, uint16_t port);
 
 /** 
  * Generates the AUTH key given a PANA session.

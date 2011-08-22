@@ -144,24 +144,13 @@ void initTable() {
 // Do the transitions between two states
 
 int transition(pana_ctx *pana_session) {
-    // If there isn't a pana_session available
-    if (pana_session == NULL) {
-        return ERROR;
-    }
-    
-    // If the state isn't a valid number
-    if (pana_session->CURRENT_STATE > NUM_STATES) {
+    // If there isn't a pana_session available or the state isn't a valid number
+    if (pana_session == NULL || pana_session->CURRENT_STATE > NUM_STATES) {
         return ERROR;
     }
 
     current_session = pana_session;
     //Array para mostrar los nombres de los estados
-    char * state_name[] = {"NO CHANGE", "INITIAL", "WAIT_PNA_PING",
-        "CLOSED", "WAIT_PAA", "WAIT_EAP_MSG",
-        "WAIT_EAP_RESULT", "WAIT_EAP_RESULT_CLOSE",
-        "OPEN", "WAIT_PNA_REAUTH", "SESS_TERM",
-        "WAIT_PAN_OR_PAR", "WAIT_FAIL_PAN",
-        "WAIT_SUCC_PAN"};
      
     pana_debug("Trying a transition..");
     pana_debug("Session ID: %d, current state: %s", current_session->session_id, state_name[current_session->CURRENT_STATE + 1]);
@@ -174,24 +163,22 @@ int transition(pana_ctx *pana_session) {
         }
     }
 
-    if (rs != ERROR) {
-        printf("PANA: Entering state: %s (Session ID: %d).\n", state_name[rs + 1], current_session->session_id);
-        if (rs != NO_CHANGE) {
-            pana_session->CURRENT_STATE = rs;
-        }
-    } else {
-        return ERROR;
+	if (rs == ERROR)
+		return ERROR;
+		
+	printf("PANA: Entering state: %s (Session ID: %d).\n", state_name[rs + 1], current_session->session_id);
+	if (rs != NO_CHANGE) {
+		pana_session->CURRENT_STATE = rs;
     }
-
+    
     return 0;
-
 }
 
 // Common Procedures
 
-void none() {
+/*void none() {
 	pana_debug("none function");
-}
+}*/
 
 void disconnect() {
 	pana_debug("disconnect function");
@@ -252,13 +239,11 @@ void retransmit() {
     }
     current_session->RTX_COUNTER += 1;
     current_session->RT = 2 * current_session->RT + current_session->RAND * current_session->RT;
-    if (current_session->MRT != 0) {//See rfc 5191 page 34
-        if (current_session->RT > current_session->MRT)
+    if (current_session->MRT /*MRT != 0*/ && current_session->RT > current_session->MRT){//See rfc 5191 page 34
             current_session->RT = current_session->MRT + current_session->RAND * current_session->MRT;
     }
 
-    if (current_session->MRD != 0) {
-        if (current_session->RT > current_session->MRD)
+    if (current_session->MRD /*MRD != 0*/ && current_session->RT > current_session->MRD){
             current_session->RT = 0;
     }
     add_alarma(current_session->list_of_alarms, current_session, current_session->RT, RETR_ALARM);
@@ -423,7 +408,7 @@ int keyAvailable() {
 				XFREE(session->msk_key);
 				session->msk_key = NULL;
 			}
-			session->msk_key = XCALLOC(char, key_len);
+			session->msk_key = XCALLOC(u8, key_len);
 			memcpy(session->msk_key, key, key_len);
 
 			//Prints the EAP MSK key for debugging purposes
@@ -484,7 +469,7 @@ int reachMaxNumRt() {
 
 int livenessTestPeer() {
     if ((current_session->PNR.receive) && (current_session->PNR.flags & P_FLAG)) {
-        char * unused = transmissionMessage("PNA", P_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, "", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
+        char * unused = transmissionMessage("PNA", P_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, 0, current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
         XFREE(unused);
         return NO_CHANGE;
     } else
@@ -493,14 +478,13 @@ int livenessTestPeer() {
 
 int livenessTestResponse() {
     if ((current_session->PNA.receive) && (current_session->PNA.flags & P_FLAG)) {
-        none();
         return NO_CHANGE;
-    } else
-        return ERROR;
+    }
+    
+    return ERROR;
 }
 
 int allEventClosedState() {
-    none();
     return CLOSED;
 }
 

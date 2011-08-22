@@ -50,7 +50,7 @@ struct lalarm * add_alarma(struct lalarm ** l,
     tiempo += time;
     
     struct lalarm *anterior = *l;
-    int final = 0; //Bool for searching the place of the new alarm in the list.
+    bool final = 0; //Bool for searching the place of the new alarm in the list.
     if (anterior == NULL) { // If the list is empty
 		// Save the alarm's information
         (*l) = XMALLOC(struct lalarm,1);
@@ -63,14 +63,14 @@ struct lalarm * add_alarma(struct lalarm ** l,
         while (difftime(aux->tmp, tiempo) < 0 && final == 0) {//Search the place where the new alarm 
 
             if (aux->sig == NULL)//If we reach the end of the alarm list
-                final = 1;
+                final = TRUE;
             else {
                 anterior = aux;
                 aux = aux->sig;
             }
         }
 
-        if (final == 1) {// If the new alarm must be inserted in the end of the alarms' list
+        if (final) {// If the new alarm must be inserted in the end of the alarms' list
             aux->sig = XMALLOC(struct lalarm,1);
             aux->sig->pana_session = session;
             aux->sig->tmp = tiempo; 
@@ -109,7 +109,7 @@ struct lalarm * add_alarma(struct lalarm ** l,
 
 }
 
-pana_ctx * get_alarm_session(struct lalarm** list, int id_session, int id_alarm) {
+pana_ctx * get_alarm_session(struct lalarm** list, uint32_t id_session, int id_alarm) {
 
 	//Lock the mutex for entering in the critical section.
     pthread_mutex_lock(&mutex);
@@ -181,7 +181,7 @@ struct lalarm * get_next_alarm(struct lalarm** list, double time) {
 }
 
 // Remove the alarms associated to a PANA session.
-void remove_alarm(struct lalarm** list, int id_session){
+void remove_alarm(struct lalarm** list, uint32_t id_session){
 
 	//Lock the mutex for entering to the critical section.
 	pthread_mutex_lock(&mutex);

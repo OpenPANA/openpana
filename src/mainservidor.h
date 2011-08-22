@@ -126,7 +126,7 @@ void check_eap_status(pana_ctx *pana_session);
  *
  * @return A pointer to the PANA session with the identifier searched.
  */ 
-pana_ctx* get_session(int id);
+pana_ctx* get_session(uint32_t id);
 /**
  * A procedure to get a task from the PANA tasks' list managed by
  * the PAA
@@ -169,7 +169,7 @@ void print_list_sessions();
  *
  * @param id Identifier of the PANA session to be deleted.
  */
-void remove_session(int id);
+void remove_session(uint32_t id);
 /**
  * A procedure to retransmit an AAA message to AAA server.
  *

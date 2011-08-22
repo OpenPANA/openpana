@@ -14,7 +14,8 @@ openpaa_SOURCES               =	state_machines/session.c \
 				panautils.c \
 				mainservidor.c \
 				loadconfig.c
-openpaa_CPPFLAGS =		$(AM_CPPFLAGS) -D ISSERVER
+openpaa_CPPFLAGS 	      = $(AM_CPPFLAGS) -D ISSERVER
+openpaa_CFLAGS		      = $(AM_CFLAGS) 
 
 ### library dependencies ###
 
@@ -32,8 +33,8 @@ openpac_SOURCES               =	state_machines/session.c \
 				panautils.c \
 				maincliente.c \
 				loadconfig.c
-openpac_CPPFLAGS =		$(AM_CPPFLAGS) -D ISCLIENT
-
+openpac_CPPFLAGS 	      = $(AM_CPPFLAGS) -D ISCLIENT
+openpac_CFLAGS		      = $(AM_CFLAGS) 
 ### library dependencies ###
 
 openpac_LDADD                     = libeapstack/libeap.a

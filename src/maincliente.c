@@ -54,7 +54,7 @@ void signal_handler(int sig) {
 
 void* handle_alarm_management(void* none) {
 
-    while (1){
+    while (TRUE){
 		
 		double time = getTime();
 
@@ -87,14 +87,6 @@ int main(int argc, char *argv[]) {
     struct sockaddr_in eap_auth_ll_sockaddr;
     fd_set readfds, exceptfds; //FD sets to use with select
     int pana_sock;//PANA's socket
-	
-	//Array to show PANA state's names while debugging
-    char * state_name[] = {"NO CHANGE", "INITIAL", "WAIT_PNA_PING",
-        "CLOSED", "WAIT_PAA", "WAIT_EAP_MSG",
-        "WAIT_EAP_RESULT", "WAIT_EAP_RESULT_CLOSE",
-        "OPEN", "WAIT_PNA_REAUTH", "SESS_TERM",
-        "WAIT_PAN_OR_PAR", "WAIT_FAIL_PAN",
-        "WAIT_SUCC_PAN"};
 
 	printf("\n%s Client - %s",PACKAGE_NAME,PACKAGE_VERSION);
 	printf("\n%s\n\n",PACKAGE_URL);
@@ -175,7 +167,7 @@ int main(int argc, char *argv[]) {
 
 		//If a PANA packet is received
         if (FD_ISSET(pana_sock, &readfds)) {
-            int length =0;
+            uint16_t length =0;
             length = recvfrom(pana_sock, pana_packet, sizeof (pana_packet), 0, (struct sockaddr *) &eap_auth_ll_addr, (socklen_t *) & addr_size);
 			//length is >0 when it's correctly received only
             if (length > 0) {
@@ -265,7 +257,7 @@ int main(int argc, char *argv[]) {
 
 				//If a PANA packet is received
 				if (FD_ISSET(pana_sock, &readfds)) {
-					int length =0;
+					uint16_t length =0;
 					length = recvfrom(pana_sock, pana_packet, sizeof (pana_packet), 0, (struct sockaddr *) &eap_auth_ll_addr, (socklen_t *) & addr_size);
 					//length is >0 when it's correctly received only
 					if (length > 0) {

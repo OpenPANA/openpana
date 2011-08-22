@@ -62,7 +62,7 @@ struct lalarm* add_alarma(struct lalarm ** l, pana_ctx* session, double tiempo, 
  * @param id_alarm Alarm type identifier which must be obtained.
  *
  * @return A pointer to the PANA session corresponding with the alarm searched.*/
-pana_ctx * get_alarm_session(struct lalarm** list, int id_session, int id_alarm);
+pana_ctx * get_alarm_session(struct lalarm** list, uint32_t id_session, int id_alarm);
 
 /** Return the first alarm in the alarms' list if it is activated. However, either if the alarms' list is empty
  * or the first alarm is not activated, the function returns a NULL pointer.
@@ -78,5 +78,5 @@ struct lalarm * get_next_alarm(struct lalarm** list, double time);
  * @param **list Alarms' list where the alarms must be removed.
  * @param id_session PANA session identifier whose alarms associated must be removed from the list.
  */ 
-void remove_alarm(struct lalarm** list, int id_session);
+void remove_alarm(struct lalarm** list, uint32_t id_session);
 #endif

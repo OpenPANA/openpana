@@ -245,7 +245,7 @@ void updateSession(char *message, pana_ctx *pana_session) {
     } else if (type == PAR_MSG) { //Authentication type Message, it could also be PAN_MSG
 		//debug_msg(msg);
         //Check if it contains the Nonce AVP and update its value
-        if (existAvp(message, "Nonce")) { //Depending if you are server or client
+        if (existAvp(message, F_NONCE)) { //Depending if you are server or client
 			pana_debug("It's been detected a Nonce AVP");
 #ifdef ISSERVER
 			XFREE(pana_session->PaC_nonce);
@@ -280,7 +280,7 @@ void updateSession(char *message, pana_ctx *pana_session) {
 
             //Check if it contains the Key-Id AVP and update its value
             //There's a key-id needed to be updated only when C-Flag is enabled
-            if ((flags & C_FLAG) && existAvp(message, "Key-Id")) {
+            if ((flags & C_FLAG) && existAvp(message, F_KEYID)) {
 
                 avp_pana * elmnt = (avp_pana*) getAvp(message, KEYID_AVP);
 
