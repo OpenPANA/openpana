@@ -388,17 +388,26 @@ int generateRandomKeyID (char** global_key_id) {
 }
 
 int Hex2Dec (char * value, int length) {
+	pana_debug("Hex2Dec: received:");
+	#ifdef DEBUG
+	for(int i=0;i<length;i++){
+		fprintf(stderr," %.2X",((*( value  + i))&0xFF));
+	}
+	fprintf(stderr,"\n");
+	#endif
+	
 	int res = 0;
 	int j=0;
 	int number;
-
+	
 	for (int i =(length-1); i>=0; i--){
 		number = (int)value[i];
-		for(int k = 0; k<16;k++)
+		for(int k = 0; k<j;k++)
 			number = number*16;
 		res = res + number;
 		j++;
 	}
+	pana_debug("Hex2Dec: calculated %d",res);
 	return res;
 }
 
