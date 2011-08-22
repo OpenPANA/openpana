@@ -136,18 +136,20 @@ int paaInitHandshake() {
         sessionTimerReStart(current_session->client_ctx.FAILED_SESS_TIMEOUT);
 		XFREE(current_session->retr_msg);
 		
-        if (generatePanaSa()) { //The initial PAN must be saved
-            current_session->retr_msg = transmissionMessage("PAN", S_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, "PRF-Algorithm*Integrity-Algorithm", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
-        } else {
+        //if (generatePanaSa()) { //The initial PAN must be saved
+            current_session->retr_msg = transmissionMessage("PAN", S_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, (generatePanaSa)?"PRF-Algorithm*Integrity-Algorithm":"", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
+        /*} else {
             current_session->retr_msg = transmissionMessage("PAN", S_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, "", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
-        }
+        }*/
         
         XFREE(current_session->I_PAN);
 		current_session->I_PAN = XMALLOC(char,ntohs(((pana *)current_session->retr_msg)->msg_length));
 		memcpy(current_session->I_PAN,current_session->retr_msg,ntohs(((pana *)current_session->retr_msg)->msg_length));
         
         return WAIT_PAA;
-    } else return ERROR;
+    }
+    
+    return ERROR;
     /* FIXME: Esta es la versión optimizada. Ver si dejamos esta o la otra
      * if (((current_session->PAR.receive) && (current_session->PAR.flags & S_FLAG)) && existAvp(current_session->LAST_MESSAGE,"EAP-Payload" ) && eapPiggyback()) {
         //TODO: El mensaje PAR, será uno de los recibidos por el pac. ¿Pero donde va a estar guardado?
@@ -180,7 +182,7 @@ int paaInitHandshake() {
 }
 
 int panaResult() {
-	int par_result_code=0;
+	uint16_t par_result_code=0;
 	char * attribute = getAvp(current_session->LAST_MESSAGE, RESULTCODE_AVP);
     if (attribute != NULL) {
 		char* value =(((char*)attribute) + sizeof(avp_pana));
@@ -197,7 +199,9 @@ int panaResult() {
             altReject();
         }
         return WAIT_EAP_RESULT_CLOSE;
-    } else return ERROR;
+    }
+    
+    return ERROR;
 }
 
 int parPanExchange() {
@@ -213,7 +217,7 @@ int parPanExchange() {
 			
             //The nonce value must be saved 
             current_session->retr_msg = transmissionMessage("PAN", 0, &(current_session->SEQ_NUMBER), current_session->session_id, "Nonce", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
-            int size = ntohs(((pana*)(current_session->retr_msg))->msg_length);
+            uint16_t size = ntohs(((pana*)(current_session->retr_msg))->msg_length);
             current_session->PaC_nonce = XMALLOC(char,size);
             memcpy(current_session->PaC_nonce,current_session->retr_msg,size);
         } else {
@@ -228,7 +232,9 @@ int parPanExchange() {
     } else if (current_session->PAN.receive) {
         rtxTimerStop();
         return WAIT_PAA;
-    } else return ERROR;
+    }
+    
+    return ERROR;
 }
 
 int returnPanParFromEap() {
@@ -242,7 +248,7 @@ int returnPanParFromEap() {
 			XFREE(current_session->PaC_nonce);
             //The nonce value must be saved 
             current_session->retr_msg = transmissionMessage("PAN", 0, &(current_session->SEQ_NUMBER), current_session->session_id, "EAP-Payload*Nonce", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
-            int size = ntohs(((pana*)(current_session->retr_msg))->msg_length);
+            uint16_t size = ntohs(((pana*)(current_session->retr_msg))->msg_length);
             current_session->PaC_nonce = XMALLOC(char,size);
             memcpy(current_session->PaC_nonce,current_session->retr_msg,size);
             current_session->NONCE_SENT = SET;
@@ -280,7 +286,9 @@ int returnPanParFromEap() {
         disconnect();
         eap_peer_set_eapFail(&(current_session->eap_ctx), FALSE);
         return CLOSED;
-    } else return ERROR;
+    }
+    
+    return ERROR;
 }
 
 int eapResultStateWaitEapResult() {
@@ -318,9 +326,9 @@ int eapResultStateWaitEapResult() {
         disconnect();
         eap_peer_set_eapFail(&(current_session->eap_ctx), FALSE);
         return CLOSED;
-    } else{
-		 return ERROR;
-	 }
+    }
+    
+	return ERROR;
 }
 
 int eapResultStateWaitEapResultClose() {
@@ -346,7 +354,8 @@ int eapResultStateWaitEapResultClose() {
         }
 
         return CLOSED;
-    } else return ERROR;
+    }
+    return ERROR;
 }
 
 int livenessTestInitPacStateOpen() {
@@ -356,7 +365,8 @@ int livenessTestInitPacStateOpen() {
         current_session->retr_msg = transmissionMessage("PNR", P_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, "", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
         rtxTimerStart();
         return WAIT_PNA_PING;
-    } else return ERROR;
+    }
+    return ERROR;
 }
 
 int reauthInitPacStateOpen() {
@@ -367,7 +377,8 @@ int reauthInitPacStateOpen() {
         current_session->retr_msg = transmissionMessage("PNR", A_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, "", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
         rtxTimerStart();
         return WAIT_PNA_REAUTH;
-    } else return ERROR;
+    }
+    return ERROR;
 }
 
 int reauthInitPaaStateOpen() {
@@ -382,7 +393,8 @@ int reauthInitPaaStateOpen() {
         }
         sessionTimerReStart(current_session->client_ctx.FAILED_SESS_TIMEOUT);
         return WAIT_EAP_MSG;
-    } else return ERROR;
+    }
+    return ERROR;
 }
 
 int sessionTermInitPaaStateOpen() {
@@ -393,7 +405,8 @@ int sessionTermInitPaaStateOpen() {
         sessionTimerStop();
         disconnect();
         return CLOSED;
-    } else return ERROR;
+    }
+    return ERROR;
 }
 
 int sessionTermInitPacStateOpen() {
@@ -404,7 +417,8 @@ int sessionTermInitPacStateOpen() {
         rtxTimerStart();
         sessionTimerStop();
         return SESS_TERM;
-    } else return ERROR;
+    }
+    return ERROR;
 }
 
 int reauthInitPacStateWaitPnaReauth() {
@@ -412,7 +426,8 @@ int reauthInitPacStateWaitPnaReauth() {
         rtxTimerStop();
         sessionTimerReStart(current_session->client_ctx.FAILED_SESS_TIMEOUT);
         return WAIT_PAA;
-    } else return ERROR;
+    }
+    return ERROR;
 }
 
 int sessionTermInitPaaStateWaitPnaReauth() {
@@ -424,14 +439,16 @@ int sessionTermInitPaaStateWaitPnaReauth() {
         sessionTimerStop();
         disconnect();
         return CLOSED;
-    } else return ERROR;
+    }
+    return ERROR;
 }
 
 int livenessTestInitPacStateWaitPnaPing() {
     if ((current_session->PNA.receive) && (current_session->PNA.flags && P_FLAG)) {
         rtxTimerStop();
         return OPEN;
-    } else return ERROR;
+    }
+    return ERROR;
 }
 
 int reauthInitPaaStateWaitPnaPing() {
@@ -440,16 +457,15 @@ int reauthInitPaaStateWaitPnaPing() {
         eapRespTimerStart();
         txEAP();
         if (!eapPiggyback()) {
-			
 			XFREE(current_session->retr_msg);
-			
             current_session->retr_msg = transmissionMessage("PAN", 0, &(current_session->SEQ_NUMBER), current_session->session_id, "Nonce", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
         } else {
             current_session->NONCE_SENT = UNSET;
         }
         sessionTimerReStart(current_session->client_ctx.FAILED_SESS_TIMEOUT);
         return WAIT_EAP_MSG;
-    } else return ERROR;
+    }
+    return ERROR;
 }
 
 int sessionTermInitPaaStateWaitPnaPing() {
@@ -461,14 +477,16 @@ int sessionTermInitPaaStateWaitPnaPing() {
         sessionTimerStop();
         disconnect();
         return CLOSED;
-    } else return ERROR;
+    }
+    return ERROR;
 }
 
 int sessionTermInitPacStateSessTerm() {
     if (current_session->PTA.receive) {
         disconnect();
         return CLOSED;
-    } else return ERROR;
+    }
+    return ERROR;
 }
 
 

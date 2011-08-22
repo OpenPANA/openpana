@@ -42,7 +42,7 @@ typedef struct {
      * This event variable is set to TRUE when initiation of EAP-based
      * (re-)authentication is triggered by the application.
      */
-    int AUTH_USER;
+    bool AUTH_USER;
     
 } pana_client_ctx;
 #endif

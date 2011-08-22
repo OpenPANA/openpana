@@ -246,14 +246,14 @@ typedef struct {
  * 
  * @return Message sended. It must to be freed when no longer needed.
  */
-char * transmissionMessage(char * msgtype, short flags, int *sequence_number, int sess_id, char * avps, struct sockaddr_in destaddr, void **data, int sock);
+char * transmissionMessage(char * msgtype, uint16_t flags, uint32_t *sequence_number, uint32_t sess_id, char * avps, struct sockaddr_in destaddr, void **data, int sock);
 /**
  * A procedure to get the combination of the AVP flags given an AVP list.
  * 
  * @param *avps List of AVPs.
  * @return Flags to be used.
  * */
-int AVPgenerateflags(char * avps);
+static uint16_t AVPgenerateflags(char * avps);
 
 /**
  * A procedure that given an AVP name return the associated flag.
@@ -261,7 +261,7 @@ int AVPgenerateflags(char * avps);
  * @param *avp_name Name of the AVP.
  * @return Flag associated to the AVP.
  * */
-int AVPname2flag(char * avp_name);
+static uint16_t AVPname2flag(char * avp_name);
 
 /**
  * A procedure that checks whether an AVP of the specified AVP name
@@ -276,7 +276,7 @@ int AVPname2flag(char * avp_name);
  * 
  * @return 0 (FALSE) if the specified AVP isn't found.
  */
-int existAvp(char * message, char *avp_name);
+bool existAvp(char * message, char *avp_name);
 
 /**
  * A procedure that inserts the given AVPs with their data into a PANA 
@@ -287,10 +287,11 @@ int existAvp(char * message, char *avp_name);
  * @param **data AVP data to use during insertion.
  * 
  * @return 0 (FALSE) if an error ocurred.
+ * @return Total size of the AVP Payload.
  * @see AVPgenerateflags To details on AVP flags
  */
 
-int insertAvps(char** message, int avps, void **data);
+uint16_t insertAvps(char** message, int avps, void **data);
 
 /** 
  * Returns the pointer to a given AVP in a message.
@@ -300,7 +301,7 @@ int insertAvps(char** message, int avps, void **data);
  * 
  * @return Pointer to the AVP.
  * */
-char * getAvp(char *msg, int type);
+char * getAvp(char *msg, uint16_t type);
 
 /** 
  * Returns the name of the message type given its code.
@@ -309,7 +310,7 @@ char * getAvp(char *msg, int type);
  * 
  * @return Message name. 
  * */
-char * getMsgName(int msg_type);
+char * getMsgName(uint16_t msg_type);
 
 /** 
  * Returns the name of the AVP given its code.
@@ -318,7 +319,7 @@ char * getMsgName(int msg_type);
  * 
  * @return AVP name. 
  * */
-char * getAvpName(int avp_code);
+static char * getAvpName(uint16_t avp_code);
 
 /**
  * Returns the padding space needed given an OctetString size.
@@ -327,7 +328,7 @@ char * getAvpName(int avp_code);
  * 
  * @return Padding needed.
  */
-int paddingOctetString(int size);
+static uint16_t paddingOctetString(uint16_t size);
 
 /**
  * Returns if an AVP is OctetString or not.
@@ -336,7 +337,7 @@ int paddingOctetString(int size);
  * 
  * @return If the AVP is OctetString.
  * */
-int isOctetString(int type);
+static bool isOctetString(uint16_t type);
 
 //Debugging functions
 /** Debug function, shows in a friendly way the information contained in

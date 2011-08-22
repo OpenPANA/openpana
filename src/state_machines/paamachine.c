@@ -217,14 +217,14 @@ int panHandling() {
         }
         return WAIT_EAP_MSG;
     } else if (current_session->PAN.receive && (current_session->PAN.flags & S_FLAG) && ((current_session->server_ctx.OPTIMIZED_INIT == SET) && !existAvp(current_session->LAST_MESSAGE, "EAP-Payload"))) {
-        none();
+        //none();
         return WAIT_PAN_OR_PAR;
     } else return ERROR;
 }
 
 int receivingEapRequest() {
     if (eap_auth_get_eapReq(&(current_session->eap_ctx)) == TRUE) {
-		debug_msg("EAP_REQ found");
+		pana_debug("EAP_REQ found");
         struct wpabuf * packet = eap_auth_get_eapReqData(&(current_session->eap_ctx));
         current_session->avp_data[EAPPAYLOAD_AVP] = packet;
         XFREE(current_session->retr_msg);

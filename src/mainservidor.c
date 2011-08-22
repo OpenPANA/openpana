@@ -37,7 +37,7 @@
 #include "prf_plus.h"
 
 //Global variables
-static int fin = FALSE;
+static bool fin = FALSE;
 
 /** Keeps the last key-id assigned by the server. The first one is random
  * generated and the following will be the result of increasing the 
@@ -111,7 +111,7 @@ void * process_receive_eap_ll_msg(void *arg) {
         initSession(pana_session); 
 		
         //Update variables depends on server
-        short port = ntohs(pana_params->eap_ll_dst_addr->sin_port);
+        uint16_t port = ntohs(pana_params->eap_ll_dst_addr->sin_port);
         char * ip = inet_ntoa(pana_params->eap_ll_dst_addr->sin_addr);
         pana_session->session_id = generateSessionId(ip, port);
         pana_session->socket = pana_params->sock;
@@ -135,9 +135,9 @@ void * process_receive_eap_ll_msg(void *arg) {
             ((ntohs(msg->flags) & S_FLAG) == S_FLAG)) {// it is created a new session for the new client
        
         //Generate the session id asociated to client's port and ip
-        short port = ntohs(pana_params->eap_ll_dst_addr->sin_port);
+        uint16_t port = ntohs(pana_params->eap_ll_dst_addr->sin_port);
         char * ip = inet_ntoa(pana_params->eap_ll_dst_addr->sin_addr);
-        int session_id = generateSessionId(ip, port); 
+        uint32_t session_id = generateSessionId(ip, port); 
 
         
         pana_session = get_alarm_session(&(list_alarms), session_id, PCI_ALARM);
@@ -153,7 +153,7 @@ void * process_receive_eap_ll_msg(void *arg) {
     } 
     
     else { //If the messsage is another one
-        int id = ntohl(msg->session_id);
+        uint32_t id = ntohl(msg->session_id);
         pana_debug("It's gonna search id: %d", id);
         // Get the session from the PANA sessions' list.
         pana_session = get_session(id);

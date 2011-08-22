@@ -28,42 +28,45 @@
 #include "panautils.h"
 #include "prf_plus.h"
 
-int AVPname2flag(char * avp_name){
-	int type=0;
+static char * avp_names[] = {"AUTH", "EAP-Payload", "Integrity-Algorithm", "Key-Id", "Nonce", "PRF-Algorithm", "Result-Code", "Session-Lifetime", "Termination-Cause"};
+
+static uint16_t AVPname2flag(char * avp_name){
+	uint16_t type=0;
 	
 	//The AVP flag is setted from the AVP_name
-    if (strcmp(avp_name, "AUTH") == 0) {
+    if (strcmp(avp_name, avp_names[AUTH_AVP-1]) == 0) {
         type = F_AUTH;
-    } else if (strcmp(avp_name, "EAP-Payload") == 0) {
+    } else if (strcmp(avp_name, avp_names[EAPPAYLOAD_AVP-1]) == 0) {
         type = F_EAPP;
-    } else if (strcmp(avp_name, "Integrity-Algorithm") == 0) {
+    } else if (strcmp(avp_name, avp_names[INTEGRITYALG_AVP-1]) == 0) {
         type = F_INTEG;
-    } else if (strcmp(avp_name, "Key-Id") == 0) {
+    } else if (strcmp(avp_name, avp_names[KEYID_AVP-1]) == 0) {
         type = F_KEYID;
-    } else if (strcmp(avp_name, "Nonce") == 0) {
+    } else if (strcmp(avp_name, avp_names[NONCE_AVP-1]) == 0) {
         type = F_NONCE;
-    } else if (strcmp(avp_name, "PRF-Algorithm") == 0) {
+    } else if (strcmp(avp_name, avp_names[PRFALG_AVP-1]) == 0) {
         type = F_PRF;
-    } else if (strcmp(avp_name, "Result-Code") == 0) {
+    } else if (strcmp(avp_name, avp_names[RESULTCODE_AVP-1]) == 0) {
         type = F_RES;
-    } else if (strcmp(avp_name, "Session-Lifetime") == 0) {
+    } else if (strcmp(avp_name, avp_names[SESSIONLIFETIME_AVP-1]) == 0) {
         type = F_SESS;
-    } else if (strcmp(avp_name, "Termination-Cause") == 0) {
+    } else if (strcmp(avp_name, avp_names[TERMINATIONCAUSE_AVP-1]) == 0) {
         type = F_TERM;
-    } else {
-		pana_debug("WARNING AVPname2flag function, invalid AVP name %s", avp_name);
-        type = 0;
-    }
-    
+    } 
+    #ifdef DEBUG 
+    else{
+    	pana_debug("WARNING AVPname2flag function, invalid AVP name %s", avp_name);
+	}
+    #endif
     return type;
 }
 
-int AVPgenerateflags(char * avps){
+static uint16_t AVPgenerateflags(char * avps){
 	
 	if(avps == NULL)
 		return 0;
 	
-	int result = 0;
+	uint16_t result = 0;
 	//Get the avp lists names parameter to a local variable.
 	char * names = NULL;
 	//an extra space is required to insert an extra separation token later
@@ -90,9 +93,11 @@ int AVPgenerateflags(char * avps){
 			result = result | AVPname2flag(ptr);
         }
     }
+    #ifdef DEBUG
     else {
 		pana_debug("WARNING: AVPname2flag function used without AVP");
 	}
+	#endif
 	
 	//Ignore AUTH AVP if present
 	if(result & F_AUTH){
@@ -105,7 +110,7 @@ int AVPgenerateflags(char * avps){
 }
 
 
-char * transmissionMessage(char * msgtype, short flags, int *sequence_number, int sess_id, char * avps, struct sockaddr_in destaddr, void **data, int sock) {
+char * transmissionMessage(char * msgtype, uint16_t flags, uint32_t *sequence_number, uint32_t sess_id, char * avps, struct sockaddr_in destaddr, void **data, int sock) {
 //First, the msgtype argument is checked, it must meet certain conditions
 	//- Message type must have 3 positions
 	//- All messages start with 'P'
@@ -142,12 +147,12 @@ char * transmissionMessage(char * msgtype, short flags, int *sequence_number, in
     // For further information see RFC 5191 page 25 section 7
 
 	//See what AVPs will be needed:
-	int avpsflags = AVPgenerateflags(avps);
+	uint16_t avpsflags = AVPgenerateflags(avps);
 
 
     //Header's values to be included in panaMessage once they're initialized
-    short msg_type = -1;
-    int session_id = sess_id;
+    uint16_t msg_type = 99;
+    uint32_t session_id = sess_id;
 
     //Different types of messages are identified and initialized
     if(msgtype[1] == 'C'){//msgtype == "PCI" PANA-Client-Initiation, see RFC 5191 7.1
@@ -212,9 +217,8 @@ char * transmissionMessage(char * msgtype, short flags, int *sequence_number, in
     //The memory needed to create the PANA Header is reserved,
     //the memory for the AVPs will be reserved later
     char ** message;
-    char *pana_message = XCALLOC(pana,1); //The message is set to 0 by default    
-    message = & pana_message;
-    pana * msg = (pana*) pana_message;
+    pana *msg = XCALLOC(pana,1); //The message is set to 0 by default    
+    message = (char**) &msg;
     
     //We add the values needed to the message
     msg->flags = htons(flags); //Flags are added
@@ -239,62 +243,52 @@ char * transmissionMessage(char * msgtype, short flags, int *sequence_number, in
     pana_debug("Message to be sent");
     debug_msg(msg);
 	
-    int numbytes;
-    numbytes = sendPana(destaddr, (char*)msg, sock);
-    if (0 >= numbytes) {
-        fprintf(stderr, "ERROR: sendPana in transmissionMessage.\n");
-        exit(EXIT_FAILURE);
+    if (0 >= sendPana(destaddr, (char*)msg, sock)) {
+        pana_fatal("sendPana");
     }
 	return (char*)msg;
 }
 	
-int existAvp(char * message, char *avp_name) {
-    int type = 0; //The AVP code to compare with the one in the panaMessage
+bool existAvp(char * message, char *avp_name) {
+    uint16_t type = 0; //The AVP code to compare with the one in the panaMessage
 	pana * msg = (pana *) message;
-    if (avp_name == NULL || (strcmp(avp_name, "") == 0)) { //If there's no name
-        return 0;
-    } else if (msg == NULL) { //If there's no message
-        return 0;
-    } else if (msg->msg_length == sizeof (pana)) { //If the message has no value (no AVPs)
-        return 0;
-    }
-
-    //First the AVP code is identified from the AVP_name
-    if (strcmp(avp_name, "AUTH") == 0) {
-        type = AUTH_AVP;
-    } else if (strcmp(avp_name, "EAP-Payload") == 0) {
-        type = EAPPAYLOAD_AVP;
-    } else if (strcmp(avp_name, "Integrity-Algorithm") == 0) {
-        type = INTEGRITYALG_AVP;
-    } else if (strcmp(avp_name, "Key-Id") == 0) {
-        type = KEYID_AVP;
-    } else if (strcmp(avp_name, "Nonce") == 0) {
-        type = NONCE_AVP;
-    } else if (strcmp(avp_name, "PRF-Algorithm") == 0) {
-        type = PRFALG_AVP;
-    } else if (strcmp(avp_name, "Result-Code") == 0) {
-        type = RESULTCODE_AVP;
-    } else if (strcmp(avp_name, "Session-Lifetime") == 0) {
-        type = SESSIONLIFETIME_AVP;
-    } else if (strcmp(avp_name, "Termination-Cause") == 0) {
-        type = TERMINATIONCAUSE_AVP;
-    } else {
-		pana_debug("existAvp function, invalid AVP name %s", avp_name);
+	 //If there's no name
+	 //If there's no message
+	 //If the message has no value (no AVPs)
+    if (avp_name == NULL || (strcmp(avp_name, "") == 0) || msg == NULL || msg->msg_length == sizeof (pana)){
         return FALSE;
     }
-    /*#ifdef DEBUG
-    fprintf(stderr,"\nDEBUG: existAvp function, AVP name %s, AVP CODE:%d \n***\n***\nMENSAJE PANA COMPLETO:\n", avp_name,type);
-    debug_msg(msg);
-    #endif*/
-    if(getAvp(message,type)==NULL){
-		return FALSE;
-	}
-	else{
-		return TRUE;
-	}
+    
+    //First the AVP code is identified from the AVP_name using flags
+    uint16_t flags = AVPname2flag(avp_name);
+    
+    if (flags & F_AUTH) {
+        type = AUTH_AVP;
+    } else if (flags & F_EAPP) {
+        type = EAPPAYLOAD_AVP;
+    } else if (flags & F_INTEG) {
+        type = INTEGRITYALG_AVP;
+    } else if (flags & F_KEYID) {
+        type = KEYID_AVP;
+    } else if (flags & F_NONCE) {
+        type = NONCE_AVP;
+    } else if (flags & F_PRF) {
+        type = PRFALG_AVP;
+    } else if (flags & F_RES) {
+        type = RESULTCODE_AVP;
+    } else if (flags & F_SESS) {
+        type = SESSIONLIFETIME_AVP;
+    } else if (flags & F_TERM) {
+        type = TERMINATIONCAUSE_AVP;
+    }/* else {
+		pana_debug("existAvp function, invalid AVP name %s", avp_name);
+        return FALSE;
+    }*/
+    return (getAvp(message,type)!=NULL);
 }
-int insertAvps(char** message, int avps, void **data) {
+uint16_t insertAvps(char** message, int avps, void **data) {
 	char * msg = *message;
+	#ifdef DEBUG
 	if (avps == 0){ //If you're not going to insert any avp
 		pana_debug("insertAVPs function used without AVP");
 		return 0;
@@ -304,12 +298,17 @@ int insertAvps(char** message, int avps, void **data) {
 		pana_debug("insertAVPs hasn't got any message, it MUST be used with a valid pana message");
         return 0;
     }
+    #else
+    if (avps == 0 || msg == NULL){
+        return 0;
+    }
+    #endif
     
-    int totalsize = sizeof(pana);
-    int stride = totalsize;
+    uint16_t totalsize = sizeof(pana);
+    uint16_t stride = totalsize;
     char * position = msg;
     avp_pana * elmnt = NULL;
-    int avpsize=0;
+    uint16_t avpsize=0;
     
     //FIXME en los que necesitan data asegurarnos que hay algo
     //para poner y si no hay mostrar error y no generar el AVP
@@ -384,7 +383,7 @@ int insertAvps(char** message, int avps, void **data) {
         //trusted with regard to the computation of a random nonce
         //A 20 octets random value will be generated
 		avpsize = sizeof(avp_pana) + NONCE_AVP_VALUE_LENGTH; 
-		int padding = paddingOctetString((avpsize - sizeof(avp_pana)));
+		uint16_t padding = paddingOctetString((avpsize - sizeof(avp_pana)));
 		totalsize += avpsize + padding;
 
 		msg = XREALLOC(char,msg,totalsize);
@@ -403,7 +402,7 @@ int insertAvps(char** message, int avps, void **data) {
 		
         srand(getTime()); //initialize random generator using time
 
-        for (unsigned int i = 0; i <= (avpsize - sizeof(avp_pana)); i += sizeof (int)) {
+        for (uint16_t i = 0; i <= (avpsize - sizeof(avp_pana)); i += sizeof (int)) {
             int random = rand();
             //If we need the whole int value
             if ((i + sizeof (int)) <= (avpsize - sizeof(avp_pana))) {
@@ -567,7 +566,7 @@ int insertAvps(char** message, int avps, void **data) {
 		#endif*/
         
 		avpsize = sizeof(avp_pana) + wpabuf_len(aux);
-		int padding = paddingOctetString((avpsize - sizeof(avp_pana)));
+		uint16_t padding = paddingOctetString((avpsize - sizeof(avp_pana)));
 		totalsize += avpsize + padding;
 
 		msg = XREALLOC(char,msg,totalsize);
@@ -599,7 +598,7 @@ int insertAvps(char** message, int avps, void **data) {
         //integrity algorithm used. The AVP data is of type OctetString.
         //AVP value size = 20, to get the 160bits result key
         avpsize = sizeof(avp_pana) + AUTH_AVP_VALUE_LENGTH; 
-		int padding = paddingOctetString((avpsize - sizeof(avp_pana)));
+		uint16_t padding = paddingOctetString((avpsize - sizeof(avp_pana)));
 		totalsize += avpsize + padding;
 
 		msg = XREALLOC(char,msg,totalsize);
@@ -637,20 +636,25 @@ int insertAvps(char** message, int avps, void **data) {
 	return totalsize;
 }
 
-char * getAvp(char *msg, int type) {
+char * getAvp(char *msg, uint16_t type) {
     char * elmnt = NULL;
-
-    int size = ntohs(((pana*)msg)->msg_length) - sizeof (pana);
-    int offset = sizeof(pana); //Offset to point to the next AVP
+    
+    //Invalid AVP type or no message
+	if(type<AUTH_AVP || type>TERMINATIONCAUSE_AVP || msg == NULL){
+		return NULL;
+	}
+	
+    uint16_t size = ntohs(((pana*)msg)->msg_length) - sizeof (pana);
+    uint16_t offset = sizeof(pana); //Offset to point to the next AVP
     
     while (size > 0) {//While there are AVPs left
         elmnt = msg + offset; //Pointer to the next AVP
-		int padding = 0;
-		int code = ntohs(((avp_pana *)elmnt)->code);
+		uint16_t padding = 0;
+		uint16_t code = ntohs(((avp_pana *)elmnt)->code);
 		if ( code == type) {//If is a match return true
             return elmnt;
         }
-        int length = ntohs(((avp_pana *)elmnt)->length);
+        uint16_t length = ntohs(((avp_pana *)elmnt)->length);
         if (isOctetString(code)){
 			padding = paddingOctetString(length);
 		}
@@ -661,37 +665,36 @@ char * getAvp(char *msg, int type) {
     return NULL; //Not found
 }
 
-char * getAvpName(int avp_code) {
-    char * avp_names[] = {"AUTH", "EAP-PAYLOAD", "INTEGRITY ALG", "KEY-ID", "NONCE", "PRF ALG", "RESULT-CODE", "SESSION-LIFETIME", "TERMINATION-CAUSE"};
+static char * getAvpName(uint16_t avp_code) {
 	
 	// All AVP codes are between AUTH and TERMINATIONCAUSE
     if (avp_code >= AUTH_AVP && avp_code <= TERMINATIONCAUSE_AVP) {
         return avp_names[avp_code - 1];
-    } else {
-		pana_debug("ERROR getAvpName, wrong AVP code (%d)",avp_code);
-        return NULL;
     }
+    
+	pana_debug("ERROR getAvpName, wrong AVP code (%d)",avp_code);
+	return NULL;
 }
 
-char * getMsgName(int msg_type) {
+char * getMsgName(uint16_t msg_type) {
     char *pana_msg_type[] = {"PCI", "PANA-Auth", "PANA-Termination", "PANA-Notification"};
 	// All MSG types are between PCI and PNA
     if (msg_type >= PCI_MSG && msg_type <= PNA_MSG) {
         return pana_msg_type[msg_type - 1];
-    } else {
-		pana_debug("ERROR getMsgName, wrong message type (%d)",msg_type);
-        return NULL;
-    }
+    } 
+    
+	pana_debug("ERROR getMsgName, wrong message type (%d)",msg_type);
+	return NULL;
 }
 
-int isOctetString(int type){
+static bool isOctetString(uint16_t type){
 	return (type==AUTH_AVP || type ==EAPPAYLOAD_AVP || type == NONCE_AVP);		
 }
 
-int paddingOctetString(int size) {
+static uint16_t paddingOctetString(uint16_t size) {
 
-    int left4byte = size % 4;
-    int padding = 0;
+    uint16_t left4byte = size % 4;
+    uint16_t padding = 0;
     if (left4byte != 0) {
         padding = 4 - left4byte;
     }
@@ -708,7 +711,7 @@ void debug_msg(pana *hdr){
     fprintf(stderr,"|        Reserved:%d           |          MessageLength: %d      |\n", ntohs(hdr->reserved), ntohs(hdr->msg_length));
     fprintf(stderr,"+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
     fprintf(stderr,"|       Flags: ");
-    int flags = ntohs(hdr->flags);//R S C A P I
+    uint16_t flags = ntohs(hdr->flags);//R S C A P I
     fprintf(stderr,"%s",(flags & R_FLAG)?"R":"-");
     fprintf(stderr,"%s",(flags & S_FLAG)?"S":"-");
     fprintf(stderr,"%s",(flags & C_FLAG)?"C":"-");
@@ -722,13 +725,13 @@ void debug_msg(pana *hdr){
     fprintf(stderr,"|                     Sequence Number: %#X               |\n", ntohl(hdr->seq_number));
     fprintf(stderr,"+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
 
-    int size = ntohs(hdr->msg_length) - sizeof (pana);
-    int offset = 0;
+    uint16_t size = ntohs(hdr->msg_length) - sizeof (pana);
+    uint16_t offset = 0;
     char * msg = (char *) hdr;
     while (size > 0) {
         avp_pana * elmnt = (avp_pana *) (msg + sizeof(pana) + offset);
         debug_avp(elmnt);
-        int avance = ntohs(elmnt->length);
+        uint16_t avance = ntohs(elmnt->length);
         if(isOctetString(ntohs(elmnt->code))){
 			avance += paddingOctetString(avance);
 		} 
@@ -744,7 +747,7 @@ void debug_avp(avp_pana * datos){
 	char * avpname = getAvpName(ntohs(datos->code));
 	if(avpname != NULL){
 		
-		int sizevalue = ntohs(datos->length);
+		uint16_t sizevalue = ntohs(datos->length);
 		fprintf(stderr,"AVP Name: %s\n", avpname);
 		//fprintf(stderr," 0                   1                   2                   3\n");
 		//fprintf(stderr," 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1\n");
@@ -762,7 +765,7 @@ void debug_avp(avp_pana * datos){
 			fprintf(stderr," AUTH omitted.");
 		}*/
 		else if (sizevalue > 0 ) {
-			for(int i = 0; i< sizevalue; i++){
+			for(uint16_t i = 0; i< sizevalue; i++){
 				fprintf(stderr," %.2X",((*(((char*)datos) + sizeof(avp_pana) + i))&0xFF));
 				if (i!=0 && i%16 == 0)
 				fprintf(stderr,"\n            ");

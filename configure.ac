@@ -32,7 +32,7 @@ AC_CHECK_LIB([xml2], [xmlCleanupParser],[],[
         ])
 
 # Checks for header files.
-AC_CHECK_HEADERS([arpa/inet.h inttypes.h math.h netinet/in.h stdlib.h string.h sys/socket.h sys/time.h time.h unistd.h stdio.h signal.h semaphore.h pthread.h])
+AC_CHECK_HEADERS([arpa/inet.h inttypes.h netinet/in.h stdlib.h string.h sys/socket.h sys/time.h time.h unistd.h stdio.h signal.h semaphore.h pthread.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL

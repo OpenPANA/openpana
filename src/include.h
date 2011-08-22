@@ -53,9 +53,6 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #endif
-#ifdef HAVE_MATH_H
-#include <math.h>
-#endif
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
@@ -95,6 +92,16 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#ifdef HAVE_STDBOOL_H
+#include <stdbool.h>
+#else
+	#define true 1
+	#define false 0
+	typedef int bool
+#endif
+
+#define TRUE true
+#define FALSE false
 
 #include <stdarg.h>
 

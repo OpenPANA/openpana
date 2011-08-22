@@ -109,6 +109,13 @@
 /** Liveness test response event. */
 #define LIVENESS_TEST_RESPONSE  3
 
+/** Array to show PANA state's names. */ 
+static char * state_name[] = {"NO CHANGE", "INITIAL", "WAIT_PNA_PING",
+        "CLOSED", "WAIT_PAA", "WAIT_EAP_MSG",
+        "WAIT_EAP_RESULT", "WAIT_EAP_RESULT_CLOSE",
+        "OPEN", "WAIT_PNA_REAUTH", "SESS_TERM",
+        "WAIT_PAN_OR_PAR", "WAIT_FAIL_PAN",
+        "WAIT_SUCC_PAN"};
 
 /** General callback function definition, it corresponds to a function
  * to be called in a position of the state machine table */
@@ -142,7 +149,7 @@ int transition(pana_ctx *pana_session);
 /**
  *  A null procedure, where nothing is done.
  */
-void none();
+//void none();
 /**
  * A procedure to delete the PANA session as well as the
  * corresponding EAP session and authorization state.

@@ -50,7 +50,7 @@ struct lalarm * add_alarma(struct lalarm ** l,
     tiempo += time;
     
     struct lalarm *anterior = *l;
-    int final = 0; //Bool for searching the place of the new alarm in the list.
+    bool final = 0; //Bool for searching the place of the new alarm in the list.
     if (anterior == NULL) { // If the list is empty
 		// Save the alarm's information
         (*l) = XMALLOC(struct lalarm,1);
@@ -63,14 +63,14 @@ struct lalarm * add_alarma(struct lalarm ** l,
         while (difftime(aux->tmp, tiempo) < 0 && final == 0) {//Search the place where the new alarm 
 
             if (aux->sig == NULL)//If we reach the end of the alarm list
-                final = 1;
+                final = TRUE;
             else {
                 anterior = aux;
                 aux = aux->sig;
             }
         }
 
-        if (final == 1) {// If the new alarm must be inserted in the end of the alarms' list
+        if (final) {// If the new alarm must be inserted in the end of the alarms' list
             aux->sig = XMALLOC(struct lalarm,1);
             aux->sig->pana_session = session;
             aux->sig->tmp = tiempo; 

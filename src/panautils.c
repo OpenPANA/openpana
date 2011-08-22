@@ -39,7 +39,7 @@ int sendPana(struct sockaddr_in destaddr, char *msg, int sock) {
 		return -1;
 	}
 	
-    int len = ntohs(((pana*)msg)->msg_length); // Pana Message's length
+    uint16_t len = ntohs(((pana*)msg)->msg_length); // Pana Message's length
     
     //int sock;
     struct sockaddr_in su_addr; // Destination address
@@ -63,9 +63,9 @@ int sendPana(struct sockaddr_in destaddr, char *msg, int sock) {
     su_addr.sin_addr.s_addr = destaddr.sin_addr.s_addr;
     memset(&(su_addr.sin_zero), '\0', 8);
 
-    int total = 0; // Total bytes sended
-    int n = 0;
-    int bytesleft = len;
+    uint16_t total = 0; // Total bytes sended
+    uint16_t n = 0;
+    uint16_t bytesleft = len;
     while (total < len) {
         n = sendto(sock, msg + total, bytesleft, 0,
                 (struct sockaddr *) & su_addr, sizeof (struct sockaddr));
@@ -93,9 +93,9 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
 		pana_error("Reserved field is not set to zero. Dropping message");
         return 0;
     }
-    short flags = ntohs(msg->flags) & 0XFFFF;
-    short msg_type = ntohs(msg->msg_type);
-	int session_id = ntohl(msg->session_id);
+    uint16_t flags = ntohs(msg->flags) & 0XFFFF;
+    uint16_t msg_type = ntohs(msg->msg_type);
+	uint32_t session_id = ntohl(msg->session_id);
 	
     if ((ntohs(msg->flags) != 0 && ntohs(msg->flags) < I_FLAG) || //The I FLAG is the smallest
             (ntohs(msg->flags) > (I_FLAG | R_FLAG | S_FLAG | C_FLAG | A_FLAG | P_FLAG))) { //0xFC00 is the result of adding all the flags.
@@ -115,7 +115,7 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
 	}
 	//FIXME no debería actualizarse el seq-number hasta comprobar auth
 	//Check sequence numbers
-	int seq_number = ntohl(msg->seq_number);
+	uint32_t seq_number = ntohl(msg->seq_number);
     if (flags & R_FLAG) { //Request msg
         //Si es un request, compruebas qué antes tenías o un 0 (del pci)
         //o un número menos del que se ha recibido.
@@ -143,7 +143,7 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
     if (avpbytes != NULL) {//if existsAvp(AUTH)
 		if (existAvp((char*)msg, "Result-Code")) return TRUE; //FIXME: Hay que comprobar que sea un eap-success 
         char *data; //It will contain the auth avp value
-        int size; //Size of the AVP Auth if found
+        uint16_t size; //Size of the AVP Auth if found
         //The AVP code (Auth = 1) to compare with the one in the panaMessage
         avp_pana * elmnt = (avp_pana*) avpbytes ;
 
@@ -167,29 +167,28 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
         char *newAuth = avpbytes + sizeof(avp_pana);
 		//fprintf(stderr,"AUTH_AVP nuevo\n");
 		//debug_avp(elmnt);
-        int i = 0;
+        uint16_t i = 0;
         for (i = 0; i < size; i++) {
             if (newAuth[i] != data[i])
                 break;
         }
 		XFREE(data); //Once its compared, data can be freed
 		
-        if (i == size) { //If both are the same, the AUTH is correct
-			pana_debug("AUTH AVP checked. Correct");
-        } else {
+        if (i != size) { //If both aren't the same, the AUTH is incorrect
 			pana_debug("AUTH AVP checked. INCORRECT");
 			pana_error("Wrong AUTH AVP value. Dropping message");
-            return FALSE; //Invalid, message is ignored
+            return FALSE; //Invalid, message is ignored	
         }
+        pana_debug("AUTH AVP checked. Correct");
     }
     
     return TRUE;
 }
 
-int generateSessionId(char * ip, short port) {
+uint32_t generateSessionId(char * ip, uint16_t port) {
 	//The seed to generate the sessionId will be port + ip
     char * seed = NULL; //To create the seed
-    int size = sizeof (short) +strlen(ip);
+    uint16_t size = sizeof (port) +strlen(ip);
     char * result = NULL; //To store the result
     
     seed = XMALLOC(char,size);
@@ -200,8 +199,8 @@ int generateSessionId(char * ip, short port) {
     result = XMALLOC(char,20);
     
     PRF((u8 *) "session id", 10, (u8*) seed, size, (u8*) result);
-    int * point = (int *) result;
-    int rc = (*point);
+    uint32_t * point = (uint32_t *) result;
+    uint32_t rc = (*point);
     pana_debug("Session Id %d generated with port %d and ip %s",rc,port,ip);
     XFREE(seed);
     XFREE(result);
@@ -227,9 +226,7 @@ u8 * generateAUTH(pana_ctx * session) {
         return NULL;
     }
     else if (session->key_id == NULL || session->key_id_length <=0){
-		#ifdef DEBUG
-        fprintf(stderr, "DEBUG: Unable to generate AUTH without Key-Id\n");
-        #endif
+		pana_debug("DEBUG: Unable to generate AUTH without Key-Id");
         return NULL;
 	}
     pana_debug("Starting AUTH generation");
@@ -257,8 +254,8 @@ u8 * generateAUTH(pana_ctx * session) {
     u8 * result = NULL; //Result to save the prf result value
     u8 *pac_nonce; //Nonce avp from the pac
     u8 *paa_nonce; //Nonce avp from the paa
-    int i_par_length; //PAR message length
-    int i_pan_length; //PAN message length
+    uint16_t i_par_length; //PAR message length
+    uint16_t i_pan_length; //PAN message length
     char *sequence; //Seed secuence to use in prf function
 	char ietf[10] = "IETF PANA"; //String "IETF PANA" is part of the seed
 	
@@ -281,8 +278,8 @@ u8 * generateAUTH(pana_ctx * session) {
 	
     pac_nonce = (u8*) getAvp(session->PaC_nonce,NONCE_AVP);
     paa_nonce = (u8*) getAvp(session->PAA_nonce,NONCE_AVP);
-    int paa_nonce_length = ntohs(((avp_pana*)pac_nonce)->length);
-    int pac_nonce_length = ntohs(((avp_pana*)paa_nonce)->length);
+    uint16_t paa_nonce_length = ntohs(((avp_pana*)pac_nonce)->length);
+    uint16_t pac_nonce_length = ntohs(((avp_pana*)paa_nonce)->length);
     
     seq_length += pac_nonce_length; 
     seq_length += paa_nonce_length;
@@ -359,17 +356,17 @@ int hashAuth(char *msg, char* key, int key_len) {
 void increase_one(char *value, int length) {
 	
     int i;	
-    int increased = 0;
+    bool increased = FALSE;
     for (i = length - 1; (i >= 0 && increased == 0); i--) {
         if (value[i] != 0xff) {
-            increased = 1;
+            increased = TRUE;
             value[i] += 1;
         } else {
             value[i] = 0x00;
         }
     }
     //If value is 0xfffff...
-    if (i == -1) value[length - 1] = 0x01;
+    if (i == 0xFF) value[length - 1] = 0x01;
 }
 
 int generateRandomKeyID (char** global_key_id) {
@@ -396,7 +393,9 @@ int Hex2Dec (char * value, int length) {
 
 	for (int i =(length-1); i>=0; i--){
 		number = (int)value[i];
-		res = res + number * ((int) pow(16,j));
+		for(int k = 0; k<16;k++)
+			number*16;
+		res = res + number;
 		j++;
 	}
 	return res;
