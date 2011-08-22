@@ -37,16 +37,27 @@ static char * avp_names[] = {"AUTH", "EAP-Payload", "Integrity-Algorithm", "Key-
  * 
  * @return AVP name. 
  * */
-static char * getAvpName(uint16_t avp_code);
+static char * getAvpName(uint16_t avp_code) {
+	
+	// All AVP codes are between AUTH and TERMINATIONCAUSE
+    if (avp_code >= AUTH_AVP && avp_code <= TERMINATIONCAUSE_AVP) {
+        return avp_names[avp_code - 1];
+    }
+    
+	pana_debug("ERROR getAvpName, wrong AVP code (%d)",avp_code);
+	return NULL;
+}
 /**
- * \fn static bool isOctetString(uint16_t type);
  * Returns if an AVP is OctetString or not.
  * 
  * @param type AVP code.
  * 
  * @return If the AVP is OctetString.
  * */
-static bool isOctetString(uint16_t type);
+
+static bool isOctetString(uint16_t type){
+	return (type==AUTH_AVP || type ==EAPPAYLOAD_AVP || type == NONCE_AVP);		
+}
 /**
  * Returns the padding space needed given an OctetString size.
  * 
@@ -54,7 +65,49 @@ static bool isOctetString(uint16_t type);
  * 
  * @return Padding needed.
  */
-static uint16_t paddingOctetString(uint16_t size);
+static uint16_t paddingOctetString(uint16_t size) {
+
+    uint16_t left4byte = size % 4;
+    uint16_t padding = 0;
+    if (left4byte != 0) {
+        padding = 4 - left4byte;
+    }
+
+    return padding;
+}
+/**
+ * Returns the code of one of the AVP flag appeareances.
+ * @param flag AVP flag to identify.
+ * @return One of the AVP Codes of an AVP in the flag section.
+ * */
+static uint16_t identifyAVP(uint16_t flag){
+	//the AVP code is identified from the AVP_name using flags    
+    if (flag & F_EAPP) {
+        return EAPPAYLOAD_AVP;
+    } else if (flag & F_INTEG) {
+        return INTEGRITYALG_AVP;
+    } else if (flag & F_KEYID) {
+        return KEYID_AVP;
+    } else if (flag & F_NONCE) {
+        return NONCE_AVP;
+    } else if (flag & F_PRF) {
+        return PRFALG_AVP;
+    } else if (flag & F_RES) {
+        return RESULTCODE_AVP;
+    } else if (flag & F_SESS) {
+        return SESSIONLIFETIME_AVP;
+    } else if (flag & F_TERM) {
+        return TERMINATIONCAUSE_AVP;
+    }else if (flag & F_AUTH) {
+        return AUTH_AVP;
+    }
+    //Auth avp MUST be the last one in case of multiple avps, that's
+    //because when sending a PANA message it has to be the last AVP
+    //to include so the hash is created correctly
+    pana_debug("identifyAVP: unknown AVP flag %d",flag);
+    
+    return 0;
+}
 
 char * transmissionMessage(char * msgtype, uint16_t flags, uint32_t *sequence_number, uint32_t sess_id, uint16_t avps, struct sockaddr_in destaddr, void **data, int sock) {
 //First, the msgtype argument is checked, it must meet certain conditions
@@ -197,39 +250,15 @@ char * transmissionMessage(char * msgtype, uint16_t flags, uint32_t *sequence_nu
 }
 	
 bool existAvp(char * message, uint16_t avp) {
-    uint16_t type = 0; //The AVP code to compare with the one in the panaMessage
 	pana * msg = (pana *) message;
 	 //If there's no name
 	 //If there's no message
 	 //If the message has no value (no AVPs)
-    if (avp == 0 || msg == NULL || msg->msg_length == sizeof (pana)){
+    if (avp <= 0 || msg == NULL || msg->msg_length == sizeof (pana)){
         return FALSE;
     }
     
-    //the AVP code is identified from the AVP_name using flags    
-    if (avp & F_AUTH) {
-        type = AUTH_AVP;
-    } else if (avp & F_EAPP) {
-        type = EAPPAYLOAD_AVP;
-    } else if (avp & F_INTEG) {
-        type = INTEGRITYALG_AVP;
-    } else if (avp & F_KEYID) {
-        type = KEYID_AVP;
-    } else if (avp & F_NONCE) {
-        type = NONCE_AVP;
-    } else if (avp & F_PRF) {
-        type = PRFALG_AVP;
-    } else if (avp & F_RES) {
-        type = RESULTCODE_AVP;
-    } else if (avp & F_SESS) {
-        type = SESSIONLIFETIME_AVP;
-    } else if (avp & F_TERM) {
-        type = TERMINATIONCAUSE_AVP;
-    }/* else {
-		pana_debug("existAvp function, invalid AVP name %s", avp_name);
-        return FALSE;
-    }*/
-    return (getAvp(message,type)!=NULL);
+    return (getAvp(message,identifyAVP(avp))!=NULL);
 }
 
 uint16_t insertAvps(char** message, int avps, void **data) {
@@ -258,80 +287,98 @@ uint16_t insertAvps(char** message, int avps, void **data) {
     
     //FIXME en los que necesitan data asegurarnos que hay algo
     //para poner y si no hay mostrar error y no generar el AVP
-    if(F_INTEG & avps){
-		//The total size of this AVP is: AVP header + its value field
-		//it will be needed 12 bytes
-		avpsize = sizeof(avp_pana) + INTEG_AVP_VALUE_LENGTH; 
-		totalsize += avpsize;
-		msg = XREALLOC(char,msg,totalsize);
+    while (avps != 0){
 		
-		position = msg + stride;
-		elmnt = (avp_pana*) position;
+		uint16_t act_avp = identifyAVP(avps);
+		uint16_t padding =0;
+		uint32_t option =0;
+		struct wpabuf * eap_packet = NULL;
 		
-		//All AVPs defined in this document MUST have the ’V’ (Vendor) bit cleared.
-		elmnt->flags = 0;
-		elmnt->reserved = 0; //They MUST be set to zero and ignored by the receiver
 		//According to RFC 3588: the AVP Length field MUST be set to 12
-		//(16 if the ’V’ bit is enabled). But with PANA, the AVP Length
-		//field DOES NOT include the header size, so size will be 
-		// 12 - panaHeader = 4.
-		elmnt->length =htons(avpsize - sizeof(avp_pana)); 
+		//(16 if the ’V’ bit is enabled) when it's an Unsigned32 AVP.
+		//But with PANA, the AVP Length field DOES NOT include the header
+		//size, so it must be considered.
 		
-		 //The Integrity-Algorithm AVP (AVP Code 3) is used for conveying the
-        //integrity algorithm to compute an AUTH AVP. The AVP data is of type
-        //Unsigned32. The AVP data contains an Internet Key Exchange Protocol
-        //version 2 (IKEv2) Transform ID of Transform Type 3 [RFC4306] for the
-        //integrity algorithm. All PANA implementations MUST support
-        //AUTH_HMAC_SHA1_160 (7) [RFC4595].
-        elmnt->code = htons(INTEGRITYALG_AVP);
+		//First the header and length options are 
+		switch (act_avp){
+		
+			case INTEGRITYALG_AVP:
+				avps -= F_INTEG;
+				avpsize = sizeof(avp_pana) + INTEG_AVP_VALUE_LENGTH;
+				break;
+			case KEYID_AVP:
+				avps -= F_KEYID;
+				avpsize = sizeof(avp_pana) + KEY_ID_LENGTH; 
+				//The Key-Id AVP (AVP Code 4) is of type Integer32 and contains an MSK
+				//identifier. The MSK identifier is assigned by PAA and MUST be unique
+				//within the PANA session.
+				// AVP Integer32: (RFC 3588 4.2 )
+				//				32 bit signed value, in network byte order.
+				break;
+				
+			case NONCE_AVP:
+				avps -= F_NONCE;
+				//A random value is generated
+				//It's supposed that the PaC and the PAA each are not
+				//trusted with regard to the computation of a random nonce
+				//A 20 octets random value will be generated
+				avpsize = sizeof(avp_pana) + NONCE_AVP_VALUE_LENGTH;
+				break;
+			case PRFALG_AVP:
+				avps -= F_PRF;
+				avpsize = sizeof(avp_pana) + PRF_AVP_VALUE_LENGTH;
+				break;
+			case RESULTCODE_AVP:
+				avps -= F_RES;
+				avpsize = sizeof(avp_pana) + RESCODE_AVP_VALUE_LENGTH;
+				break;
+			case SESSIONLIFETIME_AVP:
+				avps -= F_SESS;
+				avpsize = sizeof(avp_pana) + SESSLIFETIME_AVP_VALUE_LENGTH;
+				break;
+			case TERMINATIONCAUSE_AVP:
+				avps -= F_TERM;
+				avpsize = sizeof(avp_pana) + TERMCAUSE_AVP_VALUE_LENGTH;
+				break;
+			case EAPPAYLOAD_AVP:
+				avps -= F_EAPP;
+				//The EAP-Payload AVP (AVP Code 2) is used for encapsulating the actual
+				//EAP message that is being exchanged between the EAP peer and the EAP
+				//authenticator. The AVP data is of type OctetString.				
+				if (data[EAPPAYLOAD_AVP] == NULL) {
+					pana_debug("Generating an EAP-Payload AVP without Payload");
+				}
+				
+				//Now eap packet is gonna be built
+				eap_packet = (struct wpabuf *) data[EAPPAYLOAD_AVP];
 
-        //FIXME: De momento el servidor siempre manda el hmac_sha1. Ver como se manda una lista de varios
-        int option = ntohl((int) data[INTEGRITYALG_AVP]);
-        memcpy(position + sizeof(avp_pana), &option, sizeof (int));
-        //debug_avp(elmnt);
-        //Update message values
-        stride += avpsize;
-	}
-    if(F_KEYID & avps){
-		//The total size of this AVP is: AVP header + its value field
-		//it will be needed 12 bytes
-		avpsize = sizeof(avp_pana) + KEY_ID_LENGTH; 
-		totalsize += avpsize;
-		msg = XREALLOC(char,msg,totalsize);
+				/*#ifdef DEBUG
+				fprintf(stderr,"BEGIN EAP PACKET\n");
+				unsigned int i;
+				for (i = 0; i < wpabuf_len(eap_packet); i++) {
+					fprintf(stderr,"%02x", packet[i]);
+				}
+				fprintf(stderr,"END EAP PACKET\n");
+				#endif*/
+				
+				avpsize = sizeof(avp_pana) + wpabuf_len(eap_packet);
+				break;
+			case AUTH_AVP: 	//This is the last one to be added because
+							//If the message contains an auth avp,
+							//it must be encrypted
+				avps -= F_AUTH;
+				//The AVP length varies depending on the
+				//integrity algorithm used. The AVP data is of type OctetString.
+				//AVP value size = 20, to get the 160bits result key
+				avpsize = sizeof(avp_pana) + AUTH_AVP_VALUE_LENGTH;
+				break;
+		}
 		
-		position = msg + stride;
-		elmnt = (avp_pana*) position;
+		if(isOctetString(act_avp)){
+			padding = paddingOctetString((avpsize - sizeof(avp_pana)));
+		}
 		
-		//All AVPs defined in this document MUST have the ’V’ (Vendor) bit cleared.
-		elmnt->flags = 0;
-		elmnt->reserved = 0; //They MUST be set to zero and ignored by the receiver
-		//According to RFC 3588: the AVP Length field MUST be set to 12
-		//(16 if the ’V’ bit is enabled). But with PANA, the AVP Length
-		//field DOES NOT include the header size, so size will be 
-		// 12 - panaHeader = 4.
-		elmnt->length =htons(avpsize - sizeof(avp_pana));
-		
-		//The Key-Id AVP (AVP Code 4) is of type Integer32 and contains an MSK
-        //identifier. The MSK identifier is assigned by PAA and MUST be unique
-        //within the PANA session.
-        // AVP Integer32: (RFC 3588 4.2 )
-        //				32 bit signed value, in network byte order. 
-        elmnt->code = htons(KEYID_AVP);
-		//FIXME comprobar el data que haya algo
-		memcpy(position + sizeof(avp_pana), data[KEYID_AVP], avpsize - sizeof(avp_pana));
-        //debug_avp(elmnt);
-        //Update message values
-        stride += avpsize;
-	}
-    if(F_NONCE & avps){
-		//A random value is generated
-        //It's supposed that the PaC and the PAA each are not
-        //trusted with regard to the computation of a random nonce
-        //A 20 octets random value will be generated
-		avpsize = sizeof(avp_pana) + NONCE_AVP_VALUE_LENGTH; 
-		uint16_t padding = paddingOctetString((avpsize - sizeof(avp_pana)));
 		totalsize += avpsize + padding;
-
 		msg = XREALLOC(char,msg,totalsize);
 		
 		position = msg + stride;
@@ -340,239 +387,77 @@ uint16_t insertAvps(char** message, int avps, void **data) {
 		//All AVPs defined in this document MUST have the ’V’ (Vendor) bit cleared.
 		elmnt->flags = 0;
 		elmnt->reserved = 0; //They MUST be set to zero and ignored by the receiver
-	
-		elmnt->length =htons(avpsize - sizeof(avp_pana));
-		
-		//See section 8.5 RFC 5191
-        elmnt->code = htons(NONCE_AVP);
-		
-        srand(getTime()); //initialize random generator using time
-
-        for (uint16_t i = 0; i <= (avpsize - sizeof(avp_pana)); i += sizeof (int)) {
-            int random = rand();
-            //If we need the whole int value
-            if ((i + sizeof (int)) <= (avpsize - sizeof(avp_pana))) {
-                memcpy((position + sizeof(avp_pana) + i), &random, sizeof (random));
-            } else { //If only a part is needed
-                memcpy((position + sizeof(avp_pana) + i), &random, (avpsize - sizeof(avp_pana)) % sizeof (random));
-            }
-        }
-        
-		memset(position + avpsize,0,padding);
-        //debug_avp(elmnt);
-        //Update message values
-        stride += avpsize+padding;
-	}
-    if(F_PRF & avps){
-		//The PRF-Algorithm AVP (AVP Code 6) is used for conveying the
-        //pseudo-random function to derive PANA_AUTH_KEY. The AVP data is of
-        //type Unsigned32. The AVP data contains an IKEv2 Transform ID of
-        //Transform Type 2 [RFC4306]. All PANA implementations MUST support
-        //PRF_HMAC_SHA1 (2) [RFC2104].
-        //The total size of this AVP is: AVP header + its value field
-		//it will be needed 12 bytes
-		avpsize = sizeof(avp_pana) + PRF_AVP_VALUE_LENGTH; 
-		totalsize += avpsize;
-		msg = XREALLOC(char,msg,totalsize);
-		position = msg + stride;
-		elmnt = (avp_pana*) position;
-		
-		//All AVPs defined in this document MUST have the ’V’ (Vendor) bit cleared.
-		elmnt->flags = 0;
-		elmnt->reserved = 0; //They MUST be set to zero and ignored by the receiver
-		//According to RFC 3588: the AVP Length field MUST be set to 12
-		//(16 if the ’V’ bit is enabled). But with PANA, the AVP Length
-		//field DOES NOT include the header size, so size will be 
-		// 12 - panaHeader = 4.
-		elmnt->length =htons(avpsize - sizeof(avp_pana));
-        elmnt->code = htons(PRFALG_AVP);
-
-        uint32_t option = ntohl((uint32_t) data[PRFALG_AVP]);
-        memcpy(position + sizeof(avp_pana), &option, sizeof (uint32_t));
-        //debug_avp(elmnt);
-        //Update message values
-        stride += avpsize;
-        
-	}
-    if(F_RES & avps){
-		//The Result-Code AVP (AVP Code 7) is of type Unsigned32 and indicates
-        //whether an EAP authentication was completed successfully.
-        //The PRF-Algorithm AVP (AVP Code 6) is used for conveying the
-        //pseudo-random function to derive PANA_AUTH_KEY. The AVP data is of
-        //type Unsigned32. The AVP data contains an IKEv2 Transform ID of
-        //Transform Type 2 [RFC4306]. All PANA implementations MUST support
-        //PRF_HMAC_SHA1 (2) [RFC2104].
-        //The total size of this AVP is: AVP header + its value field
-		//it will be needed 12 bytes
-		avpsize = sizeof(avp_pana) + RESCODE_AVP_VALUE_LENGTH; 
-		totalsize += avpsize;
-		msg = XREALLOC(char,msg,totalsize);
-		position = msg + stride;
-		elmnt = (avp_pana*) position;
-		
-		//All AVPs defined in this document MUST have the ’V’ (Vendor) bit cleared.
-		elmnt->flags = 0;
-		elmnt->reserved = 0; //They MUST be set to zero and ignored by the receiver
-		//According to RFC 3588: the AVP Length field MUST be set to 12
-		//(16 if the ’V’ bit is enabled). But with PANA, the AVP Length
-		//field DOES NOT include the header size, so size will be 
-		// 12 - panaHeader = 4.
-		elmnt->length =htons(avpsize - sizeof(avp_pana));
-        elmnt->code = htons(RESULTCODE_AVP);
-
-        uint32_t option = ntohl((uint32_t) data[RESULTCODE_AVP]);
-        memcpy(position + sizeof(avp_pana), &option, sizeof (uint32_t));
-        //debug_avp(elmnt);
-        //Update message values
-        stride += avpsize;
-	}
-    if(F_SESS & avps){
-		//The Session-Lifetime AVP (AVP Code 8) contains the number of seconds
-        //remaining before the current session is considered expired. The AVP
-        //data is of type Unsigned32.
-        //The total size of this AVP is: AVP header + its value field
-		//it will be needed 12 bytes
-		avpsize = sizeof(avp_pana) + SESSLIFETIME_AVP_VALUE_LENGTH; 
-		totalsize += avpsize;
-		msg = XREALLOC(char,msg,totalsize);
-		position = msg + stride;
-		elmnt = (avp_pana*) position;
-		
-		//All AVPs defined in this document MUST have the ’V’ (Vendor) bit cleared.
-		elmnt->flags = 0;
-		elmnt->reserved = 0; //They MUST be set to zero and ignored by the receiver
-		//According to RFC 3588: the AVP Length field MUST be set to 12
-		//(16 if the ’V’ bit is enabled). But with PANA, the AVP Length
-		//field DOES NOT include the header size, so size will be 
-		// 12 - panaHeader = 4.
 		elmnt->length =htons(avpsize - sizeof(avp_pana)); 
-        elmnt->code = htons(SESSIONLIFETIME_AVP);
+		elmnt->code = htons(act_avp);
+		
+		//Update message values
+		switch(act_avp){
+			case INTEGRITYALG_AVP:
+				//FIXME: De momento el servidor siempre manda el hmac_sha1. Ver como se manda una lista de varios
+				option = ntohl((uint32_t ) data[INTEGRITYALG_AVP]);
+				memcpy(position + sizeof(avp_pana), &option, sizeof (option));
+				break;
+			case KEYID_AVP:
+				//FIXME comprobar el data que haya algo
+				memcpy(position + sizeof(avp_pana), data[KEYID_AVP], avpsize - sizeof(avp_pana));
+				break;
+			case NONCE_AVP:
+				srand(getTime()); //initialize random generator using time
 
-        //FIXME: De momento el servidor siempre manda el hmac_sha1. Ver como se manda una lista de varios
-        uint32_t option = ntohl((uint32_t) data[SESSIONLIFETIME_AVP]);
-        memcpy(position + sizeof(avp_pana), &option, sizeof (uint32_t));
-        //debug_avp(elmnt);
-        //Update message values
-        stride += avpsize;
+				for (uint16_t i = 0; i <= (avpsize - sizeof(avp_pana)); i += sizeof (int)) {
+					int random = rand();
+					//If we need the whole int value
+					if ((i + sizeof (int)) <= (avpsize - sizeof(avp_pana))) {
+						memcpy((position + sizeof(avp_pana) + i), &random, sizeof (random));
+					} else { //If only a part is needed
+						memcpy((position + sizeof(avp_pana) + i), &random, (avpsize - sizeof(avp_pana)) % sizeof (random));
+					}
+				}
+				
+				memset(position + avpsize,0,padding);
+				break;
+			case PRFALG_AVP:
+				option = ntohl((uint32_t) data[PRFALG_AVP]);
+				memcpy(position + sizeof(avp_pana), &option, sizeof (option));
+				break;
+			case RESULTCODE_AVP:
+				option = ntohl((uint32_t) data[RESULTCODE_AVP]);
+				memcpy(position + sizeof(avp_pana), &option, sizeof (uint32_t));			
+				break;
+			case SESSIONLIFETIME_AVP:
+				//FIXME: De momento el servidor siempre manda el hmac_sha1. Ver como se manda una lista de varios
+				option = ntohl((uint32_t) data[SESSIONLIFETIME_AVP]);
+				memcpy(position + sizeof(avp_pana), &option, sizeof (uint32_t));			
+				break;
+			case TERMINATIONCAUSE_AVP:{
+				//FIXME: De momento el servidor siempre manda el hmac_sha1. Ver como se manda una lista de varios
+				int * valor = (int *)(position + sizeof(avp_pana));
+				*(valor) = ntohs((int) data[TERMINATIONCAUSE_AVP]);
+				memcpy(position + sizeof(avp_pana), valor, sizeof (int));
+				}
+				break;
+			case EAPPAYLOAD_AVP:{
+				const u8* packet = wpabuf_head(eap_packet);
+				memcpy(position + sizeof(avp_pana), packet, wpabuf_len(eap_packet));                
+				memset(position + avpsize,0,padding);
+				}
+				break;
+			case AUTH_AVP:
+				//Set the value and padding to 0
+				memset(position + sizeof(avp_pana),0,avpsize - sizeof(avp_pana) + padding);
+				
+				//In order to get the complete message to hash, the size value
+				//must be updated
+				((pana *)msg)->msg_length = htons(totalsize);
+				
+				//If the message contains an auth avp, it must be hashed
+				hashAuth(msg, data[AUTH_AVP], MSK_LENGTH);
+				break;
+		}
+		
+		stride += avpsize+padding;
+
 	}
-    if(F_TERM & avps){
-		//See section 8.9 RFC 5191
-        //SEE page 45 rfc 3588 AVP Type: Enumerated
-        //The total size of this AVP is: AVP header + its value field
-		//it will be needed 12 bytes
-		avpsize = sizeof(avp_pana) + TERMCAUSE_AVP_VALUE_LENGTH; 
-		totalsize += avpsize;
-		msg = XREALLOC(char,msg,totalsize);
-		position = msg + stride;
-		elmnt = (avp_pana*) position;
-		
-		//All AVPs defined in this document MUST have the ’V’ (Vendor) bit cleared.
-		elmnt->flags = 0;
-		elmnt->reserved = 0; //They MUST be set to zero and ignored by the receiver
-		//According to RFC 3588: the AVP Length field MUST be set to 12
-		//(16 if the ’V’ bit is enabled). But with PANA, the AVP Length
-		//field DOES NOT include the header size, so size will be 
-		// 12 - panaHeader = 4.
-		elmnt->length =htons(avpsize - sizeof(avp_pana)); 
-        elmnt->code = htons(TERMINATIONCAUSE_AVP);
-
-        //FIXME: De momento el servidor siempre manda el hmac_sha1. Ver como se manda una lista de varios
-        uint32_t * valor;
-        valor = (uint32_t *)(position + sizeof(avp_pana));
-        *valor = ntohs((uint32_t) data[TERMINATIONCAUSE_AVP]);
-        memcpy(position + sizeof(avp_pana), valor, sizeof (uint32_t));
-        //debug_avp(elmnt);
-        //Update message values
-        stride += avpsize;
-	}
-    if(F_EAPP & avps){ //FIXME Falta por comprobar que funciona
-		//The EAP-Payload AVP (AVP Code 2) is used for encapsulating the actual
-        //EAP message that is being exchanged between the EAP peer and the EAP
-        //authenticator. The AVP data is of type OctetString.
-        //A random value is generated
-        //It's supposed that the PaC and the PAA each are not
-        //trusted with regard to the computation of a random nonce
-        //A 20 octets random value will be generated
-        
-        if (data[EAPPAYLOAD_AVP] == NULL) {
-			pana_debug("Generating an EAP-Payload AVP without Payload");
-        }
-        
-        //Now eap packet is gonna be built
-        struct wpabuf * aux = (struct wpabuf *) data[EAPPAYLOAD_AVP];
-        const u8 * packet = wpabuf_head(aux);
-
-		/*#ifdef DEBUG
-        fprintf(stderr,"BEGIN EAP PACKET\n");
-        unsigned int i;
-        for (i = 0; i < wpabuf_len(aux); i++) {
-            fprintf(stderr,"%02x", packet[i]);
-        }
-        fprintf(stderr,"END EAP PACKET\n");
-		#endif*/
-        
-		avpsize = sizeof(avp_pana) + wpabuf_len(aux);
-		uint16_t padding = paddingOctetString((avpsize - sizeof(avp_pana)));
-		totalsize += avpsize + padding;
-
-		msg = XREALLOC(char,msg,totalsize);
-		
-		position = msg + stride;
-		elmnt = (avp_pana*) position;
-		
-		//All AVPs defined in this document MUST have the ’V’ (Vendor) bit cleared.
-		elmnt->flags = 0;
-		elmnt->reserved = 0; //They MUST be set to zero and ignored by the receiver
-	
-		elmnt->length =htons(avpsize - sizeof(avp_pana));
-		//See section 8.5 RFC 5191
-        elmnt->code = htons(EAPPAYLOAD_AVP);
-		
-
-		memcpy(position + sizeof(avp_pana), packet, wpabuf_len(aux));                
-		memset(position + avpsize,0,padding);
-        //debug_avp(elmnt);
-        //Update message values
-        stride += avpsize+padding;
-	}
-    //This is the last one to be added because
-    //If the message contains an auth avp, it must be encrypted
-    if(F_AUTH & avps){  
-		//The AUTH AVP (AVP Code 1) is used to integrity protect PANA messages.
-        //The AVP data payload contains the Message Authentication Code encoded
-        //in network byte order. The AVP length varies depending on the
-        //integrity algorithm used. The AVP data is of type OctetString.
-        //AVP value size = 20, to get the 160bits result key
-        avpsize = sizeof(avp_pana) + AUTH_AVP_VALUE_LENGTH; 
-		uint16_t padding = paddingOctetString((avpsize - sizeof(avp_pana)));
-		totalsize += avpsize + padding;
-
-		msg = XREALLOC(char,msg,totalsize);
-		
-		position = msg + stride;
-		elmnt = (avp_pana*) position;
-		
-		//All AVPs defined in this document MUST have the ’V’ (Vendor) bit cleared.
-		elmnt->flags = 0;
-		elmnt->reserved = 0; //They MUST be set to zero and ignored by the receiver
-	
-		elmnt->length =htons(avpsize - sizeof(avp_pana));
-		
-		//See section 8.5 RFC 5191
-        elmnt->code = htons(AUTH_AVP);
-		
-		//Set the value and padding to 0
-		memset(position + sizeof(avp_pana),0,avpsize - sizeof(avp_pana) + padding);
-		
-		//In order to get the complete message to hash, the size value
-		//must be updated
-		((pana *)msg)->msg_length = htons(totalsize);
-		
-		//If the message contains an auth avp, it must be hashed
-        hashAuth(msg, data[AUTH_AVP], MSK_LENGTH); 
-        //stride += avpsize+padding;//No more avps, it's unnecesary to update this value
-	}
-    
 	//fprintf(stderr,"Totalsize: %d\n",totalsize);
 	//Finally totalsize is changed on PANA message
 	((pana *)msg)->msg_length = htons(totalsize);
@@ -611,17 +496,6 @@ char * getAvp(char *msg, uint16_t type) {
     return NULL; //Not found
 }
 
-static char * getAvpName(uint16_t avp_code) {
-	
-	// All AVP codes are between AUTH and TERMINATIONCAUSE
-    if (avp_code >= AUTH_AVP && avp_code <= TERMINATIONCAUSE_AVP) {
-        return avp_names[avp_code - 1];
-    }
-    
-	pana_debug("ERROR getAvpName, wrong AVP code (%d)",avp_code);
-	return NULL;
-}
-
 char * getMsgName(uint16_t msg_type) {
     char *pana_msg_type[] = {"PCI", "PANA-Auth", "PANA-Termination", "PANA-Notification"};
 	// All MSG types are between PCI and PNA
@@ -633,20 +507,6 @@ char * getMsgName(uint16_t msg_type) {
 	return NULL;
 }
 
-static bool isOctetString(uint16_t type){
-	return (type==AUTH_AVP || type ==EAPPAYLOAD_AVP || type == NONCE_AVP);		
-}
-
-static uint16_t paddingOctetString(uint16_t size) {
-
-    uint16_t left4byte = size % 4;
-    uint16_t padding = 0;
-    if (left4byte != 0) {
-        padding = 4 - left4byte;
-    }
-
-    return padding;
-}
 
 void debug_msg(pana *hdr){
 	#ifdef DEBUG
