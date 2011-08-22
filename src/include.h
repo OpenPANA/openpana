@@ -103,6 +103,41 @@
 	#define EXIT_FAILURE  1
 #endif
 
+#ifndef KEY_ID_LENGTH
+	#define KEY_ID_LENGTH  4
+#endif
+
+#ifndef INTEG_AVP_VALUE_LENGTH
+	#define INTEG_AVP_VALUE_LENGTH  4
+#endif
+
+#ifndef NONCE_AVP_VALUE_LENGTH
+	#define NONCE_AVP_VALUE_LENGTH  20
+#endif
+
+#ifndef PRF_AVP_VALUE_LENGTH
+	#define PRF_AVP_VALUE_LENGTH  4
+#endif
+
+#ifndef RESCODE_AVP_VALUE_LENGTH
+	#define RESCODE_AVP_VALUE_LENGTH  4
+#endif
+
+#ifndef SESSLIFETIME_AVP_VALUE_LENGTH
+	#define SESSLIFETIME_AVP_VALUE_LENGTH  4
+#endif
+
+#ifndef TERMCAUSE_AVP_VALUE_LENGTH
+	#define TERMCAUSE_AVP_VALUE_LENGTH  4
+#endif
+
+#ifndef AUTH_AVP_VALUE_LENGTH
+	#define AUTH_AVP_VALUE_LENGTH  20
+#endif
+
+#ifndef MSK_LENGTH
+	#define MSK_LENGTH  40
+#endif
 
 #define SET		1 /**< SET state. */
 #define UNSET 	0 /**< UNSET state.*/

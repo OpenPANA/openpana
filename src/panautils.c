@@ -355,7 +355,7 @@ int hashAuth(char *msg, char* key, int key_len) {
     return 0; //Everything went better than expected
 }
 
-//Añade 1 al valor actual del KeyId
+//Add 1 to the current KeyID value
 void increase_one(char *value, int length) {
 	
     int i;	
@@ -375,7 +375,7 @@ void increase_one(char *value, int length) {
 int generateRandomKeyID (char** global_key_id) {
 
     srand(getTime()); //initialize random generator using time
-    int key_id_length = 4; //FIXME: shouldn't be here?
+    int key_id_length = KEY_ID_LENGTH; 
     (*global_key_id) = (char *) XMALLOC(char,key_id_length);
     for (int i = 0; i <= key_id_length; i += sizeof (int)) {
         int random = rand();

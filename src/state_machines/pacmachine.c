@@ -184,7 +184,7 @@ int panaResult() {
 	char * attribute = getAvp(current_session->LAST_MESSAGE, RESULTCODE_AVP);
     if (attribute != NULL) {
 		char* value =(((char*)attribute) + sizeof(avp_pana));
-		par_result_code = Hex2Dec(value, 4);//FIXME: Magic number (4 porque es el tamaño del campo value)
+		par_result_code = Hex2Dec(value, RESCODE_AVP_VALUE_LENGTH);
     }
     
     if ((current_session->PAR.receive && (current_session->PAR.flags & C_FLAG)) && par_result_code == PANA_SUCCESS) {

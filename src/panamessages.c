@@ -316,7 +316,7 @@ int insertAvps(char** message, int avps, void **data) {
     if(F_INTEG & avps){
 		//The total size of this AVP is: AVP header + its value field
 		//it will be needed 12 bytes
-		avpsize = sizeof(avp_pana) + 4; //FIXME Magic Number
+		avpsize = sizeof(avp_pana) + INTEG_AVP_VALUE_LENGTH; 
 		totalsize += avpsize;
 		msg = XREALLOC(char,msg,totalsize);
 		
@@ -350,7 +350,7 @@ int insertAvps(char** message, int avps, void **data) {
     if(F_KEYID & avps){
 		//The total size of this AVP is: AVP header + its value field
 		//it will be needed 12 bytes
-		avpsize = sizeof(avp_pana) + 4; //FIXME Magic Number
+		avpsize = sizeof(avp_pana) + KEY_ID_LENGTH; 
 		totalsize += avpsize;
 		msg = XREALLOC(char,msg,totalsize);
 		
@@ -383,7 +383,7 @@ int insertAvps(char** message, int avps, void **data) {
         //It's supposed that the PaC and the PAA each are not
         //trusted with regard to the computation of a random nonce
         //A 20 octets random value will be generated
-		avpsize = sizeof(avp_pana) + 20; //FIXME Magic Number? not magic!
+		avpsize = sizeof(avp_pana) + NONCE_AVP_VALUE_LENGTH; 
 		int padding = paddingOctetString((avpsize - sizeof(avp_pana)));
 		totalsize += avpsize + padding;
 
@@ -426,7 +426,7 @@ int insertAvps(char** message, int avps, void **data) {
         //PRF_HMAC_SHA1 (2) [RFC2104].
         //The total size of this AVP is: AVP header + its value field
 		//it will be needed 12 bytes
-		avpsize = sizeof(avp_pana) + 4; //FIXME Magic Number
+		avpsize = sizeof(avp_pana) + PRF_AVP_VALUE_LENGTH; 
 		totalsize += avpsize;
 		msg = XREALLOC(char,msg,totalsize);
 		position = msg + stride;
@@ -459,7 +459,7 @@ int insertAvps(char** message, int avps, void **data) {
         //PRF_HMAC_SHA1 (2) [RFC2104].
         //The total size of this AVP is: AVP header + its value field
 		//it will be needed 12 bytes
-		avpsize = sizeof(avp_pana) + 4; //FIXME Magic Number
+		avpsize = sizeof(avp_pana) + RESCODE_AVP_VALUE_LENGTH; 
 		totalsize += avpsize;
 		msg = XREALLOC(char,msg,totalsize);
 		position = msg + stride;
@@ -487,7 +487,7 @@ int insertAvps(char** message, int avps, void **data) {
         //data is of type Unsigned32.
         //The total size of this AVP is: AVP header + its value field
 		//it will be needed 12 bytes
-		avpsize = sizeof(avp_pana) + 4; //FIXME Magic Number
+		avpsize = sizeof(avp_pana) + SESSLIFETIME_AVP_VALUE_LENGTH; 
 		totalsize += avpsize;
 		msg = XREALLOC(char,msg,totalsize);
 		position = msg + stride;
@@ -515,7 +515,7 @@ int insertAvps(char** message, int avps, void **data) {
         //SEE page 45 rfc 3588 AVP Type: Enumerated
         //The total size of this AVP is: AVP header + its value field
 		//it will be needed 12 bytes
-		avpsize = sizeof(avp_pana) + 4; //FIXME Magic Number
+		avpsize = sizeof(avp_pana) + TERMCAUSE_AVP_VALUE_LENGTH; 
 		totalsize += avpsize;
 		msg = XREALLOC(char,msg,totalsize);
 		position = msg + stride;
@@ -566,7 +566,7 @@ int insertAvps(char** message, int avps, void **data) {
         fprintf(stderr,"END EAP PACKET\n");
 		#endif*/
         
-		avpsize = sizeof(avp_pana) + wpabuf_len(aux); //FIXME Magic Number? not magic!
+		avpsize = sizeof(avp_pana) + wpabuf_len(aux);
 		int padding = paddingOctetString((avpsize - sizeof(avp_pana)));
 		totalsize += avpsize + padding;
 
@@ -598,7 +598,7 @@ int insertAvps(char** message, int avps, void **data) {
         //in network byte order. The AVP length varies depending on the
         //integrity algorithm used. The AVP data is of type OctetString.
         //AVP value size = 20, to get the 160bits result key
-        avpsize = sizeof(avp_pana) + 20; //FIXME Magic Number
+        avpsize = sizeof(avp_pana) + AUTH_AVP_VALUE_LENGTH; 
 		int padding = paddingOctetString((avpsize - sizeof(avp_pana)));
 		totalsize += avpsize + padding;
 
@@ -624,7 +624,7 @@ int insertAvps(char** message, int avps, void **data) {
 		((pana *)msg)->msg_length = htons(totalsize);
 		
 		//If the message contains an auth avp, it must be hashed
-        hashAuth(msg, data[AUTH_AVP], 40); //FIXME: Magic Number Porque de momento la clave es de 320 bits
+        hashAuth(msg, data[AUTH_AVP], MSK_LENGTH); 
         //stride += avpsize+padding;//No more avps, it's unnecesary to update this value
 	}
     
