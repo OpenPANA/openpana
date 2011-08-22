@@ -298,7 +298,7 @@ void add_session(pana_ctx * session) {
 
 }
 
-pana_ctx* get_session(int id) {
+pana_ctx* get_session(uint32_t id) {
     int rc; /* return code of pthreads functions.  */
 
     struct pana_ctx_list* session = NULL;
@@ -328,7 +328,7 @@ pana_ctx* get_session(int id) {
     return session->pana_session;
 }
 
-void remove_session(int id) {
+void remove_session(uint32_t id) {
     int rc;
     
     struct pana_ctx_list* session = NULL;

@@ -64,7 +64,7 @@ int sendPana(struct sockaddr_in destaddr, char *msg, int sock) {
     memset(&(su_addr.sin_zero), '\0', 8);
 
     uint16_t total = 0; // Total bytes sended
-    uint16_t n = 0;
+    short n = 0;
     uint16_t bytesleft = len;
     while (total < len) {
         n = sendto(sock, msg + total, bytesleft, 0,
@@ -141,7 +141,7 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
     //Check if it contains the Auth AVP and checks it
 	char * avpbytes = getAvp((char*)msg, AUTH_AVP);
     if (avpbytes != NULL) {//if existsAvp(AUTH)
-		if (existAvp((char*)msg, "Result-Code")) return TRUE; //FIXME: Hay que comprobar que sea un eap-success 
+		if (existAvp((char*)msg, F_RES)) return TRUE; //FIXME: Hay que comprobar que sea un eap-success 
         char *data; //It will contain the auth avp value
         uint16_t size; //Size of the AVP Auth if found
         //The AVP code (Auth = 1) to compare with the one in the panaMessage
@@ -312,7 +312,7 @@ u8 * generateAUTH(pana_ctx * session) {
     seq_length += session->key_id_length;
 
     XFREE(result);
-    result = XMALLOC(char,40); //To get the 320bits result key
+    result = XMALLOC(u8,40); //To get the 320bits result key
 	
 	/*#ifdef DEBUG
 	fprintf(stderr,"DEBUG: PRF Seed is: \n");
@@ -358,6 +358,7 @@ void increase_one(char *value, int length) {
     int i;	
     bool increased = FALSE;
     for (i = length - 1; (i >= 0 && increased == 0); i--) {
+		//FIXME comparison is always true due to limited range of data type
         if (value[i] != 0xff) {
             increased = TRUE;
             value[i] += 1;
@@ -394,7 +395,7 @@ int Hex2Dec (char * value, int length) {
 	for (int i =(length-1); i>=0; i--){
 		number = (int)value[i];
 		for(int k = 0; k<16;k++)
-			number*16;
+			number = number*16;
 		res = res + number;
 		j++;
 	}

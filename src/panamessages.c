@@ -30,87 +30,33 @@
 
 static char * avp_names[] = {"AUTH", "EAP-Payload", "Integrity-Algorithm", "Key-Id", "Nonce", "PRF-Algorithm", "Result-Code", "Session-Lifetime", "Termination-Cause"};
 
-static uint16_t AVPname2flag(char * avp_name){
-	uint16_t type=0;
-	
-	//The AVP flag is setted from the AVP_name
-    if (strcmp(avp_name, avp_names[AUTH_AVP-1]) == 0) {
-        type = F_AUTH;
-    } else if (strcmp(avp_name, avp_names[EAPPAYLOAD_AVP-1]) == 0) {
-        type = F_EAPP;
-    } else if (strcmp(avp_name, avp_names[INTEGRITYALG_AVP-1]) == 0) {
-        type = F_INTEG;
-    } else if (strcmp(avp_name, avp_names[KEYID_AVP-1]) == 0) {
-        type = F_KEYID;
-    } else if (strcmp(avp_name, avp_names[NONCE_AVP-1]) == 0) {
-        type = F_NONCE;
-    } else if (strcmp(avp_name, avp_names[PRFALG_AVP-1]) == 0) {
-        type = F_PRF;
-    } else if (strcmp(avp_name, avp_names[RESULTCODE_AVP-1]) == 0) {
-        type = F_RES;
-    } else if (strcmp(avp_name, avp_names[SESSIONLIFETIME_AVP-1]) == 0) {
-        type = F_SESS;
-    } else if (strcmp(avp_name, avp_names[TERMINATIONCAUSE_AVP-1]) == 0) {
-        type = F_TERM;
-    } 
-    #ifdef DEBUG 
-    else{
-    	pana_debug("WARNING AVPname2flag function, invalid AVP name %s", avp_name);
-	}
-    #endif
-    return type;
-}
+/** 
+ * Returns the name of the AVP given its code.
+ * 
+ * @param avp_code AVP code.
+ * 
+ * @return AVP name. 
+ * */
+static char * getAvpName(uint16_t avp_code);
+/**
+ * \fn static bool isOctetString(uint16_t type);
+ * Returns if an AVP is OctetString or not.
+ * 
+ * @param type AVP code.
+ * 
+ * @return If the AVP is OctetString.
+ * */
+static bool isOctetString(uint16_t type);
+/**
+ * Returns the padding space needed given an OctetString size.
+ * 
+ * @param size AVP size.
+ * 
+ * @return Padding needed.
+ */
+static uint16_t paddingOctetString(uint16_t size);
 
-static uint16_t AVPgenerateflags(char * avps){
-	
-	if(avps == NULL)
-		return 0;
-	
-	uint16_t result = 0;
-	//Get the avp lists names parameter to a local variable.
-	char * names = NULL;
-	//an extra space is required to insert an extra separation token later
-	names = XCALLOC(char,strlen(avps) +2);
-	
-	strcpy(names, avps);
-	if (strcmp(names, "") != 0) { //If you're not going to insert any avp, skip this part
-
-        char sep[2] = "*"; //When an AVP name ends with "*", zero, one,
-        //or more AVPs are inserted; otherwise, one AVP is
-        //inserted. See RFC5609 page 8
-        
-		//A separation token is inserted in the end,
-        //avoids Segmentation Fault in
-        //function strtok ahead.
-		names[strlen(avps)] = '*';        
-        char *ptr = NULL;
-        ptr = strtok(names, sep); //Get the first avp name as a token
-		
-		//Added to the privisional result
-		result = result | AVPname2flag(ptr);
-
-        while ((ptr = strtok(NULL, sep)) != NULL) {//Add the rest of AVPs if any
-			result = result | AVPname2flag(ptr);
-        }
-    }
-    #ifdef DEBUG
-    else {
-		pana_debug("WARNING: AVPname2flag function used without AVP");
-	}
-	#endif
-	
-	//Ignore AUTH AVP if present
-	if(result & F_AUTH){
-		pana_debug("WARNING function AVPgenerateflags received \"AUTH\" AVP as a parameter, it'll be IGNORED");
-		//FIXME: Debería hacerse lógicamente, pero no va
-		result = (result - F_AUTH);
-	}
-	free(names);	
-	return result;
-}
-
-
-char * transmissionMessage(char * msgtype, uint16_t flags, uint32_t *sequence_number, uint32_t sess_id, char * avps, struct sockaddr_in destaddr, void **data, int sock) {
+char * transmissionMessage(char * msgtype, uint16_t flags, uint32_t *sequence_number, uint32_t sess_id, uint16_t avps, struct sockaddr_in destaddr, void **data, int sock) {
 //First, the msgtype argument is checked, it must meet certain conditions
 	//- Message type must have 3 positions
 	//- All messages start with 'P'
@@ -147,7 +93,8 @@ char * transmissionMessage(char * msgtype, uint16_t flags, uint32_t *sequence_nu
     // For further information see RFC 5191 page 25 section 7
 
 	//See what AVPs will be needed:
-	uint16_t avpsflags = AVPgenerateflags(avps);
+	//uint16_t avpsflags = AVPgenerateflags(avps);
+	uint16_t avpsflags = avps;
 
 
     //Header's values to be included in panaMessage once they're initialized
@@ -249,36 +196,34 @@ char * transmissionMessage(char * msgtype, uint16_t flags, uint32_t *sequence_nu
 	return (char*)msg;
 }
 	
-bool existAvp(char * message, char *avp_name) {
+bool existAvp(char * message, uint16_t avp) {
     uint16_t type = 0; //The AVP code to compare with the one in the panaMessage
 	pana * msg = (pana *) message;
 	 //If there's no name
 	 //If there's no message
 	 //If the message has no value (no AVPs)
-    if (avp_name == NULL || (strcmp(avp_name, "") == 0) || msg == NULL || msg->msg_length == sizeof (pana)){
+    if (avp == 0 || msg == NULL || msg->msg_length == sizeof (pana)){
         return FALSE;
     }
     
-    //First the AVP code is identified from the AVP_name using flags
-    uint16_t flags = AVPname2flag(avp_name);
-    
-    if (flags & F_AUTH) {
+    //the AVP code is identified from the AVP_name using flags    
+    if (avp & F_AUTH) {
         type = AUTH_AVP;
-    } else if (flags & F_EAPP) {
+    } else if (avp & F_EAPP) {
         type = EAPPAYLOAD_AVP;
-    } else if (flags & F_INTEG) {
+    } else if (avp & F_INTEG) {
         type = INTEGRITYALG_AVP;
-    } else if (flags & F_KEYID) {
+    } else if (avp & F_KEYID) {
         type = KEYID_AVP;
-    } else if (flags & F_NONCE) {
+    } else if (avp & F_NONCE) {
         type = NONCE_AVP;
-    } else if (flags & F_PRF) {
+    } else if (avp & F_PRF) {
         type = PRFALG_AVP;
-    } else if (flags & F_RES) {
+    } else if (avp & F_RES) {
         type = RESULTCODE_AVP;
-    } else if (flags & F_SESS) {
+    } else if (avp & F_SESS) {
         type = SESSIONLIFETIME_AVP;
-    } else if (flags & F_TERM) {
+    } else if (avp & F_TERM) {
         type = TERMINATIONCAUSE_AVP;
     }/* else {
 		pana_debug("existAvp function, invalid AVP name %s", avp_name);
@@ -286,6 +231,7 @@ bool existAvp(char * message, char *avp_name) {
     }*/
     return (getAvp(message,type)!=NULL);
 }
+
 uint16_t insertAvps(char** message, int avps, void **data) {
 	char * msg = *message;
 	#ifdef DEBUG

@@ -238,30 +238,16 @@ typedef struct {
  * except for ’R’ (Request) flag.
  * @param *sequence_number Pointer to the sequence number field of the message.
  * @param sess_id Session id field of the message.
- * @param *avps Contains a list of names of optional AVPs to be
- * inserted in the message, except for AUTH AVP.
+ * @param *avps Contains a list of optional AVPs to be
+ * inserted in the message, except for AUTH AVP. AVPs will be passed as
+ * a combination of AVP flags described in this file.
  * @param destaddr Socket information to use during transmission.
  * @param data *data to be used in the AVP insertion.
  * @param sock Socket to use in the transmission.
  * 
  * @return Message sended. It must to be freed when no longer needed.
  */
-char * transmissionMessage(char * msgtype, uint16_t flags, uint32_t *sequence_number, uint32_t sess_id, char * avps, struct sockaddr_in destaddr, void **data, int sock);
-/**
- * A procedure to get the combination of the AVP flags given an AVP list.
- * 
- * @param *avps List of AVPs.
- * @return Flags to be used.
- * */
-static uint16_t AVPgenerateflags(char * avps);
-
-/**
- * A procedure that given an AVP name return the associated flag.
- * 
- * @param *avp_name Name of the AVP.
- * @return Flag associated to the AVP.
- * */
-static uint16_t AVPname2flag(char * avp_name);
+char * transmissionMessage(char * msgtype, uint16_t flags, uint32_t *sequence_number, uint32_t sess_id, uint16_t avps, struct sockaddr_in destaddr, void **data, int sock);
 
 /**
  * A procedure that checks whether an AVP of the specified AVP name
@@ -270,13 +256,13 @@ static uint16_t AVPname2flag(char * avp_name);
  * 
  * @param *message Message to be checked.
  * 
- * @param *avp_name AVP name to be checked.
+ * @param *avp AVP to be checked. Using it's flag.
  * 
  * @return 1 (TRUE) if the specified AVP is found.
  * 
  * @return 0 (FALSE) if the specified AVP isn't found.
  */
-bool existAvp(char * message, char *avp_name);
+bool existAvp(char * message, uint16_t avp);
 
 /**
  * A procedure that inserts the given AVPs with their data into a PANA 
@@ -311,33 +297,6 @@ char * getAvp(char *msg, uint16_t type);
  * @return Message name. 
  * */
 char * getMsgName(uint16_t msg_type);
-
-/** 
- * Returns the name of the AVP given its code.
- * 
- * @param avp_code AVP code.
- * 
- * @return AVP name. 
- * */
-static char * getAvpName(uint16_t avp_code);
-
-/**
- * Returns the padding space needed given an OctetString size.
- * 
- * @param size AVP size.
- * 
- * @return Padding needed.
- */
-static uint16_t paddingOctetString(uint16_t size);
-
-/**
- * Returns if an AVP is OctetString or not.
- * 
- * @param type AVP code.
- * 
- * @return If the AVP is OctetString.
- * */
-static bool isOctetString(uint16_t type);
 
 //Debugging functions
 /** Debug function, shows in a friendly way the information contained in

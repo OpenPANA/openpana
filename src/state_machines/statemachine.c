@@ -408,7 +408,7 @@ int keyAvailable() {
 				XFREE(session->msk_key);
 				session->msk_key = NULL;
 			}
-			session->msk_key = XCALLOC(char, key_len);
+			session->msk_key = XCALLOC(u8, key_len);
 			memcpy(session->msk_key, key, key_len);
 
 			//Prints the EAP MSK key for debugging purposes
@@ -469,7 +469,7 @@ int reachMaxNumRt() {
 
 int livenessTestPeer() {
     if ((current_session->PNR.receive) && (current_session->PNR.flags & P_FLAG)) {
-        char * unused = transmissionMessage("PNA", P_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, "", current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
+        char * unused = transmissionMessage("PNA", P_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, 0, current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
         XFREE(unused);
         return NO_CHANGE;
     } else

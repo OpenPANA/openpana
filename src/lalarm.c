@@ -109,7 +109,7 @@ struct lalarm * add_alarma(struct lalarm ** l,
 
 }
 
-pana_ctx * get_alarm_session(struct lalarm** list, int id_session, int id_alarm) {
+pana_ctx * get_alarm_session(struct lalarm** list, uint32_t id_session, int id_alarm) {
 
 	//Lock the mutex for entering in the critical section.
     pthread_mutex_lock(&mutex);
@@ -181,7 +181,7 @@ struct lalarm * get_next_alarm(struct lalarm** list, double time) {
 }
 
 // Remove the alarms associated to a PANA session.
-void remove_alarm(struct lalarm** list, int id_session){
+void remove_alarm(struct lalarm** list, uint32_t id_session){
 
 	//Lock the mutex for entering to the critical section.
 	pthread_mutex_lock(&mutex);
