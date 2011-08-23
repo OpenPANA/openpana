@@ -105,7 +105,10 @@ o Install
    
  5. After all you have 'openpaa' and 'openpac' in the ./src application's folder.
  
- 6. By running 'make install' as root OpenPANA will be installed tipically under '/usr/local/bin' and configuration files will be placed in '/etc/openpana'.
+ 6. By running 'make install' as root OpenPANA will be installed tipically under '/usr/local/bin' and configuration files 
+    will be placed in '/etc/openpana'.
+
+    In order to produce an executable much smaller and faster, the application can be installed by the command 'make install-strip'.
 
 * OpenPANA can be uninstalled by the 'make uninstall' command.
 
