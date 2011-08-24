@@ -131,7 +131,8 @@ int pacInitHandshake() {
 
 int paaInitHandshake() {
     // FIXME: A mi me gusta más la sin optimizar
-    if (((current_session->PAR.receive = 1) && (current_session->PAR.flags & S_FLAG)) && !(existAvp(current_session->LAST_MESSAGE, F_EAPP))) {
+    if (((current_session->received.PAR) && (current_session->PAR.flags & S_FLAG)) && !(existAvp(current_session->LAST_MESSAGE, F_EAPP))) {
+   // if (((current_session->PAR.receive = 1) && (current_session->PAR.flags & S_FLAG)) && !(existAvp(current_session->LAST_MESSAGE, F_EAPP))) {
         eapRestart();
         sessionTimerReStart(current_session->client_ctx.FAILED_SESS_TIMEOUT);
 		XFREE(current_session->retr_msg);
@@ -189,10 +190,12 @@ int panaResult() {
 		par_result_code = Hex2Dec(value, RESCODE_AVP_VALUE_LENGTH);
     }
     
-    if ((current_session->PAR.receive && (current_session->PAR.flags & C_FLAG)) && par_result_code == PANA_SUCCESS) {
+    if ((current_session->received.PAR && (current_session->PAR.flags & C_FLAG)) && par_result_code == PANA_SUCCESS) {
+    //if ((current_session->PAR.receive && (current_session->PAR.flags & C_FLAG)) && par_result_code == PANA_SUCCESS) {
         txEAP();
         return WAIT_EAP_RESULT;
-    } else if ((current_session->PAR.receive && (current_session->PAR.flags & C_FLAG)) &&  par_result_code != PANA_SUCCESS) {
+    } else if ((current_session->received.PAR && (current_session->PAR.flags & C_FLAG)) &&  par_result_code != PANA_SUCCESS) {
+   // } else if ((current_session->PAR.receive && (current_session->PAR.flags & C_FLAG)) &&  par_result_code != PANA_SUCCESS) {
         if (existAvp(current_session->LAST_MESSAGE, F_EAPP)) {
             txEAP();
         } else {
@@ -205,7 +208,8 @@ int panaResult() {
 }
 
 int parPanExchange() {
-    if (current_session->PAR.receive && (current_session->PAR.flags & R_FLAG) && !eapPiggyback()) {
+    if (current_session->received.PAR && (current_session->PAR.flags & R_FLAG) && !eapPiggyback()) {
+    //if (current_session->PAR.receive && (current_session->PAR.flags & R_FLAG) && !eapPiggyback()) {
         rtxTimerStop();
         txEAP();
         eapRespTimerStart();
@@ -224,12 +228,14 @@ int parPanExchange() {
             current_session->retr_msg = transmissionMessage("PAN", 0, &(current_session->SEQ_NUMBER), current_session->session_id, 0, current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
         }
         return WAIT_EAP_MSG;
-    } else if (current_session->PAR.receive && ((current_session->PAR.flags & R_FLAG) == R_FLAG) && eapPiggyback()) {
+    } else if (current_session->received.PAR && ((current_session->PAR.flags & R_FLAG) == R_FLAG) && eapPiggyback()) {
+    //} else if (current_session->PAR.receive && ((current_session->PAR.flags & R_FLAG) == R_FLAG) && eapPiggyback()) {
         rtxTimerStop();
         txEAP();
         eapRespTimerStart();
         return WAIT_EAP_MSG;
-    } else if (current_session->PAN.receive) {
+    } else if (current_session->received.PAN) {
+    //} else if (current_session->PAN.receive) {
         rtxTimerStop();
         return WAIT_PAA;
     }
@@ -382,7 +388,8 @@ int reauthInitPacStateOpen() {
 }
 
 int reauthInitPaaStateOpen() {
-    if (current_session->PAR.receive) {
+    if (current_session->received.PAR) {
+   // if (current_session->PAR.receive) {
         eapRespTimerStart();
         txEAP();
         if (!eapPiggyback()) {
@@ -398,7 +405,8 @@ int reauthInitPaaStateOpen() {
 }
 
 int sessionTermInitPaaStateOpen() {
-    if (current_session->PTR.receive) {
+    if (current_session->received.PTR) {
+    //if (current_session->PTR.receive) {
 		XFREE(current_session->retr_msg);
         current_session->retr_msg = transmissionMessage("PTA", 0, &(current_session->SEQ_NUMBER), current_session->session_id, 0, current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
 
@@ -422,7 +430,8 @@ int sessionTermInitPacStateOpen() {
 }
 
 int reauthInitPacStateWaitPnaReauth() {
-    if ((current_session->PNA.receive) && (current_session->PNA.flags && A_FLAG)) {
+    if ((current_session->received.PNA) && (current_session->PNA.flags && A_FLAG)) {
+    //if ((current_session->PNA.receive) && (current_session->PNA.flags && A_FLAG)) {
         rtxTimerStop();
         sessionTimerReStart(current_session->client_ctx.FAILED_SESS_TIMEOUT);
         return WAIT_PAA;
@@ -431,7 +440,8 @@ int reauthInitPacStateWaitPnaReauth() {
 }
 
 int sessionTermInitPaaStateWaitPnaReauth() {
-    if (current_session->PTR.receive) {
+    if (current_session->received.PTR) {
+    //if (current_session->PTR.receive) {
         rtxTimerStop();
         XFREE(current_session->retr_msg);
 		
@@ -444,7 +454,8 @@ int sessionTermInitPaaStateWaitPnaReauth() {
 }
 
 int livenessTestInitPacStateWaitPnaPing() {
-    if ((current_session->PNA.receive) && (current_session->PNA.flags && P_FLAG)) {
+    if ((current_session->received.PNA) && (current_session->PNA.flags && P_FLAG)) {
+    //if ((current_session->PNA.receive) && (current_session->PNA.flags && P_FLAG)) {
         rtxTimerStop();
         return OPEN;
     }
@@ -452,7 +463,8 @@ int livenessTestInitPacStateWaitPnaPing() {
 }
 
 int reauthInitPaaStateWaitPnaPing() {
-    if (current_session->PAR.receive) {
+    if (current_session->received.PAR) {
+    //if (current_session->PAR.receive) {
         rtxTimerStop();
         eapRespTimerStart();
         txEAP();
@@ -469,7 +481,8 @@ int reauthInitPaaStateWaitPnaPing() {
 }
 
 int sessionTermInitPaaStateWaitPnaPing() {
-    if (current_session->PTR.receive) {
+    if (current_session->received.PTR) {
+    //if (current_session->PTR.receive) {
         rtxTimerStop();
         XFREE(current_session->retr_msg);
 		
@@ -482,7 +495,8 @@ int sessionTermInitPaaStateWaitPnaPing() {
 }
 
 int sessionTermInitPacStateSessTerm() {
-    if (current_session->PTA.receive) {
+    if (current_session->received.PTA) {
+    //if (current_session->PTA.receive) {
         disconnect();
         return CLOSED;
     }

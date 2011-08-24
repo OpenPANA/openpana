@@ -80,10 +80,21 @@ char* AS_SECRET;        // Shared secret between AAA client and server
 
 /// Struct of a pana message flags
 typedef struct {
-    uint16_t result_code; 
-    bool receive;
+    //uint16_t result_code; 
+    //bool receive;
     uint16_t flags;
 } pana_msg_flags;
+
+/// Struct for representing the message received
+typedef struct {
+    bool PCI; 
+    bool PAR;
+    bool PAN;
+    bool PNR;
+    bool PNA;
+    bool PTR;
+    bool PTA;
+} msg_flags;
 /**
  * Struct containing all variables needed to define a PANA session.
  * */
@@ -159,6 +170,12 @@ typedef struct {
      * This event variable is set with the last Pana Message received
      */
     char *LAST_MESSAGE;
+	/**
+     * This event variable is set to TRUE when the specified PANA message
+     * is received from its peering PANA entity. The "flag" contains a
+     * flag (e.g., Rx:PAR[C]), except for ’R’ (Request) flag.
+     */
+	msg_flags received;
     /**
      * This event variable is set to TRUE when the specified PANA message
      * is received from its peering PANA entity. The "flag" contains a

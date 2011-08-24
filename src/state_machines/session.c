@@ -52,27 +52,34 @@ void initSession(pana_ctx * pana_session) {
     pana_session->CURRENT_STATE = INITIAL;
     pana_session->LAST_MESSAGE = NULL;
     pana_session->retr_msg = NULL;
+    pana_session->received.PCI = FALSE;
+    pana_session->received.PAR = FALSE;
+    pana_session->received.PAN = FALSE;
+    pana_session->received.PNR = FALSE;
+    pana_session->received.PNA = FALSE;
+    pana_session->received.PTR = FALSE;
+    pana_session->received.PTA = FALSE;
     pana_session->PNR.flags = 0;
-    pana_session->PNR.receive = 0;
-    pana_session->PNR.result_code = -1;
+    //~ pana_session->PNR.receive = 0;
+    //~ pana_session->PNR.result_code = -1;
     pana_session->PNA.flags = 0;
-    pana_session->PNA.receive = 0;
-    pana_session->PNA.result_code = -1;
+    //~ pana_session->PNA.receive = 0;
+    //~ pana_session->PNA.result_code = -1;
     pana_session->PAR.flags = 0;
-    pana_session->PAR.receive = 0;
-    pana_session->PAR.result_code = -1;
+    //~ pana_session->PAR.receive = 0;
+    //~ pana_session->PAR.result_code = -1;
     pana_session->PTR.flags = 0;
-    pana_session->PTR.receive = 0;
-    pana_session->PTR.result_code = -1;
+    //~ pana_session->PTR.receive = 0;
+    //~ pana_session->PTR.result_code = -1;
     pana_session->PTA.flags = 0;
-    pana_session->PTA.receive = 0;
-    pana_session->PTA.result_code = -1;
+    //~ pana_session->PTA.receive = 0;
+    //~ pana_session->PTA.result_code = -1;
     pana_session->PAN.flags = 0;
-    pana_session->PAN.receive = 0;
-    pana_session->PAN.result_code = -1;
+    //~ pana_session->PAN.receive = 0;
+    //~ pana_session->PAN.result_code = -1;
     pana_session->PCI.flags = 0;
-    pana_session->PCI.receive = 0;
-    pana_session->PCI.result_code = -1;
+    //~ pana_session->PCI.receive = 0;
+    //~ pana_session->PCI.result_code = -1;
     pana_session->RTX_MAX_NUM = REQ_MAX_RC;
 
     pana_session->key_len = 0;
@@ -239,8 +246,9 @@ void updateSession(char *message, pana_ctx *pana_session) {
 	pana_debug("Session updated with message:");
 
     if (type == PCI_MSG) { // PCI
-        pana_session->PCI.receive = TRUE;
+        //~ pana_session->PCI.receive = TRUE;
         pana_session->PCI.flags = flags;
+        pana_session->received.PCI = TRUE;
         pana_debug("PCI");
     } else if (type == PAR_MSG) { //Authentication type Message, it could also be PAN_MSG
 		//debug_msg(msg);
@@ -265,8 +273,9 @@ void updateSession(char *message, pana_ctx *pana_session) {
 		}
 
         if (flags & R_FLAG) { //PAR
-            pana_session->PAR.receive = TRUE;
+            //~ pana_session->PAR.receive = TRUE;
             pana_session->PAR.flags = flags;
+            pana_session->received.PAR = TRUE;
 
             //If the PAR is the first one (bit S enabled), it must be
             //saved in the pana session to be used in AUTH key generation
@@ -296,8 +305,9 @@ void updateSession(char *message, pana_ctx *pana_session) {
             }
             pana_debug("PAR");
         } else { // PAN
-            pana_session->PAN.receive = TRUE;
+            //~ pana_session->PAN.receive = TRUE;
             pana_session->PAN.flags = flags;
+            pana_session->received.PAN = TRUE;
 
             //If the PAN is the first one (bit S enabled), it must be
             //saved in the pana session to be used in AUTH key generation
@@ -311,22 +321,26 @@ void updateSession(char *message, pana_ctx *pana_session) {
         }
     } else if (type == PTA_MSG) { //Transmission Message PTR or PTA
         if (flags & R_FLAG) { //PTR
-            pana_session->PTR.receive = TRUE;
+            //~ pana_session->PTR.receive = TRUE;
             pana_session->PTR.flags = flags;
+            pana_session->received.PTR = TRUE;
             pana_debug("PTR");
         } else { // PTA
-            pana_session->PTA.receive = TRUE;
+            //~ pana_session->PTA.receive = TRUE;
             pana_session->PTA.flags = flags;
+            pana_session->received.PTA = TRUE;
             pana_debug("PTA");
         }
     } else if (type == PNA_MSG) { //Notification Message PNR or PNA
         if (flags & R_FLAG) { //PNR
-            pana_session->PNR.receive = TRUE;
+            //~ pana_session->PNR.receive = TRUE;
             pana_session->PNR.flags = flags;
+            pana_session->received.PNR = TRUE;
             pana_debug("PNR");
         } else { // PNA
-            pana_session->PNA.receive = TRUE;
+            //~ pana_session->PNA.receive = TRUE;
             pana_session->PNA.flags = flags;
+            pana_session->received.PNA = TRUE;
             pana_debug("PNA");
         }
     }
@@ -344,27 +358,36 @@ void resetSession(pana_ctx *pana_session) {
     pana_session->PANA_PING = 0;
     pana_session->SESS_TIMEOUT = 0;
     pana_session->ANY = 0;
+
+    pana_session->received.PCI = FALSE;
+    pana_session->received.PAR = FALSE;
+    pana_session->received.PAN = FALSE;
+    pana_session->received.PNR = FALSE;
+    pana_session->received.PNA = FALSE;
+    pana_session->received.PTR = FALSE;
+    pana_session->received.PTA = FALSE;
+    
     pana_session->PNR.flags = 0;
-    pana_session->PNR.receive = 0;
-    pana_session->PNR.result_code = -1;
+    //~ pana_session->PNR.receive = 0;
+    //~ pana_session->PNR.result_code = -1;
     pana_session->PNA.flags = 0;
-    pana_session->PNA.receive = 0;
-    pana_session->PNA.result_code = -1;
+    //~ pana_session->PNA.receive = 0;
+    //~ pana_session->PNA.result_code = -1;
     pana_session->PAR.flags = 0;
-    pana_session->PAR.receive = 0;
-    pana_session->PAR.result_code = -1;
+    //~ pana_session->PAR.receive = 0;
+    //~ pana_session->PAR.result_code = -1;
     pana_session->PTR.flags = 0;
-    pana_session->PTR.receive = 0;
-    pana_session->PTR.result_code = -1;
+    //~ pana_session->PTR.receive = 0;
+    //~ pana_session->PTR.result_code = -1;
     pana_session->PTA.flags = 0;
-    pana_session->PTA.receive = 0;
-    pana_session->PTA.result_code = -1;
+    //~ pana_session->PTA.receive = 0;
+    //~ pana_session->PTA.result_code = -1;
     pana_session->PAN.flags = 0;
-    pana_session->PAN.receive = 0;
-    pana_session->PAN.result_code = -1;
+    //~ pana_session->PAN.receive = 0;
+    //~ pana_session->PAN.result_code = -1;
     pana_session->PCI.flags = 0;
-    pana_session->PCI.receive = 0;
-    pana_session->PCI.result_code = -1;
+    //~ pana_session->PCI.receive = 0;
+    //~ pana_session->PCI.result_code = -1;
     pana_session->RTX_MAX_NUM = REQ_MAX_RC;
 
     // Init client's variables
