@@ -204,8 +204,9 @@ int pciPaaInitPana() {
 
 int panHandling() {
     int rc; //Result code
-
-    rc = current_session->received.PAN && (current_session->PAN.flags & S_FLAG);
+	pana * msg = (pana*) current_session->LAST_MESSAGE;
+	
+    rc = current_session->received.PAN && (ntohs(msg->flags) & S_FLAG);
     //rc = current_session->PAN.receive && (current_session->PAN.flags & S_FLAG);
     rc = rc && ((current_session->server_ctx.OPTIMIZED_INIT == UNSET) || (existAvp(current_session->LAST_MESSAGE, F_EAPP)));
 
@@ -218,7 +219,7 @@ int panHandling() {
             //sessionTimerReStart(FAILED_SESS_TIMEOUT);
         }
         return WAIT_EAP_MSG;
-    } else if (current_session->received.PAN && (current_session->PAN.flags & S_FLAG) && ((current_session->server_ctx.OPTIMIZED_INIT == SET) && !existAvp(current_session->LAST_MESSAGE, F_EAPP))) {
+    } else if (current_session->received.PAN && (ntohs(msg->flags) & S_FLAG) && ((current_session->server_ctx.OPTIMIZED_INIT == SET) && !existAvp(current_session->LAST_MESSAGE, F_EAPP))) {
     //} else if (current_session->PAN.receive && (current_session->PAN.flags & S_FLAG) && ((current_session->server_ctx.OPTIMIZED_INIT == SET) && !existAvp(current_session->LAST_MESSAGE, F_EAPP))) {
         //none();
         return WAIT_PAN_OR_PAR;
@@ -321,7 +322,8 @@ int rxEapTimeoutInvalidMsg() {
 }
 
 int panProcessingStateWaitSuccPan() {
-    if ((current_session->received.PAN) && (current_session->PAN.flags & C_FLAG)) {
+	pana * msg = (pana*)current_session->LAST_MESSAGE;
+    if ((current_session->received.PAN) && (ntohs(msg->flags) & C_FLAG)) {
    // if ((current_session->PAN.receive) && (current_session->PAN.flags & C_FLAG)) {
         rtxTimerStop();
         sessionTimerReStart(current_session->LIFETIME_SESS_TIMEOUT);
@@ -330,7 +332,8 @@ int panProcessingStateWaitSuccPan() {
 }
 
 int panProcessingStateWaitFailPan() {
-    if ((current_session->received.PAN) && (current_session->PAN.flags & C_FLAG)) {
+	pana * msg = (pana*) current_session->LAST_MESSAGE;
+    if ((current_session->received.PAN) && (ntohs(msg->flags) & C_FLAG)) {
     //if ((current_session->PAN.receive) && (current_session->PAN.flags & C_FLAG)) {
         rtxTimerStop();
         disconnect();
@@ -339,7 +342,8 @@ int panProcessingStateWaitFailPan() {
 }
 
 int reauthInitPacStateOpen() {
-    if ((current_session->received.PNR) && ((current_session->PNR.flags & A_FLAG)==A_FLAG)) {
+	pana * msg = (pana*) current_session->LAST_MESSAGE;
+    if ((current_session->received.PNR) && (ntohs(msg->flags) & A_FLAG)) {
     //if ((current_session->PNR.receive) && ((current_session->PNR.flags & A_FLAG)==A_FLAG)) {
         current_session->NONCE_SENT = UNSET;
         eapRestart();
@@ -396,7 +400,8 @@ int sessionTermInitPacStateOpen() {
 }
 
 int pnaProcessing() {
-    if (current_session->received.PNA && (current_session->PNA.flags & P_FLAG)) {
+	pana * msg = (pana*) current_session->LAST_MESSAGE;
+    if (current_session->received.PNA && (ntohs(msg->flags) & P_FLAG)) {
     //if (current_session->PNA.receive && (current_session->PNA.flags & P_FLAG)) {
         rtxTimerStop();
         return OPEN;
@@ -404,7 +409,8 @@ int pnaProcessing() {
 }
 
 int reauthInitPacStateWaitPnaPing() {
-    if (current_session->received.PNR && (current_session->PNR.flags & A_FLAG)) {
+	pana * msg = (pana*) current_session->LAST_MESSAGE;
+    if (current_session->received.PNR && (ntohs(msg->flags) & A_FLAG)) {
     //if (current_session->PNR.receive && (current_session->PNR.flags & A_FLAG)) {
         rtxTimerStop();
         current_session->NONCE_SENT = UNSET;

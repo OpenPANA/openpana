@@ -468,7 +468,8 @@ int reachMaxNumRt() {
 }
 
 int livenessTestPeer() {
-    if ((current_session->received.PNR) && (current_session->PNR.flags & P_FLAG)) {
+	pana* msg = (pana*) current_session->LAST_MESSAGE;
+    if ((current_session->received.PNR) && (ntohs(msg->flags) & P_FLAG)) {
 //    if ((current_session->PNR.receive) && (current_session->PNR.flags & P_FLAG)) {
         char * unused = transmissionMessage("PNA", P_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, 0, current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
         XFREE(unused);
@@ -478,7 +479,9 @@ int livenessTestPeer() {
 }
 
 int livenessTestResponse() {
-    if ((current_session->received.PNA) && (current_session->PNA.flags & P_FLAG)) {
+	pana* msg = (pana*) current_session->LAST_MESSAGE;
+	
+    if ((current_session->received.PNA) && (ntohs(msg->flags) & P_FLAG)) {
     //if ((current_session->PNA.receive) && (current_session->PNA.flags & P_FLAG)) {
         return NO_CHANGE;
     }

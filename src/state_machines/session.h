@@ -78,12 +78,7 @@ char* AS_SECRET;        // Shared secret between AAA client and server
 /** Max Request timeout value. See rfc 3315*/
 #define REQ_MAX_RT	30 
 
-/// Struct of a pana message flags
-typedef struct {
-    //uint16_t result_code; 
-    //bool receive;
-    uint16_t flags;
-} pana_msg_flags;
+
 
 /// Struct for representing the message received
 typedef struct {
@@ -176,50 +171,7 @@ typedef struct {
      * flag (e.g., Rx:PAR[C]), except for ’R’ (Request) flag.
      */
 	msg_flags received;
-    /**
-     * This event variable is set to TRUE when the specified PANA message
-     * is received from its peering PANA entity. The "flag" contains a
-     * flag (e.g., Rx:PAR[C]), except for ’R’ (Request) flag.
-     */
-    pana_msg_flags PNR;
-    /**
-     * This event variable is set to TRUE when the specified PANA message
-     * is received from its peering PANA entity. The "flag" contains a
-     * flag (e.g., Rx:PAR[C]), except for ’R’ (Request) flag.
-     */
-    pana_msg_flags PNA;
-    /**
-     * This event variable is set to TRUE when the specified PANA message
-     * is received from its peering PANA entity. The "flag" contains a
-     * flag (e.g., Rx:PAR[C]), except for ’R’ (Request) flag.
-     */
-    pana_msg_flags PAR;
-    /**
-     * This event variable is set to TRUE when the specified PANA message
-     * is received from its peering PANA entity. The "flag" contains a
-     * flag (e.g., Rx:PAR[C]), except for ’R’ (Request) flag.
-     */
-    pana_msg_flags PTR;
-    /**
-     * This event variable is set to TRUE when the specified PANA message
-     * is received from its peering PANA entity. The "flag" contains a
-     * flag (e.g., Rx:PAR[C]), except for ’R’ (Request) flag.
-     */
-    pana_msg_flags PTA;
-    /**
-     * This event variable is set to TRUE when the specified PANA message
-     * is received from its peering PANA entity. The "flag" contains a
-     * flag (e.g., Rx:PAR[C]), except for ’R’ (Request) flag.
-     */
-    pana_msg_flags PAN;
-    /**
-     * This event variable is set to TRUE when the specified PANA message
-     * is received from its peering PANA entity. The "flag" contains a
-     * flag (e.g., Rx:PAR[C]), except for ’R’ (Request) flag.
-     */
-    pana_msg_flags PCI;
-
-
+    
     //PanaMessages needed to generate the pana AUTH key
     /** Contains the first PANA-Auth-Request message exchanged*/
     char * I_PAR; //They are stored in the serialized way
