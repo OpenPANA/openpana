@@ -160,8 +160,8 @@ void initPaaTable(pana_ctx *pana_session) {
 // Implementation of the functions that check the exit conditions
 
 int pciPaaInitPana() {
-    
-    if ((current_session->received.PCI) || (current_session->server_ctx.PAC_FOUND)) {
+	
+    if ((LMTYPE == PCI_MSG) || (current_session->server_ctx.PAC_FOUND)) {
 //    if ((current_session->PCI.receive) || (current_session->server_ctx.PAC_FOUND)) {
         if (current_session->server_ctx.OPTIMIZED_INIT == SET) {
             eapRestart();
@@ -203,10 +203,8 @@ int pciPaaInitPana() {
 }
 
 int panHandling() {
-    int rc; //Result code
-	pana * msg = (pana*) current_session->LAST_MESSAGE;
-	
-    rc = current_session->received.PAN && (ntohs(msg->flags) & S_FLAG);
+    bool rc; //Result code	
+    rc = (LMTYPE == PAUTH_MSG) && !(LMFLAGS & R_FLAG) && (LMFLAGS & S_FLAG);
     //rc = current_session->PAN.receive && (current_session->PAN.flags & S_FLAG);
     rc = rc && ((current_session->server_ctx.OPTIMIZED_INIT == UNSET) || (existAvp(current_session->LAST_MESSAGE, F_EAPP)));
 
@@ -219,8 +217,8 @@ int panHandling() {
             //sessionTimerReStart(FAILED_SESS_TIMEOUT);
         }
         return WAIT_EAP_MSG;
-    } else if (current_session->received.PAN && (ntohs(msg->flags) & S_FLAG) && ((current_session->server_ctx.OPTIMIZED_INIT == SET) && !existAvp(current_session->LAST_MESSAGE, F_EAPP))) {
-    //} else if (current_session->PAN.receive && (current_session->PAN.flags & S_FLAG) && ((current_session->server_ctx.OPTIMIZED_INIT == SET) && !existAvp(current_session->LAST_MESSAGE, F_EAPP))) {
+    } else if ((LMTYPE == PAUTH_MSG) && !(LMFLAGS & R_FLAG) && (LMFLAGS & S_FLAG) && ((current_session->server_ctx.OPTIMIZED_INIT == SET) && !existAvp(current_session->LAST_MESSAGE, F_EAPP))) {
+    //} else if (current_session->PAN.receive && (current_session->PAN.flags & S_FLAG) && ((current_session->server_ctx.OPTIMIZED_INIT == SET) && !existAvp(msg, F_EAPP))) {
         //none();
         return WAIT_PAN_OR_PAR;
     } else return ERROR;
@@ -252,7 +250,6 @@ int receivingEapRequest() {
 
 int rxEapSuccessFailure() {
 
-	pana_debug("Function rxEapSuccessFailure");
     if (eap_auth_get_eapFail(&(current_session->eap_ctx)) == TRUE) {
 		pana_debug("EAP_FAILURE = TRUE");
         current_session->avp_data[RESULTCODE_AVP] = (void *) PANA_AUTHENTICATION_REJECTED;
@@ -322,8 +319,7 @@ int rxEapTimeoutInvalidMsg() {
 }
 
 int panProcessingStateWaitSuccPan() {
-	pana * msg = (pana*)current_session->LAST_MESSAGE;
-    if ((current_session->received.PAN) && (ntohs(msg->flags) & C_FLAG)) {
+    if ((LMTYPE == PAUTH_MSG) && !(LMFLAGS & R_FLAG) && (LMFLAGS & C_FLAG)) {
    // if ((current_session->PAN.receive) && (current_session->PAN.flags & C_FLAG)) {
         rtxTimerStop();
         sessionTimerReStart(current_session->LIFETIME_SESS_TIMEOUT);
@@ -332,8 +328,7 @@ int panProcessingStateWaitSuccPan() {
 }
 
 int panProcessingStateWaitFailPan() {
-	pana * msg = (pana*) current_session->LAST_MESSAGE;
-    if ((current_session->received.PAN) && (ntohs(msg->flags) & C_FLAG)) {
+    if ((LMTYPE == PAUTH_MSG) && !(LMFLAGS & R_FLAG) && (LMFLAGS & C_FLAG)) {
     //if ((current_session->PAN.receive) && (current_session->PAN.flags & C_FLAG)) {
         rtxTimerStop();
         disconnect();
@@ -342,8 +337,7 @@ int panProcessingStateWaitFailPan() {
 }
 
 int reauthInitPacStateOpen() {
-	pana * msg = (pana*) current_session->LAST_MESSAGE;
-    if ((current_session->received.PNR) && (ntohs(msg->flags) & A_FLAG)) {
+    if ((LMTYPE == PNOTIF_MSG) && (LMFLAGS & R_FLAG) && (LMFLAGS & A_FLAG)) {
     //if ((current_session->PNR.receive) && ((current_session->PNR.flags & A_FLAG)==A_FLAG)) {
         current_session->NONCE_SENT = UNSET;
         eapRestart();
@@ -388,7 +382,7 @@ int sessionTermInitPaa() {
 }
 
 int sessionTermInitPacStateOpen() {
-    if (current_session->received.PTR) {
+    if ((LMTYPE == PTERM_MSG) && (LMFLAGS & R_FLAG)) {
     //if (current_session->PTR.receive) {
 		XFREE(current_session->retr_msg);
 		
@@ -400,8 +394,7 @@ int sessionTermInitPacStateOpen() {
 }
 
 int pnaProcessing() {
-	pana * msg = (pana*) current_session->LAST_MESSAGE;
-    if (current_session->received.PNA && (ntohs(msg->flags) & P_FLAG)) {
+    if ((LMTYPE == PNOTIF_MSG) && !(LMFLAGS & R_FLAG) && (LMFLAGS & P_FLAG)) {
     //if (current_session->PNA.receive && (current_session->PNA.flags & P_FLAG)) {
         rtxTimerStop();
         return OPEN;
@@ -409,8 +402,7 @@ int pnaProcessing() {
 }
 
 int reauthInitPacStateWaitPnaPing() {
-	pana * msg = (pana*) current_session->LAST_MESSAGE;
-    if (current_session->received.PNR && (ntohs(msg->flags) & A_FLAG)) {
+    if ((LMTYPE == PNOTIF_MSG) && (LMFLAGS & R_FLAG) && (LMFLAGS & A_FLAG)) {
     //if (current_session->PNR.receive && (current_session->PNR.flags & A_FLAG)) {
         rtxTimerStop();
         current_session->NONCE_SENT = UNSET;
@@ -424,7 +416,7 @@ int reauthInitPacStateWaitPnaPing() {
 }
 
 int sessionTermInitPacStateWaitPnaPing() {
-    if (current_session->received.PTR) {
+    if ((LMTYPE == PTERM_MSG) && (LMFLAGS & R_FLAG)){
     //if (current_session->PTR.receive) {
         rtxTimerStop();
         XFREE(current_session->retr_msg);
@@ -437,7 +429,7 @@ int sessionTermInitPacStateWaitPnaPing() {
 }
 
 int parProcessing() {
-    if (current_session->received.PAR) {
+    if ((LMTYPE == PAUTH_MSG) && (LMFLAGS & R_FLAG)){
     //if (current_session->PAR.receive) {
         txEAP();
         rtxTimerStop();
@@ -449,7 +441,7 @@ int parProcessing() {
 }
 
 int passEapRespToEapAuth() {
-    if ((current_session->received.PAN) && (existAvp(current_session->LAST_MESSAGE, F_EAPP))) { 
+    if ((LMTYPE == PAUTH_MSG) && !(LMFLAGS & R_FLAG) && (existAvp(current_session->LAST_MESSAGE, F_EAPP))) { 
     //if ((current_session->PAN.receive) && (existAvp(current_session->LAST_MESSAGE, F_EAPP))) { 
         txEAP();
         rtxTimerStop();
@@ -458,7 +450,7 @@ int passEapRespToEapAuth() {
 }
 
 int panWithoutEapResponse() {
-    if ((current_session->received.PAN) && (!existAvp(current_session->LAST_MESSAGE, F_EAPP))) {
+    if (( LMTYPE == PAUTH_MSG && !(LMFLAGS & R_FLAG)) && (!existAvp(current_session->LAST_MESSAGE, F_EAPP))) {
     //if ((current_session->PAN.receive) && (!existAvp(current_session->LAST_MESSAGE, F_EAPP))) {
         rtxTimerStop();
         return WAIT_PAN_OR_PAR;
@@ -493,7 +485,7 @@ int eapAuthTimeoutFailure() {
 }
 
 int ptaProcessing() {
-    if (current_session->received.PTA) {
+    if (LMTYPE == PTERM_MSG && !(LMFLAGS & R_FLAG)) {
     //if (current_session->PTA.receive) {
         rtxTimerStop();
         disconnect();

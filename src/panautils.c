@@ -103,7 +103,7 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
         return 0;
     }
     
-    if (msg_type < PCI_MSG || msg_type > PNA_MSG) {
+    if (msg_type < PCI_MSG || msg_type > PNOTIF_MSG) {
 		pana_error("Invalid message type. Dropping message");
         return 0;
     }

@@ -78,18 +78,6 @@ char* AS_SECRET;        // Shared secret between AAA client and server
 /** Max Request timeout value. See rfc 3315*/
 #define REQ_MAX_RT	30 
 
-
-
-/// Struct for representing the message received
-typedef struct {
-    bool PCI; 
-    bool PAR;
-    bool PAN;
-    bool PNR;
-    bool PNA;
-    bool PTR;
-    bool PTA;
-} msg_flags;
 /**
  * Struct containing all variables needed to define a PANA session.
  * */
@@ -152,7 +140,7 @@ typedef struct {
     /**
      * This event variable is set to TRUE when any event occurs.
      */
-    bool ANY;
+    //bool ANY; //Never used
     /**
      * This event variable is set with the current state of the client/server
      */
@@ -165,12 +153,6 @@ typedef struct {
      * This event variable is set with the last Pana Message received
      */
     char *LAST_MESSAGE;
-	/**
-     * This event variable is set to TRUE when the specified PANA message
-     * is received from its peering PANA entity. The "flag" contains a
-     * flag (e.g., Rx:PAR[C]), except for ’R’ (Request) flag.
-     */
-	msg_flags received;
     
     //PanaMessages needed to generate the pana AUTH key
     /** Contains the first PANA-Auth-Request message exchanged*/
@@ -238,7 +220,6 @@ typedef struct {
      */
     int RTX_MAX_NUM;
 
-   
     // Retransmissions variables
     /** Retransmission timeout from the previous (re)transmission*/
     float RT;
@@ -262,8 +243,8 @@ typedef struct {
 void initSession(pana_ctx * pana_session);
 /** Updates the session given a PANA message.
  *
- * @param *message Last message received.
- * @param *pana_session Session that gonna be updated with the last message received.*/
+ * @param *message Last message received
+ * @param *pana_session Session that gonna be updated with the last message received*/
 void updateSession(char *message, pana_ctx *pana_session);
 /** Resets the PANA session.
  *

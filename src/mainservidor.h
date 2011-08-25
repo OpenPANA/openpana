@@ -88,7 +88,7 @@ struct retr_func_parameter {
 
 /**Struct of process_receive_radius_msg function's parameter*/
 struct radius_func_parameter {
-	/** RADIUS message received. */
+	/** RADIUS message received */
     struct radius_msg * msg;
 };
 
@@ -183,13 +183,13 @@ void signal_handler(int sig);
 
 // Functions used as task
 /**
- * A procedure to process a PANA message received.
+ * A procedure to process a PANA message received
  *
  * @param *arg Arguments necessary to execute the callback
  */ 
 void* process_receive_eap_ll_msg(void * arg);
 /**
- * A procedure to process a RADIUS message received.
+ * A procedure to process a RADIUS message received
  *
  * @param *arg Arguments necessary to execute the callback
  */ 

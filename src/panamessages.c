@@ -164,7 +164,7 @@ char * transmissionMessage(char * msgtype, uint16_t flags, uint32_t *sequence_nu
         pana_debug("Tx PCI");
 	} else if ( msgtype[1] == 'A' ){ //PANA Auth Message see RFC 5191 7.2 & 7.3
 
-        msg_type = PAR_MSG; // or it could be PAN_MSG, same value
+        msg_type = PAUTH_MSG;
 
         //The message MUST NOT have both the ’S’ (Start) and ’C’
         //(Complete) bits set.
@@ -182,7 +182,7 @@ char * transmissionMessage(char * msgtype, uint16_t flags, uint32_t *sequence_nu
 		}
     } else if (msgtype[1] == 'T'){//PANA-Termination message see RFC 5191 7.4
 
-        msg_type = PTR_MSG;// or it could be PTA_MSG, same value
+        msg_type = PTERM_MSG;
         
         if( msgtype[2] == 'R'){//See if its a request or not
 			flags = flags | R_FLAG; 
@@ -195,7 +195,7 @@ char * transmissionMessage(char * msgtype, uint16_t flags, uint32_t *sequence_nu
 			pana_debug("Tx PTA");
 		}
 	} else if(msgtype[1] == 'N'){//PANA-Notification message
-        msg_type = PNR_MSG;//Or it could be PNA_MSG, same value
+        msg_type = PNOTIF_MSG;
         
         //The message MUST have one of the ’A’ (re-Authentication) and
         //’P’	(Ping) bits exclusively set.
@@ -499,7 +499,7 @@ char * getAvp(char *msg, uint16_t type) {
 char * getMsgName(uint16_t msg_type) {
     char *pana_msg_type[] = {"PCI", "PANA-Auth", "PANA-Termination", "PANA-Notification"};
 	// All MSG types are between PCI and PNA
-    if (msg_type >= PCI_MSG && msg_type <= PNA_MSG) {
+    if (msg_type >= PCI_MSG && msg_type <= PNOTIF_MSG) {
         return pana_msg_type[msg_type - 1];
     } 
     

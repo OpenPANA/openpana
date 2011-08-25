@@ -131,7 +131,7 @@ void * process_receive_eap_ll_msg(void *arg) {
         
 
     }
-    else if ((ntohs(msg->msg_type) == PAN_MSG) && // If it is the first answer message
+    else if ((ntohs(msg->msg_type) == PAUTH_MSG) && // If it is the first authentication message
             ((ntohs(msg->flags) & S_FLAG) == S_FLAG)) {// it is created a new session for the new client
        
         //Generate the session id asociated to client's port and ip
@@ -194,7 +194,7 @@ void* process_receive_radius_msg(void* arg) {
     //Get the function's parameters.
     struct radius_msg *radmsg = radius_params.msg;
 
-    // Get the information about the new message received.
+    // Get the information about the new message received
     struct radius_client_data *radius_data = get_rad_client_ctx();
     struct radius_hdr *hdr = radius_msg_get_hdr(radmsg);
 	struct eap_auth_ctx *eap_ctx = search_eap_ctx_rad_client(hdr->identifier);
