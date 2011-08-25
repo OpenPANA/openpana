@@ -26,6 +26,18 @@
 #include "include.h"
 #include "session.h"
 
+//#define LMTYPE current_session->LMmsg_type
+/* LMTYPE = last message's type
+ * if(LAST_MESSAGE!=NULL)
+ * 		LMTYPE = ntohs(LAST_MESSAGE->msg_type)
+ * else LMTYPE = 0
+ * */
+ /** Macro to reference last message's type. If the message is NULL, type is set to 0.*/
+#define LMTYPE ((current_session->LAST_MESSAGE!=NULL)?ntohs(((pana*)(current_session->LAST_MESSAGE))->msg_type):0)
+//#define LMFLAGS current_session->LMflags
+/** Macro to reference last message's flags. The message cannot be NULL, it must be checked before.*/
+#define LMFLAGS (ntohs(((pana*)(current_session->LAST_MESSAGE))->flags))
+
 // Values of a result code avp
 /**
  * Both authentication and authorization processes are successful. 

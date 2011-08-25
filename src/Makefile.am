@@ -1,10 +1,12 @@
-AM_CPPFLAGS+= -D CONFIGDIR=\"$(sysconfdir)\" # Sets the config dir
+AM_CPPFLAGS+= -D CONFIGDIR=\"$(sysconfdir)\" ## Sets the config dir
+## wpa_supplicant source directory
+WPA_SRC =$(srcdir)/wpa_supplicant/src
+INCLUDES		      = -I$(WPA_SRC) -I$(WPA_SRC)/utils
 
 ### user programs ###
 bin_PROGRAMS = openpaa openpac
 
 ### source declarations ###
-
 openpaa_SOURCES               =	state_machines/session.c \
 				state_machines/statemachine.c \
 				state_machines/paamachine.c \
@@ -14,8 +16,9 @@ openpaa_SOURCES               =	state_machines/session.c \
 				panautils.c \
 				mainservidor.c \
 				loadconfig.c
-openpaa_CPPFLAGS 	      = $(AM_CPPFLAGS) -D ISSERVER
-openpaa_CFLAGS		      = $(AM_CFLAGS) 
+openpaa_CPPFLAGS 	      = $(AM_CPPFLAGS) 
+openpaa_CFLAGS		      = $(AM_CFLAGS) -DISSERVER
+openpaa_LDFLAGS		      = $(DBG_LINKOPT)
 
 ### library dependencies ###
 
@@ -33,16 +36,17 @@ openpac_SOURCES               =	state_machines/session.c \
 				panautils.c \
 				maincliente.c \
 				loadconfig.c
-openpac_CPPFLAGS 	      = $(AM_CPPFLAGS) -D ISCLIENT
-openpac_CFLAGS		      = $(AM_CFLAGS) 
+openpac_CPPFLAGS 	      = $(AM_CPPFLAGS) 
+openpac_CFLAGS		      = $(AM_CFLAGS) -DISCLIENT
+openpac_LDFLAGS		      = $(DBG_LINKOPT)
 ### library dependencies ###
 
 openpac_LDADD                     = libeapstack/libeap.a
 
-# Adding PANA header files to distribute using "make dist"
+## Adding PANA header files to distribute using "make dist"
 EXTRA_DIST =  *.h state_machines/*.h config.xml dtd.xml
 
-# Extra config files needed
+## Extra config files needed
 sysconf_DATA = \
 		config.xml \
 		dtd.xml

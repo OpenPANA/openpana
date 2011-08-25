@@ -62,7 +62,7 @@ DX_XML_FEATURE(OFF)
 DX_PDF_FEATURE(ON)
 DX_PS_FEATURE(OFF)
 
-DX_INIT_DOXYGEN([$PACKAGE_NAME],[doxygen.cfg],[documentation])
+DX_INIT_DOXYGEN([$PACKAGE_NAME],[doxygen.cfg],[doc])
 
 ##########################################################################
 # debug compilation support
@@ -79,24 +79,20 @@ AC_MSG_RESULT([$debugit])
 if test x"$debugit" = x"yes"; then
     AC_DEFINE([DEBUG],[],[Debug Mode])
     AM_CFLAGS="$AM_CFLAGS -g -Wall -Wextra -pedantic "
+    AC_SUBST(DBG_LINKOPT," ")
 else
     AC_DEFINE([NDEBUG],[],[No-debug Mode])
     AM_CFLAGS="$AM_CFLAGS -Os -ffunction-sections -fdata-sections "
+    AC_SUBST(DBG_LINKOPT," -Wl --gc-sections ")
     #AM_CPPFLAGS="$AM_CPPFLAGS -Wl --gc-sections "
 fi
 
 ##########################################################################
 
-
 AC_SUBST([AM_CFLAGS])
 # Set the preprocessor flags for the entire project
 XML_FLAGS=$(xml2-config --cflags) # Adds the includes needed to build using xml2
-
-#AM_CPPFLAGS="$AM_CPPFLAGS -L./state_machines -L./libeapstack -I./wpa_supplicant/src -I./wpa_supplicant/src/utils  -I./wpa_supplicant/src -I./wpa_supplicant/src/utils $XML_FLAGS "
-AC_SUBST(AM_CPPFLAGS, " $AM_CPPFLAGS -L./state_machines -L./libeapstack -I./wpa_supplicant/src -I./wpa_supplicant/src/utils  -I./wpa_supplicant/src -I./wpa_supplicant/src/utils $XML_FLAGS ")
-#AC_SUBST([AM_CPPFLAGS])
-
-##To include empty targets on libeapstack, in order to allow distribution
-#AC_CONFIG_FILES(src/libeapstack/Makefile)
+AC_SUBST(AM_CPPFLAGS, " $AM_CPPFLAGS -L./state_machines -L./libeapstack $XML_FLAGS ")
+#AC_SUBST(WPA_SRC,"");
 
 AC_OUTPUT(Makefile src/Makefile src/libeapstack/Makefile)

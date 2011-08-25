@@ -62,18 +62,12 @@
 //PANA messages types definition, see RFC section 7
 /**PANA-Client-Initiation message type. */
 #define PCI_MSG 1
-/**PANA-Auth-Request message type. */
-#define PAR_MSG 2
-/**PANA-Auth-Answer message type. */
-#define PAN_MSG 2
-/**PANA-Termination-Request message type. */
-#define PTR_MSG 3
-/**PANA-Termination-Answer message type. */
-#define PTA_MSG 3
-/**PANA-Notification-Request message type. */
-#define PNR_MSG 4
-/**PANA-Notification-Answer message type. */
-#define PNA_MSG 4
+/**PANA-Auth message type. */
+#define PAUTH_MSG 2
+/**PANA-Termination message type. */
+#define PTERM_MSG 3
+/**PANA-Notification message type. */
+#define PNOTIF_MSG 4
 
 //AVP Codes definition, see RFC 5191 section 8
 /** AUTH AVP code */
