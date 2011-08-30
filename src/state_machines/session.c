@@ -48,7 +48,6 @@ void initSession(pana_ctx * pana_session) {
     pana_session->TERMINATE = 0;
     pana_session->PANA_PING = 0;
     pana_session->SESS_TIMEOUT = 0;
-    //pana_session->ANY = 0;
     pana_session->CURRENT_STATE = INITIAL;
     pana_session->LAST_MESSAGE = NULL;
     pana_session->retr_msg = NULL;
@@ -112,8 +111,6 @@ void initSession(pana_ctx * pana_session) {
     pana_session->session_id = 0;
 	
     //Init the EAP user
-    //FIXME: warning: passing argument 9 of ‘eap_peer_init’ makes pointer
-    //from integer without a cast: expected ‘char *’ but argument is of type ‘int’. Pedro: ¿Ya está solucionado?
     eap_peer_init(&(pana_session->eap_ctx), pana_session,USER,PASSWORD,CA_CERT,CLIENT_CERT,CLIENT_KEY,PRIVATE_KEY,FRAG_SIZE);
 
 #endif
@@ -298,8 +295,6 @@ void updateSession(char *message, pana_ctx *pana_session) {
             }
         }
     }
-
-    //FIXME: Faltan el resto de variables, cuales?
 	
 }
 
@@ -311,7 +306,6 @@ void resetSession(pana_ctx *pana_session) {
     pana_session->TERMINATE = 0;
     pana_session->PANA_PING = 0;
     pana_session->SESS_TIMEOUT = 0;
-    //pana_session->ANY = 0;
 
     pana_session->RTX_MAX_NUM = REQ_MAX_RC;
 

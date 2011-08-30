@@ -150,7 +150,6 @@ int transition(pana_ctx *pana_session) {
     }
 
     current_session = pana_session;
-    //Array para mostrar los nombres de los estados
      
     pana_debug("Trying a transition..");
     pana_debug("Session ID: %d, current state: %s", current_session->session_id, state_name[current_session->CURRENT_STATE + 1]);
@@ -176,10 +175,6 @@ int transition(pana_ctx *pana_session) {
 
 // Common Procedures
 
-/*void none() {
-	pana_debug("none function");
-}*/
-
 void disconnect() {
 	pana_debug("disconnect function");
 #ifdef ISCLIENT
@@ -201,11 +196,11 @@ void disconnect() {
 
     printf("PANA: Client disconnected.\n");
     exit(EXIT_SUCCESS);
-    //XFREE(current_session->avp_data);
+    //FIXME: hay que liberar esto? XFREE(current_session->avp_data);
 #endif
 
 #ifdef ISSERVER
-    //XFREE(current_session);
+    //FIXME: hay que liberar esto? XFREE(current_session);
 #endif
 }
 
@@ -287,9 +282,11 @@ void eapRestart() {
 	//It is necesary reset the session's variables used to generate the pana auth key
 	// due to the eap conversation will be reinited
 	
-	if (current_session->msk_key != NULL) //free(current_session->msk_key);
+	//FIXME: Hay que liberar la msk_key?
 	current_session->msk_key = NULL;
 	current_session->key_len = 0;
+	//FIXME: Hay que liberar la estructura current_session->avp_data?
+
 	/*if (current_session->avp_data!=NULL){
 		//XFREE(current_session->avp_data[AUTH_AVP]);
 		current_session->avp_data[AUTH_AVP] = NULL;
@@ -470,7 +467,6 @@ int reachMaxNumRt() {
 int livenessTestPeer() {
     pana_debug("livenessTestPeer");
     if ((LMTYPE == PNOTIF_MSG) && (LMFLAGS & R_FLAG) && (LMFLAGS & P_FLAG)) {
-//    if ((current_session->PNR.receive) && (current_session->PNR.flags & P_FLAG)) {
         char * unused = transmissionMessage("PNA", P_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, 0, current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
         XFREE(unused);
         return NO_CHANGE;
@@ -481,7 +477,6 @@ int livenessTestPeer() {
 int livenessTestResponse() {
     pana_debug("livenessTestResponse");
     if ((LMTYPE == PNOTIF_MSG) && !(LMFLAGS & R_FLAG) && (LMFLAGS & P_FLAG)) {
-    //if ((current_session->PNA.receive) && (current_session->PNA.flags & P_FLAG)) {
         return NO_CHANGE;
     }
     

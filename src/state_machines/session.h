@@ -138,10 +138,6 @@ typedef struct {
      */
     uint16_t LIFETIME_SESS_TIMEOUT;
     /**
-     * This event variable is set to TRUE when any event occurs.
-     */
-    //bool ANY; //Never used
-    /**
      * This event variable is set with the current state of the client/server
      */
     uint16_t CURRENT_STATE;
