@@ -92,7 +92,7 @@ o Install
 
  3. Building the OpenPANA softwares:
 
-  You can just run the 'autogen.sh', './configure --sysconfdir=/etc/openpana' script and 'make'.
+  You can just run the './configure --sysconfdir=/etc/openpana' script and 'make'.
   If the --sysconfdir option is not added, configuration files will be placed under the '/usr/local/etc' directory.
   
  4. OpenPANA will need a working installation of a Radius Server using EAP-TLS method.
@@ -141,4 +141,5 @@ o Acknowledgments
 
  Yosihiro Ohba - Toshiba
  Jouni Malinen - Hostapd implementation
+ Ibán Morote   - OpenPANA Logo http://cargocollective.com/ibanmorote
 

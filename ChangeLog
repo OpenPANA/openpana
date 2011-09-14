@@ -1,6 +1,6 @@
 ChangeLog for OpenPANA
 
-2011-XX-XX - v0.0
+2011-09-XX - v0.0
 	* Initial version of OpenPANA.
 	* Many aspects defined in IETF RFC 5191 and 5609 are covered such as
 		- Integrity check.

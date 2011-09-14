@@ -15,7 +15,7 @@ are not the installation instructions for Windows systems.
 
  2. Building the OpenPANA softwares:
 
-  You can just run the 'autogen.sh', './configure --sysconfdir=/etc/openpana' script and 'make'.
+  You can just run the './configure --sysconfdir=/etc/openpana' script and 'make'.
   If the --sysconfdir option is not added, configuration files will be placed under the '/usr/local/etc' directory.
 
  3. By running 'make install' as root OpenPANA will be installed tipically under '/usr/local/bin' and configuration files will be placed in '/etc/	openpana'.

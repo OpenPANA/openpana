@@ -1,15 +1,18 @@
 /**
  * @mainpage OpenPANA Documentation
- * @brief OpenPANA is a free implementation of the PANA protocol
+ * @brief \image html med_logo.png 
+ *  OpenPANA is a free implementation of the PANA protocol
  * (RFC 5191). It's a multithreading implementation, supported by a
  * framework, which allows multiple users to authenticate.
- * 
- * @author Pedro Moreno Sánchez <p.morenosanchez@um.es>
- * @author Francisco Vidal Meca <f.vidalmeca@um.es>
  * \n\n\n
  * Further information such as configuration, installation contact info
  * or acknowledgments can be found on the README file.
  * 
+ * @author Pedro Moreno Sánchez <p.morenosanchez@um.es>
+ * @author Francisco Vidal Meca <f.vidalmeca@um.es>
+ * 
+ * \image latex big_logo.eps "OpenPANA logo" width=\textwidth/5
+ *  
  * @file include.h
  * @brief This header file is included into all C files so that commonly
  * used header files can be selected with specific ifdef blocks in one
@@ -199,4 +202,31 @@ extern void *xrealloc   (void *p, size_t num);
  * @brief EAP Peer's interface headers.
  * @author Rafa Marín López
  */
+ 
+ /**
+  * \page license License
+  * Basically this software suites follows the GNU GPL v3 license.
+  * In short, the code is freely available but with no warranty.
+  * 
+  * Copyright (C) Pedro Moreno Sánchez & Francisco Vidal Meca on 2010.
+  *
+  *  This program is free software: you can redistribute it and/or modify
+  *  it under the terms of the GNU General Public License as published by
+  *  the Free Software Foundation, either version 3 of the License, or
+  *  (at your option) any later version.
+  *
+  *  This program is distributed in the hope that it will be useful,
+  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *  GNU General Public License for more details.
+
+  *  You should have received a copy of the GNU General Public License
+  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  *  
+  *  \image html favicon.ico
+  *  \image html tiny_logo.png
+  * 
+  *  https://sourceforge.net/projects/openpana/
+  * 
+  * */
 #endif
