@@ -26,15 +26,8 @@
 #include "include.h"
 #include "session.h"
 
-//#define LMTYPE current_session->LMmsg_type
-/* LMTYPE = last message's type
- * if(LAST_MESSAGE!=NULL)
- * 		LMTYPE = ntohs(LAST_MESSAGE->msg_type)
- * else LMTYPE = 0
- * */
  /** Macro to reference last message's type. If the message is NULL, type is set to 0.*/
 #define LMTYPE ((current_session->LAST_MESSAGE!=NULL)?ntohs(((pana*)(current_session->LAST_MESSAGE))->msg_type):0)
-//#define LMFLAGS current_session->LMflags
 /** Macro to reference last message's flags. The message cannot be NULL, it must be checked before.*/
 #define LMFLAGS (ntohs(((pana*)(current_session->LAST_MESSAGE))->flags))
 
@@ -158,10 +151,6 @@ void initTable();
 int transition(pana_ctx *pana_session);
 
 // Functions that do the exit action
-/**
- *  A null procedure, where nothing is done.
- */
-//void none();
 /**
  * A procedure to delete the PANA session as well as the
  * corresponding EAP session and authorization state.

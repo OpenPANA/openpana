@@ -150,7 +150,6 @@ int transition(pana_ctx *pana_session) {
     }
 
     current_session = pana_session;
-    //Array para mostrar los nombres de los estados
      
     pana_debug("Trying a transition..");
     pana_debug("Session ID: %d, current state: %s", current_session->session_id, state_name[current_session->CURRENT_STATE + 1]);
@@ -176,10 +175,6 @@ int transition(pana_ctx *pana_session) {
 
 // Common Procedures
 
-/*void none() {
-	pana_debug("none function");
-}*/
-
 void disconnect() {
 	pana_debug("disconnect function");
 #ifdef ISCLIENT
@@ -201,11 +196,11 @@ void disconnect() {
 
     printf("PANA: Client disconnected.\n");
     exit(EXIT_SUCCESS);
-    //XFREE(current_session->avp_data);
+    //FIXME: hay que liberar esto? XFREE(current_session->avp_data);
 #endif
 
 #ifdef ISSERVER
-    //XFREE(current_session);
+    //FIXME: hay que liberar esto? XFREE(current_session);
 #endif
 }
 
@@ -287,9 +282,11 @@ void eapRestart() {
 	//It is necesary reset the session's variables used to generate the pana auth key
 	// due to the eap conversation will be reinited
 	
-	if (current_session->msk_key != NULL) //free(current_session->msk_key);
+	//FIXME: Hay que liberar la msk_key?
 	current_session->msk_key = NULL;
 	current_session->key_len = 0;
+	//FIXME: Hay que liberar la estructura current_session->avp_data?
+
 	/*if (current_session->avp_data!=NULL){
 		//XFREE(current_session->avp_data[AUTH_AVP]);
 		current_session->avp_data[AUTH_AVP] = NULL;
@@ -411,27 +408,7 @@ int keyAvailable() {
 			session->msk_key = XCALLOC(u8, key_len);
 			memcpy(session->msk_key, key, key_len);
 
-			//Prints the EAP MSK key for debugging purposes
-			/*unsigned int i;
-			for (i = 0; i < key_len; i++)
-				fprintf(stderr,"%02x", key[i]);
-			fprintf(stderr,"\n");*/
-
-			//If an MSK is retrieved, it computes a PANA_AUTH_KEY from
-			//the MSK and returns TRUE
-			
-			//First, the Key-Id of the new MSK is generated (only in server)
-			//by increasing the global key_id.
-			/*#ifdef ISSERVER
-			if(session->key_id != NULL){
-				free(session->key_id);
-			}
-			session->key_id = malloc(session->key_id_length);
-			
-			increase_one(session->server_ctx.global_key_id, session->key_id_length);
-			memcpy(session->key_id, session->server_ctx.global_key_id, session->key_id_length);
-			#endif*/
-			//Afterwards we generate the PANA_AUTH_KEY
+			//We generate the PANA_AUTH_KEY
 			u8 * new_auth_key = NULL;
 			new_auth_key = generateAUTH(current_session);
 			if(new_auth_key != NULL){
@@ -439,7 +416,7 @@ int keyAvailable() {
 				current_session->avp_data[AUTH_AVP] = new_auth_key;
 			}
 			else{
-				pana_debug("newKeyAvailable - Generated AUTH key is NULL!");
+				pana_debug("KeyAvailable - Generated AUTH key is NULL!");
 			}
 			//If !=NULL the key generation was successful
 			return current_session->avp_data[AUTH_AVP]!=NULL;
@@ -470,7 +447,6 @@ int reachMaxNumRt() {
 int livenessTestPeer() {
     pana_debug("livenessTestPeer");
     if ((LMTYPE == PNOTIF_MSG) && (LMFLAGS & R_FLAG) && (LMFLAGS & P_FLAG)) {
-//    if ((current_session->PNR.receive) && (current_session->PNR.flags & P_FLAG)) {
         char * unused = transmissionMessage("PNA", P_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, 0, current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
         XFREE(unused);
         return NO_CHANGE;
@@ -481,7 +457,6 @@ int livenessTestPeer() {
 int livenessTestResponse() {
     pana_debug("livenessTestResponse");
     if ((LMTYPE == PNOTIF_MSG) && !(LMFLAGS & R_FLAG) && (LMFLAGS & P_FLAG)) {
-    //if ((current_session->PNA.receive) && (current_session->PNA.flags & P_FLAG)) {
         return NO_CHANGE;
     }
     
