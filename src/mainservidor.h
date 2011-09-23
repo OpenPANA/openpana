@@ -33,8 +33,8 @@
 #include "./libeapstack/eap_auth_interface.h"
 #include "state_machines/session.h"
 
-/** Maximum length of a udp packet.*/
-#define MAX_DATA_LEN 2048
+/** Maximum length of an udp packet.*/
+#define MAX_DATA_LEN 4098
 /** Time waited before retransmiting AAA request. */
 #define RETR_AAA_TIME 1
 /** Maximum number of retransmissions to an AAA server. */
