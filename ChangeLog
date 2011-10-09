@@ -18,3 +18,8 @@ ChangeLog for OpenPANA
 		  information).
 		- XML based configuration file available in ./src/ and when the program is installed in /etc/openpana
 		- Doxygen documentation.
+
+20XX-XX-XX - v0.1
+	* Some bugs fixed:
+		- Bad transcription of a transition in PaC state machine.
+		- Increased Maximum size of a packet

@@ -229,7 +229,7 @@ int parPanExchange() {
         txEAP();
         eapRespTimerStart();
         return WAIT_EAP_MSG;
-    } else if (LMTYPE == PAUTH_MSG && (LMFLAGS & R_FLAG)) {
+    } else if (LMTYPE == PAUTH_MSG) {
         rtxTimerStop();
         return WAIT_PAA;
     }
