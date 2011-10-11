@@ -364,6 +364,7 @@ int livenessTestInitPacStateOpen() {
         //P_FLAG is added.
         current_session->retr_msg = transmissionMessage("PNR", P_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, 0, current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
         rtxTimerStart();
+        current_session->PANA_PING = FALSE;
         return WAIT_PNA_PING;
     }
     return ERROR;

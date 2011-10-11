@@ -94,7 +94,7 @@
 	</SERVER_CERTS>
 
 	
-	<TIMEOUT_CLIENT>1</TIMEOUT_CLIENT> <!-- Timeout for expiring client session -->
+	<TIMEOUT_CLIENT>10</TIMEOUT_CLIENT> <!-- Timeout for expiring client session -->
 	<WORKERS>1</WORKERS> <!-- Number of threads used to service requests -->
 	<TIME_ANSWER>3</TIME_ANSWER> <!-- Time while a session is on the server without answer for the first PAR message -->
 	<AUTH_SERVER>  <!-- Radius Server information -->

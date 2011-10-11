@@ -457,6 +457,7 @@ int livenessTestPeer() {
 int livenessTestResponse() {
     pana_debug("livenessTestResponse");
     if ((LMTYPE == PNOTIF_MSG) && !(LMFLAGS & R_FLAG) && (LMFLAGS & P_FLAG)) {
+		if (current_session->CURRENT_STATE == OPEN) return ERROR;
         return NO_CHANGE;
     }
     

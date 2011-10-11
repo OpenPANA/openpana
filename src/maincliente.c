@@ -37,6 +37,7 @@
 
 
 static int signal_received = FALSE;
+static int PING = TRUE; //FIXME: Borrame
 /** Alarm's list, cointains all the alarms setted by the PaC to perform 
  * future actions.*/
 struct lalarm* list_alarms = NULL; // alarms' list
@@ -218,6 +219,20 @@ int main(int argc, char *argv[]) {
 						pthread_mutex_unlock(&session_mutex);
 					}
 				}
+
+				if (current_session->CURRENT_STATE == OPEN){
+					//////////// ACCESS PHASE ////////////
+
+					if (PING){
+						pthread_mutex_lock(&session_mutex);
+						current_session->PANA_PING = TRUE;
+						transition(&pana_session);
+						pthread_mutex_unlock(&session_mutex);
+						PING = FALSE;
+					}
+				}
+
+				
             }//length >0
 
         }//If a PANA packet is received
