@@ -29,12 +29,19 @@
 <!DOCTYPE CONFIG SYSTEM "dtd.xml">
 
 <CONFIG>
-	<PAC> <!-- PaC configuration data -->
-		<IP>127.0.0.1</IP> 
+	
+<!-- *********************************************************************  -->	
+<!-- ******************** PaC CONFIGURATION DATA *************************  -->	
+<!-- *********************************************************************  -->
+	<PAC> 
+		<IP>127.0.0.1</IP>
+		
 		<PORT>7767</PORT>
+		
 		<SESSION> 
 			<TIMEOUT>150</TIMEOUT> <!-- Time necessary to do the authentication. -->
 		</SESSION>
+		
 		<ALGORITHMS> <!-- This tag must be set with the numbers of algorithms supported -->
 		
 			<PRF>2</PRF> <!-- PRF ALGORITHM
@@ -51,26 +58,41 @@
 											5 AUTH_AES_XCBC_96
 											6 AUTH_HMAC_MD5_128
 											7 AUTH_HMAC_SHA1_160-->
-	</ALGORITHMS>
+		</ALGORITHMS>
 
-	<USER>user</USER>
-	<PASSWORD>password</PASSWORD>
-	
-	<CLIENT_CERTS> <!-- Client certificates configuration -->
-		<CA_CERT>ca.pem</CA_CERT>
-		<CLIENT_CERT>client.pem</CLIENT_CERT>
-		<CLIENT_KEY>client.pk8</CLIENT_KEY>
-		<PRIVATE_KEY>whatever</PRIVATE_KEY>
-	</CLIENT_CERTS>
-	<FRAGMENT_SIZE>1398</FRAGMENT_SIZE>
+		<USER>user1</USER>
+		<PASSWORD>SecretPassphrase</PASSWORD>
+		
+		<CLIENT_CERTS> <!-- Client certificates configuration -->
+			<CA_CERT>ca.pem</CA_CERT>
+			<CLIENT_CERT>client.pem</CLIENT_CERT>
+			<CLIENT_KEY>client.pk8</CLIENT_KEY>
+			<PRIVATE_KEY>whatever</PRIVATE_KEY>
+		</CLIENT_CERTS>
+		
+		<FRAGMENT_SIZE>1398</FRAGMENT_SIZE>
+
+		<EAP_PIGGYBACK>1</EAP_PIGGYBACK>
+		
+		<PING_MECHANISM>
+			<PING_TIME>1</PING_TIME> <!-- Time to check keep alive-->
+			<NUMBER_PING>0</NUMBER_PING> <!-- Number of ping messages to be exchanged.
+											  Set to 0 to be desactivated. -->
+		</PING_MECHANISM>
 	</PAC>
+
+<!-- *********************************************************************  -->	
+<!-- ******************** PAA CONFIGURATION DATA *************************  -->	
+<!-- *********************************************************************  -->	
+	<PAA>
 	
-	<PAA> <!-- PAA configuration data -->
 		<IP>127.0.0.1</IP>
 		<PORT>716</PORT>
+		
 		<SESSION>
 			<TIMEOUT>100</TIMEOUT> <!-- Timeout for expiring a session in the server -->
 		</SESSION>
+		
 		<ALGORITHMS><!-- This tag must be set with the numbers of algorithms supported -->
 			<PRF>2</PRF> <!-- PRF ALGORITHM
 								1 PRF_HMAC_MD5
@@ -85,25 +107,32 @@
 											5 AUTH_AES_XCBC_96
 											6 AUTH_HMAC_MD5_128
 											7 AUTH_HMAC_SHA1_160-->
-	</ALGORITHMS>
+		</ALGORITHMS>
 
-	<SERVER_CERTS> <!-- Server certificates configuration -->
-		<CA_CERT>ca.pem</CA_CERT>
-		<SERVER_CERT>server.pem</SERVER_CERT>
-		<SERVER_KEY>server.key</SERVER_KEY>
-	</SERVER_CERTS>
+		<SERVER_CERTS> <!-- Server certificates configuration -->
+			<CA_CERT>ca.pem</CA_CERT>
+			<SERVER_CERT>server.pem</SERVER_CERT>
+			<SERVER_KEY>server.key</SERVER_KEY>
+		</SERVER_CERTS>
+		
+		<TIMEOUT_CLIENT>10</TIMEOUT_CLIENT> <!-- Timeout for expiring client session -->
+		<TIME_ANSWER>3</TIME_ANSWER> <!-- Time while a session is on the server without answer for the first PAR message -->
+		
+		<WORKERS>1</WORKERS> <!-- Number of threads used to service requests -->
 
-	
-	<TIMEOUT_CLIENT>10</TIMEOUT_CLIENT> <!-- Timeout for expiring client session -->
-	<WORKERS>1</WORKERS> <!-- Number of threads used to service requests -->
-	<TIME_ANSWER>3</TIME_ANSWER> <!-- Time while a session is on the server without answer for the first PAR message -->
-	<AUTH_SERVER>  <!-- Radius Server information -->
-		<AS_IP>127.0.0.1</AS_IP>
-		<AS_PORT>1812</AS_PORT>
-		<SHARED_SECRET>testing123</SHARED_SECRET>
-	</AUTH_SERVER>
+		<AUTH_SERVER>  <!-- Radius Server information -->
+			<AS_IP>127.0.0.1</AS_IP>
+			<AS_PORT>1812</AS_PORT>
+			<SHARED_SECRET>testing123</SHARED_SECRET>
+		</AUTH_SERVER>
+		
+		<PING_MECHANISM>
+			<PING_TIME>1</PING_TIME> <!-- Time to check keep alive-->
+			<NUMBER_PING>2</NUMBER_PING> <!-- Number of ping messages to be exchanged.
+											  Set to 0 to be desactivated. -->
+		</PING_MECHANISM>
+
 	</PAA>
 
-	
 </CONFIG>
 

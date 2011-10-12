@@ -35,6 +35,8 @@
 #define SESS_ALARM 3
 /** Alarm type identifier: AAA Retransmission Alarm.*/
 #define RETR_AAA   4
+/** Alarm type identifier: Ping exchange Alarm.*/
+#define PING_ALARM 5
 
 /** Struct that represents an alarms' list*/
 struct lalarm {

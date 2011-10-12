@@ -495,8 +495,8 @@ int sessionTermInitPacStateSessTerm() {
 // Procedures' implementation
 
 int eapPiggyback() {
-	pana_debug("eapPiggyback function"); //TODO: Falta la implementación
-    return 0;
+	pana_debug("eapPiggyback function"); 
+    return EAP_PIGGYBACK;
 }
 
 void altReject() {

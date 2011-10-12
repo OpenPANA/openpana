@@ -45,6 +45,10 @@ char* CLIENT_CERT; // Name of client's cert
 char* CLIENT_KEY;  // Name of client key's cert
 char* PRIVATE_KEY; // Key used by the client in the certificates.
 int FRAG_SIZE;     // Size of eap's fragments.
+int PING_TIME;	   // Time to wait for test channel status in the access phase.
+int NUMBER_PING;   // Number of ping messages to be exchanged.
+int NUMBER_PING_AUX;   // Number of ping messages to be exchanged (auxiliar variable).
+bool EAP_PIGGYBACK;    // Indicates if eap piggyback is activated.
 #endif
 
 #ifdef ISSERVER //Include session variables only for PANA servers
@@ -67,6 +71,9 @@ char* SERVER_KEY;       // Name of AAA server's key cert
 char* AS_IP;		    // AAA server's IP
 short AS_PORT;          // AAA server's port
 char* AS_SECRET;        // Shared secret between AAA client and server
+int PING_TIME;	   // Time to wait for test channel status in the access phase.
+int NUMBER_PING;   // Number of ping messages to be exchanged.
+int NUMBER_PING_AUX;   // Number of ping messages to be exchanged (auxiliar variable).
 #endif
 
 #include "../panamessages.h"

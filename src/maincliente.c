@@ -37,7 +37,6 @@
 
 
 static int signal_received = FALSE;
-static int PING = TRUE; //FIXME: Borrame
 /** Alarm's list, cointains all the alarms setted by the PaC to perform 
  * future actions.*/
 struct lalarm* list_alarms = NULL; // alarms' list
@@ -71,6 +70,13 @@ void* handle_alarm_management(void* none) {
 				pana_debug("A SESSION alarm ocurred");
 				pthread_mutex_lock(&session_mutex);
 				alarm->pana_session->REAUTH = 1;
+				eapRestart();
+				transition(alarm->pana_session);
+				pthread_mutex_unlock(&session_mutex);
+			} else if (alarm->id == PING_ALARM) {
+				pana_debug("A PING alarm ocurred");
+				pthread_mutex_lock(&session_mutex);
+				alarm->pana_session->PANA_PING = 1;
 				eapRestart();
 				transition(alarm->pana_session);
 				pthread_mutex_unlock(&session_mutex);
@@ -223,13 +229,14 @@ int main(int argc, char *argv[]) {
 				if (current_session->CURRENT_STATE == OPEN){
 					//////////// ACCESS PHASE ////////////
 
-					if (PING){
-						pthread_mutex_lock(&session_mutex);
-						current_session->PANA_PING = TRUE;
-						transition(&pana_session);
-						pthread_mutex_unlock(&session_mutex);
-						PING = FALSE;
+					if (NUMBER_PING_AUX){
+						NUMBER_PING_AUX = NUMBER_PING_AUX-1;
+						add_alarma(&list_alarms, &pana_session, PING_TIME, PING_ALARM);
+					}else{ // Reset the number of ping messages to be exchanged when the
+						   // next access phase is reached.
+						NUMBER_PING_AUX = NUMBER_PING;
 					}
+					
 				}
 
 				
