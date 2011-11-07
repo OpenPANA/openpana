@@ -60,8 +60,8 @@
 											7 AUTH_HMAC_SHA1_160-->
 		</ALGORITHMS>
 
-		<USER>user1</USER>
-		<PASSWORD>SecretPassphrase</PASSWORD>
+		<USER>user</USER>
+		<PASSWORD>password</PASSWORD>
 		
 		<CLIENT_CERTS> <!-- Client certificates configuration -->
 			<CA_CERT>ca.pem</CA_CERT>
@@ -76,7 +76,7 @@
 		
 		<PING_MECHANISM>
 			<PING_TIME>1</PING_TIME> <!-- Time to check keep alive-->
-			<NUMBER_PING>0</NUMBER_PING> <!-- Number of ping messages to be exchanged.
+			<NUMBER_PING>2</NUMBER_PING> <!-- Number of ping messages to be exchanged.
 											  Set to 0 to be desactivated. -->
 		</PING_MECHANISM>
 	</PAC>
@@ -128,7 +128,7 @@
 		
 		<PING_MECHANISM>
 			<PING_TIME>1</PING_TIME> <!-- Time to check keep alive-->
-			<NUMBER_PING>2</NUMBER_PING> <!-- Number of ping messages to be exchanged.
+			<NUMBER_PING>0</NUMBER_PING> <!-- Number of ping messages to be exchanged.
 											  Set to 0 to be desactivated. -->
 		</PING_MECHANISM>
 

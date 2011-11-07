@@ -247,7 +247,7 @@ int returnPanParFromEap() {
         if (current_session->NONCE_SENT == UNSET) {
 			XFREE(current_session->PaC_nonce);
             //The nonce value must be saved 
-            current_session->retr_msg = transmissionMessage("PAN", 0, &(current_session->SEQ_NUMBER), current_session->session_id, F_EAPP | F_NONCE , current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
+            current_session->retr_msg = transmissionMessage("PAN", 0, &(current_session->SEQ_NUMBER), current_session->session_id, F_EAPP | F_NONCE, current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
             uint16_t size = ntohs(((pana*)(current_session->retr_msg))->msg_length);
             current_session->PaC_nonce = XMALLOC(char,size);
             memcpy(current_session->PaC_nonce,current_session->retr_msg,size);
