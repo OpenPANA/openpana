@@ -230,6 +230,42 @@ static void parse_xml_client(xmlNode * a_node) {
 					xmlFree(value);
 				}
 			}
+			else if (strcmp((char *)cur_node->name, "PING_TIME")==0){
+				if (pac){
+					char * value = (char*)xmlNodeGetContent(cur_node);
+					sscanf(value, "%d", &PING_TIME);
+					xmlFree(value);
+					if (PING_TIME<=0){
+						pana_error("The delay to do the ping exchanges must be set to a number higher than 0");
+						checkconfig = TRUE;
+					}
+				}
+			}
+			else if (strcmp((char *)cur_node->name, "NUMBER_PING")==0){
+				if (pac){
+					char * value = (char*)xmlNodeGetContent(cur_node);
+					sscanf(value, "%d", &NUMBER_PING);
+					sscanf(value, "%d", &NUMBER_PING_AUX);
+					xmlFree(value);
+					if (NUMBER_PING <0 ){
+						pana_error("The number of ping messages to be exchanged must be set to 0 (to be desactivated) or to a number higher than 0");
+						checkconfig = TRUE;
+					}
+				}
+			}
+#ifdef ISCLIENT
+			else if (strcmp((char *)cur_node->name, "EAP_PIGGYBACK")==0){
+				if (pac){
+					char * value = (char*)xmlNodeGetContent(cur_node);
+					sscanf(value, "%d", &EAP_PIGGYBACK);
+					xmlFree(value);
+					if ((EAP_PIGGYBACK < 0) || (EAP_PIGGYBACK > 1)){
+						pana_error("The eap piggyback option must be set to 1 (activated) or to 0 (not activated)");
+						checkconfig = TRUE;
+					}
+				}
+			}
+#endif
         }
 
         parse_xml_client(cur_node->children);
@@ -392,6 +428,29 @@ static void parse_xml_server(xmlNode * a_node){
 					AS_SECRET = XMALLOC(char,strlen((char*)value));
 					sprintf(AS_SECRET, "%s",(char *) value);
 					xmlFree(value);
+				}
+			}
+			else if (strcmp((char *)cur_node->name, "PING_TIME")==0){
+				if (paa){
+					char * value = (char*)xmlNodeGetContent(cur_node);
+					sscanf(value, "%d", &PING_TIME);
+					xmlFree(value);
+					if (PING_TIME<=0){
+						pana_error("The delay to do the ping exchanges must be set to a number higher than 0");
+						checkconfig = TRUE;
+					}
+				}
+			}
+			else if (strcmp((char *)cur_node->name, "NUMBER_PING")==0){
+				if (paa){
+					char * value = (char*)xmlNodeGetContent(cur_node);
+					sscanf(value, "%d", &NUMBER_PING);
+					sscanf(value, "%d", &NUMBER_PING_AUX);
+					xmlFree(value);
+					if (NUMBER_PING <0 ){
+						pana_error("The number of ping messages to be exchanged must be set to 0 (to be desactivated) or to a number higher than 0");
+						checkconfig = TRUE;
+					}
 				}
 			}
         }

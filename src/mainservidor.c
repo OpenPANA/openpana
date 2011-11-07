@@ -172,6 +172,20 @@ void * process_receive_eap_ll_msg(void *arg) {
     transition(pana_session);
     check_eap_status(pana_session);
 
+	if (current_session->CURRENT_STATE == OPEN){
+		//////////// ACCESS PHASE ////////////
+
+		if (NUMBER_PING_AUX){
+			if (NUMBER_PING_AUX){
+				NUMBER_PING_AUX = NUMBER_PING_AUX-1;
+				add_alarma(&list_alarms, pana_session, PING_TIME, PING_ALARM);
+			}
+		} else{ // Reset the number of ping messages to be exchanged when the
+				// next access phase is reached.
+			NUMBER_PING_AUX = NUMBER_PING;
+		}
+	}
+
 	// When a session is closed, its correspondending memory must be removed.    
     if (pana_session->CURRENT_STATE == CLOSED) {
         remove_alarm(&list_alarms, pana_session->session_id); //Remove the alarms
@@ -569,7 +583,12 @@ void* handle_alarm_management() {
 				pana_debug("An AAA_RETRANSMISSION alarm ocurred");
 				retrans_params.id = RETR_AAA;
 				add_task(process_retr, &retrans_params);
-			} 
+			}
+			else if (alarm->id == PING_ALARM) {
+				pana_debug("A PING alarm ocurred");
+				retrans_params.id = PING_ALARM;
+				add_task(process_retr, &retrans_params);
+			}
 			else { // An unknown alarm is activated.
 				pana_debug("An UNKNOWN alarm ocurred");
 			}
@@ -610,8 +629,13 @@ void* process_retr(void *arg){
 		pthread_mutex_lock(&(pana_session->mutex));
 		retransmitAAA(pana_session);
 		pthread_mutex_unlock(&(pana_session->mutex));
-		
-	} 
+	} else if (alarm_id == PING_ALARM) {
+		pana_debug("A PING alarm ocurred");
+		pthread_mutex_lock(&(pana_session->mutex));
+		pana_session->PANA_PING = 1;
+		transition(pana_session);
+		pthread_mutex_unlock(&(pana_session->mutex));
+	}
 	else {
 		pana_debug("An UNKNOWN alarm ocurred");
 	}

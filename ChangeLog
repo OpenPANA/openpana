@@ -19,7 +19,16 @@ ChangeLog for OpenPANA
 		- XML based configuration file available in ./src/ and when the program is installed in /etc/openpana
 		- Doxygen documentation.
 
-20XX-XX-XX - v0.1
+201X-XX-XX - v0.2
 	* Some bugs fixed:
 		- Bad transcription of a transition in PaC state machine.
 		- Increased Maximum size of a packet
+
+	* New features developed:
+		- Ping messages exchange. This exchange can be initiated by both PaC and PAA.
+
+	* New configurable values in the configuration file:
+		- EAP PIGGYBACK. To set or unset the eap piggyback option in the message exchange.
+		- PING TIME. Delay between two ping messages exchanged in the access phase.
+		- NUMBER PING. Number of ping messages exchanged in the access phase.
+

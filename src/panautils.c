@@ -84,10 +84,7 @@ int sendPana(struct sockaddr_in destaddr, char *msg, int sock) {
 }
 
 int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
-	/*#ifdef DEBUG
-	fprintf(stderr, "DEBUG: MESSAGE TO BE CHECKED\n");
-	debug_msg(msg);
-	#endif*/
+	
     //Checks pana header fields.
     if (msg->reserved != 0) {
 		pana_error("Reserved field is not set to zero. Dropping message");
