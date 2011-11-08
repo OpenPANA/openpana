@@ -532,12 +532,15 @@ void* handle_network_management() {
     struct radius_client_data *radius_data = get_rad_client_ctx();
 
     if (radius_data != NULL) {
-        radius_sock = radius_data->auth_serv_sock;
+		if (IP_VERSION==4)
+			radius_sock = radius_data->auth_serv_sock;
+		else if (IP_VERSION==6)
+			radius_sock = radius_data->auth_serv_sock6;
     }
 
     u8 udp_packet[MAX_DATA_LEN];
     struct sockaddr_in eap_ll_dst_addr, radius_dst_addr;
-    struct sockaddr_in6 eap_ll_dst_addr6; //For ipv6 support
+    struct sockaddr_in6 eap_ll_dst_addr6, radius_dst_addr6; //For ipv6 support
     int addr_size;
     
     struct pana_func_parameter *pana_params;
@@ -588,8 +591,14 @@ void* handle_network_management() {
             }
             //Check radius messages
             if (FD_ISSET(radius_sock, &mreadset)) {
-                addr_size = sizeof (radius_dst_addr);
-                int length = recvfrom(radius_sock, udp_packet, sizeof (udp_packet), 0, (struct sockaddr *) &(radius_dst_addr), (socklen_t *)&(addr_size));
+				if (IP_VERSION==4){
+					addr_size = sizeof (radius_dst_addr);
+					length = recvfrom(radius_sock, udp_packet, sizeof (udp_packet), 0, (struct sockaddr *) &(radius_dst_addr), (socklen_t *)&(addr_size));
+				}
+				else if (IP_VERSION==6){
+					addr_size = sizeof (radius_dst_addr6);
+					length = recvfrom(radius_sock, udp_packet, sizeof (udp_packet), 0, (struct sockaddr *) &(radius_dst_addr6), (socklen_t *)&(addr_size));
+				}
 
                 if (length > 0) {
 

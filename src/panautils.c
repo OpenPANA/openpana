@@ -47,7 +47,8 @@ int sendPana(struct sockaddr_in destaddr, char *msg, int sock) {
         n = sendto(sock, msg + total, bytesleft, 0,
                 (struct sockaddr *) & destaddr, sizeof (destaddr));
         if (n == -1) {
-			perror("sendPANA");
+			perror("sendto");
+			pana_fatal("sendto in sendPana function");
             break;
         } //Send failure
         total += n;
@@ -77,7 +78,7 @@ int sendPana6(struct sockaddr_in6 destaddr6, char *msg, int sock) {
 	
     uint16_t len = ntohs(((pana*)msg)->msg_length); // Pana Message's length
     
-    char str6 [16]; //For an IPv6 address
+    char str6 [INET6_ADDRSTRLEN]; //For an IPv6 address
     uint16_t total = 0; // Total bytes sended
     short n = 0;
     uint16_t bytesleft = len;
@@ -85,7 +86,8 @@ int sendPana6(struct sockaddr_in6 destaddr6, char *msg, int sock) {
         n = sendto(sock, msg + total, bytesleft, 0,
                 (struct sockaddr *) & destaddr6, sizeof (destaddr6));
         if (n == -1) {
-			perror("sendto en sendPANA");
+			perror("sendto");	
+			pana_fatal("sendto in sendPana6 function");
             break;
         } //Send failure
         total += n;
