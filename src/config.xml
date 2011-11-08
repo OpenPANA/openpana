@@ -36,9 +36,11 @@
 <!-- ******************** PaC CONFIGURATION DATA *************************  -->	
 <!-- *********************************************************************  -->
 	<PAC> 
-		<IP>2001:6b0:e:3333::1</IP>
+		<IP>::1</IP> <!-- This IP must be set on the interface used for the communication. Besides
+					  it must be on the same scope as the PAA IP. In the end, the openpac must
+					  be launched with the sudo user -->
 		
-		<PORT>7767</PORT>
+		<PORT>7777</PORT>
 		
 		<SESSION> 
 			<TIMEOUT>150</TIMEOUT> <!-- Time necessary to do the authentication. -->
@@ -88,7 +90,7 @@
 <!-- *********************************************************************  -->	
 	<PAA>
 	
-		<IP>2001:6b0:e:3333::1</IP>
+		<IP>::1</IP>
 		<PORT>716</PORT>
 		
 		<SESSION>

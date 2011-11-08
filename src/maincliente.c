@@ -145,6 +145,28 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
+	if (IP_VERSION==4){
+		struct sockaddr_in ipbind;
+		ipbind.sin_family = AF_INET;
+		ipbind.sin_port = SRCPORT;
+		inet_pton(AF_INET, LOCALIP, &ipbind.sin_addr);
+		const struct sockaddr * sockaddr = (struct sockaddr *) & ipbind;
+		if (bind(pana_sock, sockaddr, sizeof(ipbind))){
+			perror("bind");
+			pana_error("bind in mainCliente");
+		}
+	}
+	else if (IP_VERSION==6){
+		struct sockaddr_in6 ipbind6;
+		ipbind6.sin6_family = AF_INET6;
+		ipbind6.sin6_port = SRCPORT;
+		inet_pton(AF_INET6, LOCALIP, &ipbind6.sin6_addr);
+		const struct sockaddr * sockaddr = (struct sockaddr *) & ipbind6;
+		if (bind(pana_sock, sockaddr, sizeof(ipbind6))){
+			perror("bind");
+			pana_error("bind in mainCliente");
+		}
+	}
 	//Update the socket number in the session.
 	pana_session.socket = pana_sock;
 
