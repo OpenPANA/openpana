@@ -101,10 +101,18 @@ void initSession(pana_ctx * pana_session) {
 
     pana_session->src_port = SRCPORT;
     pana_session->dst_port = DSTPORT;
-    
-	pana_session->eap_ll_dst_addr.sin_family = AF_INET;
-    pana_session->eap_ll_dst_addr.sin_port = htons(DSTPORT);
-    pana_session->eap_ll_dst_addr.sin_addr.s_addr = inet_addr(DESTIP); 
+
+    if(IP_VERSION==4){
+		pana_session->eap_ll_dst_addr.sin_family = AF_INET;
+		pana_session->eap_ll_dst_addr.sin_port = htons(DSTPORT);
+		pana_session->eap_ll_dst_addr.sin_addr.s_addr = inet_addr(DESTIP);
+		printf("PEDRO: Se ha iniciado la ip con %s\n", DESTIP);
+	}
+	else if(IP_VERSION==6){
+		pana_session->eap_ll_dst_addr6.sin6_family = AF_INET6;
+		pana_session->eap_ll_dst_addr6.sin6_port = htons(DSTPORT);
+		inet_pton(AF_INET6, DESTIP, &(pana_session->eap_ll_dst_addr6.sin6_addr));
+	}
     /* Client's sequence number and session id is set to 0, the first message it's
      * always supposed to be a PCI. */
     pana_session->SEQ_NUMBER = 0;
@@ -116,7 +124,10 @@ void initSession(pana_ctx * pana_session) {
 #endif
 
 #ifdef ISSERVER //Include session variables only for PANA servers
-	pana_session->eap_ll_dst_addr.sin_family = AF_INET;
+	if(IP_VERSION==4)
+		pana_session->eap_ll_dst_addr.sin_family = AF_INET;
+	else if(IP_VERSION==6)
+		pana_session->eap_ll_dst_addr6.sin6_family = AF_INET6;
     pana_session->src_port = SRCPORT;
     
     pana_session->LIFETIME_SESS_TIMEOUT = LIFETIME_SESSION_TIMEOUT_CONFIG;

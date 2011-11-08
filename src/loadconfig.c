@@ -40,10 +40,18 @@ static void parse_xml_client(xmlNode * a_node) {
 #ifdef ISCLIENT
     xmlNode *cur_node = NULL;
 	int checkconfig = FALSE;
-	
     for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
         if (cur_node->type == XML_ELEMENT_NODE) {
-			if (strcmp((char*) cur_node->name, "PAC")==0) { //If the PaC configurable values are being checked
+			if (strcmp((char*) cur_node->name, "IP_VERSION")==0) {
+				char * value = (char *)xmlNodeGetContent(cur_node);
+				sscanf(value, "%d", &IP_VERSION);
+				xmlFree(value);
+				if (IP_VERSION != 4 && IP_VERSION != 6){
+					pana_error("IP_VERSION must be set to 4 for IPv4 or to 6 for IPv6.");
+					checkconfig = TRUE;
+				}
+			}
+			else if (strcmp((char*) cur_node->name, "PAC")==0) { //If the PaC configurable values are being checked
 				paa=0;
 				pac=1;
 			}
@@ -293,7 +301,16 @@ static void parse_xml_server(xmlNode * a_node){
 	
     for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
         if (cur_node->type == XML_ELEMENT_NODE) {
-			if (strcmp((char *)cur_node->name, "PAC")==0) {//If the PaC configurable values are being checked
+			if (strcmp((char*) cur_node->name, "IP_VERSION")==0) {
+				char * value = (char *)xmlNodeGetContent(cur_node);
+				sscanf(value, "%d", &IP_VERSION);
+				xmlFree(value);
+				if (IP_VERSION != 4 && IP_VERSION != 6){
+					pana_error("IP_VERSION must be set to 4 for IPv4 or to 6 for IPv6");
+					checkconfig = TRUE;
+				}
+			}
+			else if (strcmp((char *)cur_node->name, "PAC")==0) {//If the PaC configurable values are being checked
 				paa=0;
 				pac=1;
 			}
