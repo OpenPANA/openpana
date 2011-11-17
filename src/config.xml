@@ -31,8 +31,6 @@
 <CONFIG>
 
 	<IP_VERSION>6</IP_VERSION>
-
-	
 <!-- *********************************************************************  -->	
 <!-- ******************** PaC CONFIGURATION DATA *************************  -->	
 <!-- *********************************************************************  -->
@@ -40,8 +38,10 @@
 		<IP>::1</IP> <!-- This IP must be set on the interface used for the communication. Besides
 					  it must be on the same scope as the PAA IP. In the end, the openpac must
 					  be launched with the sudo user -->
-		<PORT>7777</PORT>		
 		
+		<PORT>7777</PORT>
+		
+
 		<SESSION> 
 			<TIMEOUT>150</TIMEOUT> <!-- Time necessary to do the authentication. -->
 		</SESSION>
@@ -126,6 +126,7 @@
 
 
 		<AUTH_SERVER>  <!-- Radius Server information -->
+			<IP_VERSION_AUTH>4</IP_VERSION_AUTH>
 			<AS_IP>127.0.0.1</AS_IP>
 			<AS_PORT>1812</AS_PORT>
 			<SHARED_SECRET>testing123</SHARED_SECRET>
