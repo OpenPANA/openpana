@@ -28,13 +28,14 @@
 /**
  * Declaration of common configurable variables
  */
-int IP_VERSION;
+
 #ifdef ISCLIENT //Include session variables only for PANA clients
 #include "sessionclient.h"
 #include "../libeapstack/eap_peer_interface.h"
 /**
  * Declaration of client configurable variables
  * */
+int IP_VERSION;		// Version of IP protocol used in PANA communication
 int PRF_HMAC_SHA1;   //PRF algorithm negociated in handshake
 int AUTH_HMAC_SHA1_160;   // Integrity algorithm negociated ni handshake
 int FAILED_SESS_TIMEOUT_CONFIG; // Timeout used in the PANA session saved in PaC
@@ -62,6 +63,7 @@ bool EAP_PIGGYBACK;    // Indicates if eap piggyback is activated.
 /**
  * Declaration of server configurable variables
  * */
+int IP_VERSION;		// Version of IP protocol used in PANA communication
 int PRF_HMAC_SHA1;  //PRF algorithm negociated in handshake
 int AUTH_HMAC_SHA1_160; // Integrity algorithm negociated ni handshake
 int SRCPORT;			// Source port used in messages sent to PaC
@@ -73,6 +75,7 @@ int NUM_WORKERS;		// Number of threads running as "workers"
 char* CA_CERT;          // Name of CA's cert
 char* SERVER_CERT;      // Name of AAA server's cert
 char* SERVER_KEY;       // Name of AAA server's key cert
+int IP_VERSION_AUTH;	// Version of IP protocol used in AAA comunication
 char* AS_IP;		    // AAA server's IP
 short AS_PORT;          // AAA server's port
 char* AS_SECRET;        // Shared secret between AAA client and server

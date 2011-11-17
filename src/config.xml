@@ -125,7 +125,8 @@
 		<WORKERS>1</WORKERS> <!-- Number of threads used to service requests -->
 
 		<AUTH_SERVER>  <!-- Radius Server information -->
-			<AS_IP>::1</AS_IP>
+			<IP_VERSION_AUTH>4</IP_VERSION_AUTH>
+			<AS_IP>127.0.0.1</AS_IP>
 			<AS_PORT>1812</AS_PORT>
 			<SHARED_SECRET>testing123</SHARED_SECRET>
 		</AUTH_SERVER>

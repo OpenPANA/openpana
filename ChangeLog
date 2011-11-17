@@ -37,4 +37,5 @@ ChangeLog for OpenPANA
 		- EAP PIGGYBACK. To set or unset the eap piggyback option in the message exchange.
 		- PING TIME. Delay between two ping messages exchanged in the access phase.
 		- NUMBER PING. Number of ping messages exchanged in the access phase.
-		- IP VERSION. Version IP used. (4 for IPv4 and 6 for IPv6)
+		- IP VERSION. Version IP used between PaC and PAA. (4 for IPv4 and 6 for IPv6)
+		- IP VERSION AUTH. Version IP used in the communication between PAA and AAA server. (4 for IPv4 and 6 for IPv6)

@@ -420,6 +420,19 @@ static void parse_xml_server(xmlNode * a_node){
 					xmlFree(value);
 				}
 			}
+			else if (strcmp((char *)cur_node->name, "IP_VERSION_AUTH")==0){ // IP address of AS
+				if (paa){
+					char * value = (char*)xmlNodeGetContent(cur_node);
+					sscanf(value, "%d", &IP_VERSION_AUTH);
+					xmlFree(value);
+					if ((IP_VERSION_AUTH != 4) && (IP_VERSION_AUTH != 6) ){
+						pana_error("IP_VERSION_AUTH must be set to 4 for IPv4 or to 6 for IPv6.");
+						checkconfig = TRUE;
+					}
+				}
+
+				
+			}
 			else if (strcmp((char *)cur_node->name, "AS_IP")==0){ // IP address of AS
 				if (paa){
 					char * value = (char*)xmlNodeGetContent(cur_node);

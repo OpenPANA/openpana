@@ -532,9 +532,9 @@ void* handle_network_management() {
     struct radius_client_data *radius_data = get_rad_client_ctx();
 
     if (radius_data != NULL) {
-		if (IP_VERSION==4)
+		if (IP_VERSION_AUTH==4)
 			radius_sock = radius_data->auth_serv_sock;
-		else if (IP_VERSION==6)
+		else if (IP_VERSION_AUTH==6)
 			radius_sock = radius_data->auth_serv_sock6;
     }
 
