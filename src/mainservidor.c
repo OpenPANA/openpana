@@ -111,11 +111,25 @@ void * process_receive_eap_ll_msg(void *arg) {
         initSession(pana_session); 
 		
         //Update variables depends on server
-        uint16_t port = ntohs(pana_params->eap_ll_dst_addr->sin_port);
-        char * ip = inet_ntoa(pana_params->eap_ll_dst_addr->sin_addr);
-        pana_session->session_id = generateSessionId(ip, port);
+        uint16_t port;
+        char * ip;
+        char ip6 [INET6_ADDRSTRLEN];
+        if (IP_VERSION==4){
+			port = ntohs(pana_params->eap_ll_dst_addr->sin_port);
+			ip = inet_ntoa(pana_params->eap_ll_dst_addr->sin_addr);
+			pana_session->session_id = generateSessionId(ip, port);
+		}
+		else if (IP_VERSION==6){
+			port = ntohs(pana_params->eap_ll_dst_addr6->sin6_port);
+			inet_ntop(AF_INET6, &(pana_params->eap_ll_dst_addr6->sin6_addr),ip6, INET6_ADDRSTRLEN);
+			pana_session->session_id = generateSessionId(ip6, port);
+		}
+   
         pana_session->socket = pana_params->sock;
-        pana_session->eap_ll_dst_addr = *(pana_params->eap_ll_dst_addr);
+        if (IP_VERSION==4)
+			pana_session->eap_ll_dst_addr = *(pana_params->eap_ll_dst_addr);
+		else if (IP_VERSION==6)
+			pana_session->eap_ll_dst_addr6 = *(pana_params->eap_ll_dst_addr6);
 		pana_session->server_ctx.global_key_id = global_key_id;
         
         pana_session->list_of_alarms = &(list_alarms);
@@ -135,10 +149,21 @@ void * process_receive_eap_ll_msg(void *arg) {
             ((ntohs(msg->flags) & S_FLAG) == S_FLAG)) {// it is created a new session for the new client
        
         //Generate the session id asociated to client's port and ip
-        uint16_t port = ntohs(pana_params->eap_ll_dst_addr->sin_port);
-        char * ip = inet_ntoa(pana_params->eap_ll_dst_addr->sin_addr);
-        uint32_t session_id = generateSessionId(ip, port); 
-
+        uint16_t port;
+        char * ip;
+        uint32_t session_id;
+        char ip6 [INET6_ADDRSTRLEN];
+        
+        if (IP_VERSION==4){
+			port = ntohs(pana_params->eap_ll_dst_addr->sin_port);
+			ip = inet_ntoa(pana_params->eap_ll_dst_addr->sin_addr);
+			session_id = generateSessionId(ip, port);
+		}
+		else if (IP_VERSION==6){
+			port = ntohs(pana_params->eap_ll_dst_addr6->sin6_port);
+			inet_ntop(AF_INET6, &(pana_params->eap_ll_dst_addr6->sin6_addr),ip6, INET6_ADDRSTRLEN);
+			session_id = generateSessionId(ip6, port);
+		}
         
         pana_session = get_alarm_session(&(list_alarms), session_id, PCI_ALARM);
         
@@ -456,11 +481,15 @@ void* handle_network_management() {
     int radius_sock=0; //Init it to a non-valid value
     int eap_ll_sock=0;
     struct sockaddr_in sa;
+    struct sockaddr_in6 sa6;
     fd_set mreadset; /*master read set*/
 
     rad_client_init(AS_IP, AS_PORT, AS_SECRET);
 
-    eap_ll_sock = socket(AF_INET, SOCK_DGRAM, 0);
+	if (IP_VERSION==4)
+		eap_ll_sock = socket(AF_INET, SOCK_DGRAM, 0);
+	else if (IP_VERSION==6)
+		eap_ll_sock = socket(AF_INET6, SOCK_DGRAM, 0);
     int b = 1;
     // SO_REUSEADDR option is used in case of an unexpected exit, the
     // client will be able to reuse the socket
@@ -468,38 +497,56 @@ void* handle_network_management() {
         perror("setsockopt");
         return 0;
     }
-    
-    memset((char *) & sa, 0, sizeof (sa));
-    sa.sin_family = AF_INET;
+
     /*FIXME: Para habilitar los inicios de sesión por parte del servidor
      * habría que escuchar en el puerto del servidor (ahora mismo PANAPORT)
      * y aparte en el PANAPORT, de ésta forma el servidor siempre estará
      * pendiente de posibles PCIs (panaport) y podrá iniciar sesiones
      * en su puerto sin que éste tenga que ser el puerto PANA */
-    sa.sin_port = htons(SRCPORT);
-    sa.sin_addr.s_addr = htonl(INADDR_ANY);
-
-	//Avoid's a warning, bind expects the "const ptr" type
-    const struct sockaddr * sockaddr = (struct sockaddr *) & sa;
-    if (bind(eap_ll_sock, sockaddr, sizeof (sa)) == -1) {
-        perror("Binding socket error:\n");
-        return NULL;
-    }
-
+    
+    if (IP_VERSION==4){
+		memset((char *) & sa, 0, sizeof (sa));
+		sa.sin_family = AF_INET;
+		sa.sin_port = htons(SRCPORT);
+		sa.sin_addr.s_addr = htonl(INADDR_ANY);
+		//Avoid's a warning, bind expects the "const ptr" type
+		const struct sockaddr * sockaddr = (struct sockaddr *) & sa;
+		if (bind(eap_ll_sock, sockaddr, sizeof (sa)) == -1) {
+			perror("Binding socket error:\n");
+			return NULL;
+		}
+	}
+	else if (IP_VERSION==6){
+		memset((char *) & sa6, 0, sizeof (sa6));
+		sa6.sin6_family = AF_INET6;
+		sa6.sin6_port = htons(SRCPORT);
+		sa6.sin6_addr = in6addr_any;
+		//Avoid's a warning, bind expects the "const ptr" type
+		const struct sockaddr * sockaddr = (struct sockaddr *) & sa6;
+		if (bind(eap_ll_sock, sockaddr, sizeof (sa6)) == -1) {
+			perror("Binding socket error:\n");
+			return NULL;
+		}
+	}
 
     struct radius_client_data *radius_data = get_rad_client_ctx();
 
     if (radius_data != NULL) {
-        radius_sock = radius_data->auth_serv_sock;
+		if (IP_VERSION==4)
+			radius_sock = radius_data->auth_serv_sock;
+		else if (IP_VERSION==6)
+			radius_sock = radius_data->auth_serv_sock6;
     }
 
     u8 udp_packet[MAX_DATA_LEN];
     struct sockaddr_in eap_ll_dst_addr, radius_dst_addr;
+    struct sockaddr_in6 eap_ll_dst_addr6, radius_dst_addr6; //For ipv6 support
     int addr_size;
     
     struct pana_func_parameter *pana_params;
     struct radius_func_parameter *radius_params;
     pana *msg;
+    int length;
 
     while (!fin) {
         FD_ZERO(&mreadset);
@@ -510,8 +557,14 @@ void* handle_network_management() {
         if (ret > 0) {
             //Check pana messages
             if (FD_ISSET(eap_ll_sock, &mreadset)) {
-                addr_size = sizeof (eap_ll_dst_addr);
-                int length = recvfrom(eap_ll_sock, udp_packet, sizeof (udp_packet), 0, (struct sockaddr *) &(eap_ll_dst_addr), (socklen_t *)&(addr_size));
+				if (IP_VERSION==4) {
+					addr_size = sizeof (eap_ll_dst_addr);
+					length = recvfrom(eap_ll_sock, udp_packet, sizeof (udp_packet), 0, (struct sockaddr *) &(eap_ll_dst_addr), (socklen_t *)&(addr_size));
+				}
+				else if (IP_VERSION==6){
+					addr_size = sizeof (eap_ll_dst_addr6);
+					length = recvfrom(eap_ll_sock, udp_packet, sizeof (udp_packet), 0, (struct sockaddr *) &(eap_ll_dst_addr6), (socklen_t *)&(addr_size));
+				}
                 if (length > 0) {
                     //FIXME: Cuándo se libera esto
                     msg = XCALLOC(char,length);
@@ -522,8 +575,14 @@ void* handle_network_management() {
                     //FIXME: Cuándo se libera esto
                     pana_params = XCALLOC(struct pana_func_parameter,1);
                     pana_params->pana_msg = msg;
-                    pana_params->eap_ll_dst_addr = XMALLOC (struct sockaddr_in,1);
-                    memcpy(pana_params->eap_ll_dst_addr, &(eap_ll_dst_addr), sizeof(struct sockaddr_in));
+                    if (IP_VERSION==4){
+						pana_params->eap_ll_dst_addr = XMALLOC (struct sockaddr_in,1);
+						memcpy(pana_params->eap_ll_dst_addr, &(eap_ll_dst_addr), sizeof(struct sockaddr_in));
+					}
+					else if (IP_VERSION==6){
+						pana_params->eap_ll_dst_addr6 = XMALLOC (struct sockaddr_in6,1);
+						memcpy(pana_params->eap_ll_dst_addr6, &(eap_ll_dst_addr6), sizeof(struct sockaddr_in6));
+					}
                     pana_params->sock = eap_ll_sock;
 					pana_params->id_alarm = -1;
                     add_task(process_receive_eap_ll_msg, pana_params/*, ntohl(msg->session_id)*/);
@@ -532,8 +591,14 @@ void* handle_network_management() {
             }
             //Check radius messages
             if (FD_ISSET(radius_sock, &mreadset)) {
-                addr_size = sizeof (radius_dst_addr);
-                int length = recvfrom(radius_sock, udp_packet, sizeof (udp_packet), 0, (struct sockaddr *) &(radius_dst_addr), (socklen_t *)&(addr_size));
+				if (IP_VERSION==4){
+					addr_size = sizeof (radius_dst_addr);
+					length = recvfrom(radius_sock, udp_packet, sizeof (udp_packet), 0, (struct sockaddr *) &(radius_dst_addr), (socklen_t *)&(addr_size));
+				}
+				else if (IP_VERSION==6){
+					addr_size = sizeof (radius_dst_addr6);
+					length = recvfrom(radius_sock, udp_packet, sizeof (udp_packet), 0, (struct sockaddr *) &(radius_dst_addr6), (socklen_t *)&(addr_size));
+				}
 
                 if (length > 0) {
 

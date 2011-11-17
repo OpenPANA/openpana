@@ -91,7 +91,8 @@ void* handle_alarm_management(void* none) {
 
 int main(int argc, char *argv[]) {
 
-    struct sockaddr_in eap_auth_ll_sockaddr;
+    struct sockaddr_in eap_auth_ll_sockaddr; //For IPv4 support
+    struct sockaddr_in6 eap_auth_ll_sockaddr6; //For IPv6 support
     fd_set readfds, exceptfds; //FD sets to use with select
     int pana_sock;//PANA's socket
 
@@ -123,10 +124,18 @@ int main(int argc, char *argv[]) {
     signal(SIGINT, signal_handler);
     signal(SIGQUIT, signal_handler);
 
-    if ((pana_sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
-        perror("PANA: socket");
-        return -1;
-    }
+	if (IP_VERSION==4){
+		if ((pana_sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
+			perror("PANA: socket");
+			return -1;
+		}
+	}
+	else if (IP_VERSION==6){
+		if ((pana_sock = socket(AF_INET6, SOCK_DGRAM, 0)) == -1) {
+			perror("PANA: socket");
+			return -1;
+		}
+	}
 
     int b = 1;
     // SO_REUSEADDR option is used in case of an unexpected exit, the
@@ -136,12 +145,41 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
+	if (IP_VERSION==4){
+		struct sockaddr_in ipbind;
+		ipbind.sin_family = AF_INET;
+		ipbind.sin_port = SRCPORT;
+		inet_pton(AF_INET, LOCALIP, &ipbind.sin_addr);
+		const struct sockaddr * sockaddr = (struct sockaddr *) & ipbind;
+		if (bind(pana_sock, sockaddr, sizeof(ipbind))){
+			perror("bind");
+			pana_error("bind in mainCliente");
+		}
+	}
+	else if (IP_VERSION==6){
+		struct sockaddr_in6 ipbind6;
+		ipbind6.sin6_family = AF_INET6;
+		ipbind6.sin6_port = SRCPORT;
+		inet_pton(AF_INET6, LOCALIP, &ipbind6.sin6_addr);
+		const struct sockaddr * sockaddr = (struct sockaddr *) & ipbind6;
+		if (bind(pana_sock, sockaddr, sizeof(ipbind6))){
+			perror("bind");
+			pana_error("bind in mainCliente");
+		}
+	}
 	//Update the socket number in the session.
 	pana_session.socket = pana_sock;
-	
-    eap_auth_ll_sockaddr.sin_family = AF_INET;
-    eap_auth_ll_sockaddr.sin_port = pana_session.eap_ll_dst_addr.sin_port;
-    inet_pton(AF_INET, LOCALIP, &eap_auth_ll_sockaddr.sin_addr);
+
+	if (IP_VERSION==4){
+		eap_auth_ll_sockaddr.sin_family = AF_INET;
+		eap_auth_ll_sockaddr.sin_port = pana_session.eap_ll_dst_addr.sin_port;
+		inet_pton(AF_INET, LOCALIP, &eap_auth_ll_sockaddr.sin_addr);
+	}
+	else if (IP_VERSION==6){
+		eap_auth_ll_sockaddr6.sin6_family = AF_INET6;
+		eap_auth_ll_sockaddr6.sin6_port = pana_session.eap_ll_dst_addr6.sin6_port;
+		inet_pton(AF_INET6, LOCALIP, &eap_auth_ll_sockaddr6.sin6_addr);
+	}
 
     //Step pana state machine
     pthread_mutex_lock(&session_mutex);
@@ -149,6 +187,7 @@ int main(int argc, char *argv[]) {
     pthread_mutex_unlock(&session_mutex);
 
 	struct sockaddr_in eap_auth_ll_addr;
+	struct sockaddr_in6 eap_auth_ll_addr6;
 	int addr_size=0;
 	char pana_packet[MAX_DATA_LEN];
 	
@@ -160,8 +199,11 @@ int main(int argc, char *argv[]) {
         FD_ZERO(&exceptfds);
         FD_SET(pana_sock, &readfds); //Assigning the FDs to pana socket
         FD_SET(pana_sock, &exceptfds);
-        
-        addr_size = sizeof (eap_auth_ll_addr);
+
+        if (IP_VERSION==4)
+			addr_size = sizeof (eap_auth_ll_addr);
+		else if (IP_VERSION==6)
+			addr_size = sizeof (eap_auth_ll_addr6);
         
         pana_debug("I'm gonna start listening!");
         pana_debug("My state is: %s", state_name[pana_session.CURRENT_STATE + 1]);
@@ -175,7 +217,10 @@ int main(int argc, char *argv[]) {
 		//If a PANA packet is received
         if (FD_ISSET(pana_sock, &readfds)) {
             uint16_t length =0;
-            length = recvfrom(pana_sock, pana_packet, sizeof (pana_packet), 0, (struct sockaddr *) &eap_auth_ll_addr, (socklen_t *) & addr_size);
+            if (IP_VERSION==4)
+				length = recvfrom(pana_sock, pana_packet, sizeof (pana_packet), 0, (struct sockaddr *) &eap_auth_ll_addr, (socklen_t *) & addr_size);
+			else if (IP_VERSION==6)
+				length = recvfrom(pana_sock, pana_packet, sizeof (pana_packet), 0, (struct sockaddr *) &eap_auth_ll_addr6, (socklen_t *) & addr_size);
 			//length is >0 when it's correctly received only
             if (length > 0) {
 
@@ -261,8 +306,11 @@ int main(int argc, char *argv[]) {
             pana_debug("Has to tell the server that he's gonna stop");
 			//It will manage pana messages until client disconnects
             while (TRUE){
-				
-				addr_size = sizeof (eap_auth_ll_addr);
+
+				if (IP_VERSION==4)
+					addr_size = sizeof (eap_auth_ll_addr);
+				else if (IP_VERSION==6)
+					addr_size = sizeof (eap_auth_ll_addr6);
 				FD_ZERO(&readfds); //Setting to 0 FDsets
 				FD_ZERO(&exceptfds);
 				FD_SET(pana_sock, &readfds); //Assigning the FDs to pana socket
@@ -280,7 +328,10 @@ int main(int argc, char *argv[]) {
 				//If a PANA packet is received
 				if (FD_ISSET(pana_sock, &readfds)) {
 					uint16_t length =0;
-					length = recvfrom(pana_sock, pana_packet, sizeof (pana_packet), 0, (struct sockaddr *) &eap_auth_ll_addr, (socklen_t *) & addr_size);
+					if (IP_VERSION==4)
+						length = recvfrom(pana_sock, pana_packet, sizeof (pana_packet), 0, (struct sockaddr *) &eap_auth_ll_addr, (socklen_t *) & addr_size);
+					else if (IP_VERSION==6)
+						length = recvfrom(pana_sock, pana_packet, sizeof (pana_packet), 0, (struct sockaddr *) &eap_auth_ll_addr, (socklen_t *) & addr_size);
 					//length is >0 when it's correctly received only
 					if (length > 0) {
 

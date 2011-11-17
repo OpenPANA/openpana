@@ -40,36 +40,15 @@ int sendPana(struct sockaddr_in destaddr, char *msg, int sock) {
 	}
 	
     uint16_t len = ntohs(((pana*)msg)->msg_length); // Pana Message's length
-    
-    //int sock;
-    struct sockaddr_in su_addr; // Destination address
-    
-
-    struct sockaddr_in mi_addr;
-    mi_addr.sin_family = AF_INET;
-
-    #ifdef ISCLIENT
-    mi_addr.sin_port = ntohs(SRCPORT);
-    #endif
-    #ifdef ISSERVER
-    mi_addr.sin_port = ntohs(destaddr.sin_port);
-    #endif
-    mi_addr.sin_addr.s_addr = INADDR_ANY;
-    memset(&(mi_addr.sin_zero), '\0', 8);
-
-    //FIXME: Se podría coger directamente la estructura del contexto pana?
-    su_addr.sin_family = AF_INET;
-    su_addr.sin_port = destaddr.sin_port;
-    su_addr.sin_addr.s_addr = destaddr.sin_addr.s_addr;
-    memset(&(su_addr.sin_zero), '\0', 8);
-
     uint16_t total = 0; // Total bytes sended
     short n = 0;
     uint16_t bytesleft = len;
     while (total < len) {
         n = sendto(sock, msg + total, bytesleft, 0,
-                (struct sockaddr *) & su_addr, sizeof (struct sockaddr));
+                (struct sockaddr *) & destaddr, sizeof (destaddr));
         if (n == -1) {
+			perror("sendto");
+			pana_fatal("sendto in sendPana function");
             break;
         } //Send failure
         total += n;
@@ -82,6 +61,47 @@ int sendPana(struct sockaddr_in destaddr, char *msg, int sock) {
     if (n == -1) return -1;
     else return total;
 }
+
+
+
+int sendPana6(struct sockaddr_in6 destaddr6, char *msg, int sock) {
+
+
+    if (msg == NULL) { //If no message is provided
+		pana_debug("sendPana ERROR NULL message parameter");
+        return -1;
+    }
+    if(sock == 0){
+		pana_debug("sendPana ERROR socket it's 0");
+		return -1;
+	}
+	
+    uint16_t len = ntohs(((pana*)msg)->msg_length); // Pana Message's length
+    
+    char str6 [INET6_ADDRSTRLEN]; //For an IPv6 address
+    uint16_t total = 0; // Total bytes sended
+    short n = 0;
+    uint16_t bytesleft = len;
+    while (total < len) {
+        n = sendto(sock, msg + total, bytesleft, 0,
+                (struct sockaddr *) & destaddr6, sizeof (destaddr6));
+        if (n == -1) {
+			perror("sendto");	
+			pana_fatal("sendto in sendPana6 function");
+            break;
+        } //Send failure
+        total += n;
+        bytesleft -= n;
+    }
+	
+	inet_ntop(AF_INET6, &(destaddr6.sin6_addr),str6, INET6_ADDRSTRLEN);
+	pana_debug("Sended to IP: %s , port %d", str6, ntohs(destaddr6.sin6_port));
+	pana_debug("Sended %d bytes to %s", total, str6);
+
+    if (n == -1) return -1;
+    else return total;
+}
+
 
 int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
 	

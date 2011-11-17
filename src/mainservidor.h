@@ -68,8 +68,10 @@ struct task_list {
 
 /**Struct of process_receive_eap_ll_msg function's parameter.*/
 struct pana_func_parameter {
-	/** PaC destination address. */
+	/** PaC destination address IPv4. */
     struct sockaddr_in* eap_ll_dst_addr;
+    /** PaC destination address IPv4. */
+    struct sockaddr_in6* eap_ll_dst_addr6;
     /** PANA message to be sent to PaC.*/
     pana * pana_msg;
     /** Socket's number used for sending the message. */

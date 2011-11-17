@@ -110,7 +110,7 @@ int hashAuth(char *msg, char* key, int key_len);
 int Hex2Dec (char * value, int length) ;
 
 /**
- * Sends the message.
+ * Sends the message. IPv4 support
  * 
  * @param destaddr Information needed to send the message.
  * @param *msg Message to send.
@@ -120,6 +120,18 @@ int Hex2Dec (char * value, int length) ;
  * @return Number of bytes sended.
  * */
 int sendPana(struct sockaddr_in destaddr, char *msg, int sock);
+
+/**
+ * Sends the message. IPv6 support
+ * 
+ * @param destaddr6 Information needed to send the message.
+ * @param *msg Message to send.
+ * @param sock Socket to use during sending.
+ * 
+ * @return -1 In case of error.
+ * @return Number of bytes sended.
+ * */
+int sendPana6(struct sockaddr_in6 destaddr6, char *msg, int sock);
 /**
  * Returns the actual time of the system.
  * 
