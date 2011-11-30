@@ -313,7 +313,7 @@ int returnPanParFromEap() {
         rtxTimerStart();
         eap_peer_set_eapResp(&(current_session->eap_ctx), FALSE);
         return WAIT_PAA;
-    } else if (/*current_session->client_ctx.EAP_RESP_TIMEOUT &&*/ eapPiggyback()) {//Fixme Como se consulta EAP_RESP_TIMEOUT?
+    } else if ((eap_auth_get_eapTimeout(&(current_session->eap_ctx)) == TRUE) && eapPiggyback()) {//Fixme: EAP_RESP_TIMEOUT(en rfc) es lo mismo que eapTimeout(en libeapstack)??
 		XFREE(current_session->retr_msg);
 		if (IP_VERSION==4){
 			current_session->retr_msg = transmissionMessage("PAN", 0, &(current_session->SEQ_NUMBER), current_session->session_id, 0, IP_VERSION, &(current_session->eap_ll_dst_addr), current_session->avp_data, current_session->socket);
@@ -322,7 +322,9 @@ int returnPanParFromEap() {
 			current_session->retr_msg = transmissionMessage("PAN", 0, &(current_session->SEQ_NUMBER), current_session->session_id, 0, IP_VERSION, &(current_session->eap_ll_dst_addr6), current_session->avp_data, current_session->socket);
 		}
         return WAIT_PAA;
-    } else if (/*current_session->client_ctx.EAP_DISCARD && */eapPiggyback()) {//Fixme Como se consulta?
+    } else if (/*current_session->client_ctx.EAP_DISCARD && */0 && eapPiggyback()) {//Fixme Como se consulta el eap discard (en el fichero
+																					// wpa_supplicant/src/eap_server/eap.h, en la estructura struct eap_eapol_interface
+																					// no está esta variable). Hay que quitar ese cero (está puesto para que no entre en este caso).
 		XFREE(current_session->retr_msg);
 		if (IP_VERSION==4){
 			current_session->retr_msg = transmissionMessage("PAN", 0, &(current_session->SEQ_NUMBER), current_session->session_id, 0, IP_VERSION, &(current_session->eap_ll_dst_addr), current_session->avp_data, current_session->socket);
@@ -333,7 +335,7 @@ int returnPanParFromEap() {
         sessionTimerStop();
         disconnect();
         return CLOSED;
-    } else if (eap_peer_get_eapFail(&(current_session->eap_ctx)) == TRUE || (/*current_session->client_ctx.EAP_DISCARD && */!eapPiggyback())) {//Fixme el discard?
+    } else if (eap_peer_get_eapFail(&(current_session->eap_ctx)) == TRUE || (/*current_session->client_ctx.EAP_DISCARD && */ 0 && !eapPiggyback())) {//Fixme el discard? lo mismo que arriba.
         sessionTimerStop();
         disconnect();
         eap_peer_set_eapFail(&(current_session->eap_ctx), FALSE);

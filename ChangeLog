@@ -1,6 +1,6 @@
 ChangeLog for OpenPANA
 
-2011-09-15 - v0.0
+2011-09-15 - v0.1
 	* Initial version of OpenPANA.
 	* Many aspects defined in IETF RFC 5191 and 5609 are covered such as
 		- Integrity check.
@@ -19,7 +19,7 @@ ChangeLog for OpenPANA
 		- XML based configuration file available in ./src/ and when the program is installed in /etc/openpana
 		- Doxygen documentation.
 
-201X-XX-XX - v0.2
+2011-11-30 - v0.2
 	* Some bugs fixed:
 		- Bad transcription of a transition in PaC state machine.
 		- Increased Maximum size of a packet
