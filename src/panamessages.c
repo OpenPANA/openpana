@@ -109,7 +109,7 @@ static uint16_t identifyAVP(uint16_t flag){
     return 0;
 }
 
-char * transmissionMessage(char * msgtype, uint16_t flags, uint32_t *sequence_number, uint32_t sess_id, uint16_t avps, struct sockaddr_in destaddr, void **data, int sock) {
+char * transmissionMessage(char * msgtype, uint16_t flags, uint32_t *sequence_number, uint32_t sess_id, uint16_t avps, int ip_ver, void * destaddr, void **data, int sock) {
 //First, the msgtype argument is checked, it must meet certain conditions
 	//- Message type must have 3 positions
 	//- All messages start with 'P'
@@ -242,10 +242,23 @@ char * transmissionMessage(char * msgtype, uint16_t flags, uint32_t *sequence_nu
 
     pana_debug("Message to be sent");
     debug_msg(msg);
+
+	//Build de destaddr struct depending on the IP version used.
+	if (ip_ver==4){ //IPv4 is used.
+		struct sockaddr_in * dest_addr = (struct sockaddr_in *) destaddr;
+
+		if (0 >= sendPana(*dest_addr, (char*)msg, sock)) {
+			pana_fatal("sendPana");
+		}
+	}
+	else if (ip_ver==6){
+		struct sockaddr_in6 * dest_addr = (struct sockaddr_in6 *) destaddr;
 	
-    if (0 >= sendPana(destaddr, (char*)msg, sock)) {
-        pana_fatal("sendPana");
-    }
+		if (0 >= sendPana6(*dest_addr, (char*)msg, sock)) {
+			pana_fatal("sendPana");
+		}
+	}
+	
 	return (char*)msg;
 }
 	

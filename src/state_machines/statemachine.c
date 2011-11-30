@@ -447,7 +447,13 @@ int reachMaxNumRt() {
 int livenessTestPeer() {
     pana_debug("livenessTestPeer");
     if ((LMTYPE == PNOTIF_MSG) && (LMFLAGS & R_FLAG) && (LMFLAGS & P_FLAG)) {
-        char * unused = transmissionMessage("PNA", P_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, 0, current_session->eap_ll_dst_addr, current_session->avp_data, current_session->socket);
+		char * unused;
+		if (IP_VERSION==4){
+			unused = transmissionMessage("PNA", P_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, 0, IP_VERSION, &(current_session->eap_ll_dst_addr), current_session->avp_data, current_session->socket);
+		}
+		else if (IP_VERSION==6){
+			unused = transmissionMessage("PNA", P_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, 0, IP_VERSION, &(current_session->eap_ll_dst_addr6), current_session->avp_data, current_session->socket);
+		}
         XFREE(unused);
         return NO_CHANGE;
     } else

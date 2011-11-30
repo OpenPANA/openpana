@@ -235,13 +235,16 @@ typedef struct {
  * @param *avps Contains a list of optional AVPs to be
  * inserted in the message, except for AUTH AVP. AVPs will be passed as
  * a combination of AVP flags described in this file.
- * @param destaddr Socket information to use during transmission.
+ * @param ip_ver Version IP identifier.
+ * @param destaddr Socket information to use during transmission. It should be
+ * a struct of type struct sockaddr_in if IPv4 is used or a struct of type
+ * sockaddr_in6 if IPv6 is used.
  * @param data *data to be used in the AVP insertion.
  * @param sock Socket to use in the transmission.
  * 
  * @return Message sended. It must to be freed when no longer needed.
  */
-char * transmissionMessage(char * msgtype, uint16_t flags, uint32_t *sequence_number, uint32_t sess_id, uint16_t avps, struct sockaddr_in destaddr, void **data, int sock);
+char * transmissionMessage(char * msgtype, uint16_t flags, uint32_t *sequence_number, uint32_t sess_id, uint16_t avps, int ip_ver, void * destaddr, void **data, int sock);
 
 /**
  * A procedure that checks whether an AVP of the specified AVP name

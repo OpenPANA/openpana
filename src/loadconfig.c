@@ -40,10 +40,18 @@ static void parse_xml_client(xmlNode * a_node) {
 #ifdef ISCLIENT
     xmlNode *cur_node = NULL;
 	int checkconfig = FALSE;
-	
     for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
         if (cur_node->type == XML_ELEMENT_NODE) {
-			if (strcmp((char*) cur_node->name, "PAC")==0) { //If the PaC configurable values are being checked
+			if (strcmp((char*) cur_node->name, "IP_VERSION")==0) {
+				char * value = (char *)xmlNodeGetContent(cur_node);
+				sscanf(value, "%d", &IP_VERSION);
+				xmlFree(value);
+				if (IP_VERSION != 4 && IP_VERSION != 6){
+					pana_error("IP_VERSION must be set to 4 for IPv4 or to 6 for IPv6.");
+					checkconfig = TRUE;
+				}
+			}
+			else if (strcmp((char*) cur_node->name, "PAC")==0) { //If the PaC configurable values are being checked
 				paa=0;
 				pac=1;
 			}
@@ -230,6 +238,42 @@ static void parse_xml_client(xmlNode * a_node) {
 					xmlFree(value);
 				}
 			}
+			else if (strcmp((char *)cur_node->name, "PING_TIME")==0){
+				if (pac){
+					char * value = (char*)xmlNodeGetContent(cur_node);
+					sscanf(value, "%d", &PING_TIME);
+					xmlFree(value);
+					if (PING_TIME<=0){
+						pana_error("The delay to do the ping exchanges must be set to a number higher than 0");
+						checkconfig = TRUE;
+					}
+				}
+			}
+			else if (strcmp((char *)cur_node->name, "NUMBER_PING")==0){
+				if (pac){
+					char * value = (char*)xmlNodeGetContent(cur_node);
+					sscanf(value, "%d", &NUMBER_PING);
+					sscanf(value, "%d", &NUMBER_PING_AUX);
+					xmlFree(value);
+					if (NUMBER_PING <0 ){
+						pana_error("The number of ping messages to be exchanged must be set to 0 (to be desactivated) or to a number higher than 0");
+						checkconfig = TRUE;
+					}
+				}
+			}
+#ifdef ISCLIENT
+			else if (strcmp((char *)cur_node->name, "EAP_PIGGYBACK")==0){
+				if (pac){
+					char * value = (char*)xmlNodeGetContent(cur_node);
+					sscanf(value, "%d", &EAP_PIGGYBACK);
+					xmlFree(value);
+					if ((EAP_PIGGYBACK < 0) || (EAP_PIGGYBACK > 1)){
+						pana_error("The eap piggyback option must be set to 1 (activated) or to 0 (not activated)");
+						checkconfig = TRUE;
+					}
+				}
+			}
+#endif
         }
 
         parse_xml_client(cur_node->children);
@@ -257,7 +301,16 @@ static void parse_xml_server(xmlNode * a_node){
 	
     for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
         if (cur_node->type == XML_ELEMENT_NODE) {
-			if (strcmp((char *)cur_node->name, "PAC")==0) {//If the PaC configurable values are being checked
+			if (strcmp((char*) cur_node->name, "IP_VERSION")==0) {
+				char * value = (char *)xmlNodeGetContent(cur_node);
+				sscanf(value, "%d", &IP_VERSION);
+				xmlFree(value);
+				if (IP_VERSION != 4 && IP_VERSION != 6){
+					pana_error("IP_VERSION must be set to 4 for IPv4 or to 6 for IPv6");
+					checkconfig = TRUE;
+				}
+			}
+			else if (strcmp((char *)cur_node->name, "PAC")==0) {//If the PaC configurable values are being checked
 				paa=0;
 				pac=1;
 			}
@@ -367,6 +420,19 @@ static void parse_xml_server(xmlNode * a_node){
 					xmlFree(value);
 				}
 			}
+			else if (strcmp((char *)cur_node->name, "IP_VERSION_AUTH")==0){ // IP address of AS
+				if (paa){
+					char * value = (char*)xmlNodeGetContent(cur_node);
+					sscanf(value, "%d", &IP_VERSION_AUTH);
+					xmlFree(value);
+					if ((IP_VERSION_AUTH != 4) && (IP_VERSION_AUTH != 6) ){
+						pana_error("IP_VERSION_AUTH must be set to 4 for IPv4 or to 6 for IPv6.");
+						checkconfig = TRUE;
+					}
+				}
+
+				
+			}
 			else if (strcmp((char *)cur_node->name, "AS_IP")==0){ // IP address of AS
 				if (paa){
 					char * value = (char*)xmlNodeGetContent(cur_node);
@@ -392,6 +458,29 @@ static void parse_xml_server(xmlNode * a_node){
 					AS_SECRET = XMALLOC(char,strlen((char*)value));
 					sprintf(AS_SECRET, "%s",(char *) value);
 					xmlFree(value);
+				}
+			}
+			else if (strcmp((char *)cur_node->name, "PING_TIME")==0){
+				if (paa){
+					char * value = (char*)xmlNodeGetContent(cur_node);
+					sscanf(value, "%d", &PING_TIME);
+					xmlFree(value);
+					if (PING_TIME<=0){
+						pana_error("The delay to do the ping exchanges must be set to a number higher than 0");
+						checkconfig = TRUE;
+					}
+				}
+			}
+			else if (strcmp((char *)cur_node->name, "NUMBER_PING")==0){
+				if (paa){
+					char * value = (char*)xmlNodeGetContent(cur_node);
+					sscanf(value, "%d", &NUMBER_PING);
+					sscanf(value, "%d", &NUMBER_PING_AUX);
+					xmlFree(value);
+					if (NUMBER_PING <0 ){
+						pana_error("The number of ping messages to be exchanged must be set to 0 (to be desactivated) or to a number higher than 0");
+						checkconfig = TRUE;
+					}
 				}
 			}
         }

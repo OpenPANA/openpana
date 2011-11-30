@@ -29,41 +29,41 @@
 
 // Events
 /** PCI and PAA initiated PANA event.*/
-#define PCI_PAA_INIT_PANA		4
+#define PCI_PAA_INIT_PANA			0
 /** PAN handling event. */
-#define PAN_HANDLING			5
+#define PAN_HANDLING				1
 /** Receiving EAP request event. */
-#define RECEIVING_EAP_REQUEST		6
+#define RECEIVING_EAP_REQUEST		2
 /** Receiving EAP request/failure event. */
-#define RX_EAP_SUCCESS_FAILURE		7
+#define RX_EAP_SUCCESS_FAILURE		3
 /** Receiving EAP-Timeout or invalid message event. */
-#define RX_EAP_TIMEOUT_INVALID_MSG 	8
+#define RX_EAP_TIMEOUT_INVALID_MSG 	4
 /** PAN processing event. */
-#define PAN_PROCESSING			9
+#define PAN_PROCESSING				5
 /** Re-authentication initiated by PAC event. */
-#define REAUTH_INIT_PAC			10
+#define REAUTH_INIT_PAC				6
 /** Re-authentication initiated by PAA event. */
-#define REAUTH_INIT_PAA			11
+#define REAUTH_INIT_PAA				7
 /** Liveness test based on PNR-PNA exchange initiated by PAA event. */
-#define LIVENESS_TEST_EX_INIT_PAA	12
+#define LIVENESS_TEST_EX_INIT_PAA	8
 /** Session termination initiated from PAA event.*/
-#define SESSION_TERM_INIT_PAA		13
+#define SESSION_TERM_INIT_PAA		9
 /** Session termination initiated from PaC event. */
-#define SESSION_TERM_INIT_PAC		14
+#define SESSION_TERM_INIT_PAC		10
 /** PNA processing event. */
-#define PNA_PROCESSING			15
+#define PNA_PROCESSING				11
 /** PAR processing event. */
-#define PAR_PROCESSING			16
+#define PAR_PROCESSING				12
 /** Pass EAP Response to the EAP authenticator event. */
-#define PASS_EAP_RESP_TO_EAP_AUTH	17
+#define PASS_EAP_RESP_TO_EAP_AUTH	13
 /** PAN without an EAP response event. */
-#define PAN_WITHOUT_EAP_RESPONSE	18
+#define PAN_WITHOUT_EAP_RESPONSE	14
 /** EAP retransmission event. */
-#define EAP_RETRANSMISSION		19
+#define EAP_RETRANSMISSION			15
 /** EAP authentication timeout or failure event. */
-#define EAP_AUTH_TIMEOUT_FAILURE	20
+#define EAP_AUTH_TIMEOUT_FAILURE	16
 /** PTA processing event. */
-#define PTA_PROCESSING			21
+#define PTA_PROCESSING				17
 
 // Procedures
 /**

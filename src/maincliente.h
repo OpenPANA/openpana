@@ -30,7 +30,7 @@
 /** Time to wake up the alarm manager (in miliseconds).*/
 #define TIME_WAKE_UP 1000000
 /** Maximum size to use while receiving a packet. */
-#define MAX_DATA_LEN 2048
+#define MAX_DATA_LEN 4098
 
 /** Procedure that periodically checks if there's any active alarm and 
  * if needed calls the alarm function.*/

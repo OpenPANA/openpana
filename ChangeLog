@@ -1,6 +1,6 @@
 ChangeLog for OpenPANA
 
-2011-09-XX - v0.0
+2011-09-15 - v0.0
 	* Initial version of OpenPANA.
 	* Many aspects defined in IETF RFC 5191 and 5609 are covered such as
 		- Integrity check.
@@ -18,3 +18,25 @@ ChangeLog for OpenPANA
 		  information).
 		- XML based configuration file available in ./src/ and when the program is installed in /etc/openpana
 		- Doxygen documentation.
+
+201X-XX-XX - v0.2
+	* Some bugs fixed:
+		- Bad transcription of a transition in PaC state machine.
+		- Increased Maximum size of a packet
+
+	* New features developed:
+		- Ping messages exchange. This exchange can be initiated by both PaC and PAA.
+		- IPv6 support:
+			· Added struct sockaddr_in6 in the pana_ctx.
+			· Added initializing of this struct in case of using IPv6 addressing.
+			· Added sendPana6 function. The same function as sendPana but with IPv6 support.
+			· Added parameter in transmissionMessage function. The sixth parameter is the
+			  version of IP which is used.
+
+	* New configurable values in the configuration file:
+		- EAP PIGGYBACK. To set or unset the eap piggyback option in the message exchange.
+		- PING TIME. Delay between two ping messages exchanged in the access phase.
+		- NUMBER PING. Number of ping messages exchanged in the access phase.
+		- IP VERSION. Version IP used between PaC and PAA. (4 for IPv4 and 6 for IPv6)
+		- IP VERSION AUTH. Version IP used in the communication between PAA and AAA server. (4 for IPv4 and 6 for IPv6)
+

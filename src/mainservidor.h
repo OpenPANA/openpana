@@ -33,8 +33,8 @@
 #include "./libeapstack/eap_auth_interface.h"
 #include "state_machines/session.h"
 
-/** Maximum length of a udp packet.*/
-#define MAX_DATA_LEN 2048
+/** Maximum length of an udp packet.*/
+#define MAX_DATA_LEN 4098
 /** Time waited before retransmiting AAA request. */
 #define RETR_AAA_TIME 1
 /** Maximum number of retransmissions to an AAA server. */
@@ -68,8 +68,10 @@ struct task_list {
 
 /**Struct of process_receive_eap_ll_msg function's parameter.*/
 struct pana_func_parameter {
-	/** PaC destination address. */
+	/** PaC destination address IPv4. */
     struct sockaddr_in* eap_ll_dst_addr;
+    /** PaC destination address IPv4. */
+    struct sockaddr_in6* eap_ll_dst_addr6;
     /** PANA message to be sent to PaC.*/
     pana * pana_msg;
     /** Socket's number used for sending the message. */
