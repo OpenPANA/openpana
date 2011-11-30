@@ -39,7 +39,7 @@
 					  it must be on the same scope as the PAA IP. In the end, the openpac must
 					  be launched with the sudo user -->
 		
-		<PORT>7777</PORT>
+		<PORT>7743</PORT>
 		
 
 		<SESSION> 
@@ -76,7 +76,7 @@
 		
 		<FRAGMENT_SIZE>1398</FRAGMENT_SIZE>
 
-		<EAP_PIGGYBACK>1</EAP_PIGGYBACK>
+		<EAP_PIGGYBACK>0</EAP_PIGGYBACK>
 		
 		<PING_MECHANISM>
 			<PING_TIME>1</PING_TIME> <!-- Time to check keep alive-->

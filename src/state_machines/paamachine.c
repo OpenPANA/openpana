@@ -363,8 +363,7 @@ int rxEapTimeoutInvalidMsg() {
             /*|| current_session->server_ctx.EAP_DISCARD*/) { //FIXME: Que pasa con get_eapDiscard?
         sessionTimerStop();
         disconnect();
-        //FIXME: Se pondría a false o no existe la funcion?
-        //eap_auth_set_eapTimeout(&(current_session->eap_ctx), FALSE);
+        eap_auth_set_eapTimeout(&(current_session->eap_ctx), FALSE);
         return CLOSED;
     } else return ERROR;
 }
