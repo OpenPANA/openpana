@@ -40,3 +40,8 @@ ChangeLog for OpenPANA
 		- IP VERSION. Version IP used between PaC and PAA. (4 for IPv4 and 6 for IPv6)
 		- IP VERSION AUTH. Version IP used in the communication between PAA and AAA server. (4 for IPv4 and 6 for IPv6)
 
+2012-02-03 - v0.2.1
+	* Some bugs fixed:
+		- Segmentation fault in the ping message exchange
+		- Deleted checking of PAA port (before this version it must be set to 716)
+	

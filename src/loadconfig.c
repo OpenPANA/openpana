@@ -79,10 +79,11 @@ static void parse_xml_client(xmlNode * a_node) {
 					char * value = (char *)xmlNodeGetContent(cur_node);
 					sscanf(value, "%hd", &DSTPORT);
 					xmlFree(value);
-					if (DSTPORT != 716){
+					//This checking is avoided to let us use whichever port
+					/*if (DSTPORT != 716){
 						pana_error("PAA Port must be set to 716");
 						checkconfig = TRUE;
-					}
+					}*/
 				}
 				else if (pac) {
 					
@@ -323,10 +324,11 @@ static void parse_xml_server(xmlNode * a_node){
 					char * value = (char *)xmlNodeGetContent(cur_node);
 					sscanf(value, "%d", &SRCPORT);
 					xmlFree(value);
-					if (SRCPORT != 716){
+					//This checking is avoided to let us use whichever port
+					/*if (SRCPORT != 716){
 						pana_error("PAA Port must be set to 716");
 						checkconfig = TRUE;
-					}
+					}*/
 				}
 			}
 			else if (strcmp((char *)cur_node->name, "TIMEOUT")==0){ // Timeout configurable value

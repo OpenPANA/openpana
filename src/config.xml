@@ -91,7 +91,7 @@
 	<PAA>
 	
 		<IP>::1</IP>
-		<PORT>716</PORT>
+		<PORT>3333</PORT>
 		
 		<SESSION>
 			<TIMEOUT>100</TIMEOUT> <!-- Timeout for expiring a session in the server -->
