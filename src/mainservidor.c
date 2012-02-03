@@ -840,10 +840,11 @@ void check_eap_status(pana_ctx *pana_session) {
 		pana_debug("There's an EAP TIMEOUT");
         transition(pana_session);
     }
-    if (eap_auth_get_eapKeyAvailable(&(pana_session->eap_ctx)) == TRUE) {
+    //It is not necessary to check the availability of the key every time
+    /*if (eap_auth_get_eapKeyAvailable(&(pana_session->eap_ctx)) == TRUE) {
 		pana_debug("There's an EAP KEY AVAILABLE");
         transition(pana_session);
-    }
+    }*/
     if (eap_auth_get_eapFail(&(pana_session->eap_ctx)) == TRUE) {
 		pana_debug("There's an EAP FAIL");
         transition(pana_session);
