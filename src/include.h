@@ -142,7 +142,7 @@
 #endif
 
 #ifndef AUTH_AVP_VALUE_LENGTH
-	#define AUTH_AVP_VALUE_LENGTH  20
+	#define AUTH_AVP_VALUE_LENGTH  16
 #endif
 
 #ifndef MSK_LENGTH

@@ -26,6 +26,7 @@
 #include "panautils.h"
 #include "prf_plus.h"
 #include "panamessages.h"
+#include "cmac.h"
 
 int sendPana(struct sockaddr_in destaddr, char *msg, int sock) {
 
@@ -46,6 +47,7 @@ int sendPana(struct sockaddr_in destaddr, char *msg, int sock) {
     while (total < len) {
         n = sendto(sock, msg + total, bytesleft, 0,
                 (struct sockaddr *) & destaddr, sizeof (destaddr));
+
         if (n == -1) {
 			perror("sendto");
 			pana_fatal("sendto in sendPana function");
@@ -337,17 +339,36 @@ u8 * generateAUTH(pana_ctx * session) {
 		fprintf(stderr, "%02x ", sequence[j]);
 	}
 	#endif*/
-	
-    PRF_plus(2, session->msk_key, session->key_len, (u8*) sequence, seq_length, result);
-    
+
+	//Generate auth with hmac-sha1
+    //PRF_plus(2, session->msk_key, session->key_len, (u8*) sequence, seq_length, result);
+
+	int i;
+	printf("la msk es\n");
+	for (i=0; i<16; i++){
+		printf("%x ", session->msk_key[48+i]);
+	}
+	printf("\n");
+
+	printf("El seed es\n");
+	for (i=0; i< seq_length; i++){
+		printf("%x ", sequence[i]);
+	}
+	printf("\n");
+
+    //Generate auth with aes-cmac
+    AES_CMAC ( session->msk_key+48, (unsigned char *) sequence, seq_length,
+                  result );
+                  
     if (result != NULL) {
 		pana_debug("Generated PANA_AUTH_KEY");
     }
 
-    /*int i;
-    for (i = 0; i < 40; i++) {
+    
+    for (i = 0; i < 16; i++) {
         fprintf(stderr, "%02x ", (u8) result[i]);
-    }*/
+    }
+    fprintf(stderr, "\n");
 
     XFREE(sequence); //Seed's memory is freed
     return result;
@@ -365,7 +386,14 @@ int hashAuth(char *msg, char* key, int key_len) {
     
     if (elmnt == NULL) //If there's no AUTH return an error
         return 1;
-    PRF_plus(1, (u8*) key, key_len, (u8*) msg, ntohs(((pana*)msg)->msg_length), (u8*) (elmnt + sizeof(avp_pana)) );
+
+	//Hash with hmac-sha1
+    //PRF_plus(1, (u8*) key, key_len, (u8*) msg, ntohs(((pana*)msg)->msg_length), (u8*) (elmnt + sizeof(avp_pana)) );
+
+    //Hash with aes-cmac
+    AES_CMAC ((unsigned char *)key, (unsigned char *)msg, ntohs(((pana*)msg)->msg_length),
+                  (u8*) (elmnt + sizeof(avp_pana)) );
+                  
     return 0; //Everything went better than expected
 }
 

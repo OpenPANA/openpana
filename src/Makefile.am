@@ -15,7 +15,9 @@ openpaa_SOURCES               =	state_machines/session.c \
 				lalarm.c \
 				panautils.c \
 				mainservidor.c \
-				loadconfig.c
+				loadconfig.c \
+				aes.c \
+				cmac.c
 openpaa_CPPFLAGS 	      = $(AM_CPPFLAGS) 
 openpaa_CFLAGS		      = $(AM_CFLAGS) -DISSERVER
 openpaa_LDFLAGS		      = $(DBG_LINKOPT)
@@ -35,7 +37,9 @@ openpac_SOURCES               =	state_machines/session.c \
 				lalarm.c \
 				panautils.c \
 				maincliente.c \
-				loadconfig.c
+				loadconfig.c \
+				aes.c \
+				cmac.c
 openpac_CPPFLAGS 	      = $(AM_CPPFLAGS) 
 openpac_CFLAGS		      = $(AM_CFLAGS) -DISCLIENT
 openpac_LDFLAGS		      = $(DBG_LINKOPT)
