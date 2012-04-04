@@ -346,7 +346,7 @@ u8 * generateAUTH(pana_ctx * session) {
 	int i;
 	printf("la msk es\n");
 	for (i=0; i<16; i++){
-		printf("%x ", session->msk_key[48+i]);
+		printf("%x ", session->msk_key[i]);
 	}
 	printf("\n");
 
@@ -357,7 +357,7 @@ u8 * generateAUTH(pana_ctx * session) {
 	printf("\n");
 
     //Generate auth with aes-cmac
-    AES_CMAC ( session->msk_key+48, (unsigned char *) sequence, seq_length,
+    AES_CMAC ( session->msk_key, (unsigned char *) sequence, seq_length,
                   result );
                   
     if (result != NULL) {
