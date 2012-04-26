@@ -122,7 +122,7 @@
 #endif
 
 #ifndef NONCE_AVP_VALUE_LENGTH
-	#define NONCE_AVP_VALUE_LENGTH  20
+	#define NONCE_AVP_VALUE_LENGTH  8
 #endif
 
 #ifndef PRF_AVP_VALUE_LENGTH

@@ -522,7 +522,6 @@ int passEapRespToEapAuth() {
     if ((LMTYPE == PAUTH_MSG) && !(LMFLAGS & R_FLAG) && (existAvp(current_session->LAST_MESSAGE, F_EAPP))) { 
         txEAP();
         rtxTimerStop();
-        
         return WAIT_EAP_MSG;
     } else return ERROR;
 }

@@ -89,6 +89,28 @@ fi
 
 ##########################################################################
 
+
+##########################################################################
+# AES cryptographic suite compilation support
+##########################################################################
+
+AC_MSG_CHECKING([whether to build with aes functions])
+AC_ARG_ENABLE([aes],
+    [AS_HELP_STRING([--enable-aes],
+        [enable aes cryptographic suite (def=no)])],
+    [aesit="$enableval"],
+    [aesit=no])
+AC_MSG_RESULT([$aesit])
+
+if test x"$aesit" = x"yes"; then
+    AC_DEFINE([AES],[],[AES Cryptographic suite])
+    AM_CFLAGS="$AM_CFLAGS -g -Wall -Wextra -pedantic -DAESCRYPTO"
+    AC_SUBST(DBG_LINKOPT," ")
+fi
+
+##########################################################################
+
+
 AC_SUBST([AM_CFLAGS])
 # Set the preprocessor flags for the entire project
 XML_FLAGS=$(xml2-config --cflags) # Adds the includes needed to build using xml2

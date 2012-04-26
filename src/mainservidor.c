@@ -637,22 +637,22 @@ void* handle_alarm_management() {
 			else if (alarm->id == RETR_ALARM) { // A PANA retransmission alarm is activated.
 				pana_debug("A PANA_RETRANSMISSION alarm ocurred");
 				retrans_params.id = RETR_ALARM;				
-				//add_task(process_retr, &retrans_params);
+				add_task(process_retr, &retrans_params);
 			}
 			else if (alarm->id == SESS_ALARM) {// A session alarm is activated.
 				pana_debug("A SESSION alarm ocurred");
 				retrans_params.id = SESS_ALARM;
-				//add_task(process_retr, &retrans_params);
+				add_task(process_retr, &retrans_params);
 			}
 			else if (alarm->id == RETR_AAA) { // An AAA retransmission alarm is activated.
 				pana_debug("An AAA_RETRANSMISSION alarm ocurred");
 				retrans_params.id = RETR_AAA;
-				//add_task(process_retr, &retrans_params);
+				add_task(process_retr, &retrans_params);
 			}
 			else if (alarm->id == PING_ALARM) {
 				pana_debug("A PING alarm ocurred");
 				retrans_params.id = PING_ALARM;
-				//add_task(process_retr, &retrans_params);
+				add_task(process_retr, &retrans_params);
 			}
 			else { // An unknown alarm is activated.
 				pana_debug("An UNKNOWN alarm ocurred");
