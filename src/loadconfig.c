@@ -110,23 +110,37 @@ static void parse_xml_client(xmlNode * a_node) {
 			else if (strcmp((char *)cur_node->name, "PRF")==0){ // PRF algorithm configurable value
 				if (pac) {
 					char * value = (char *)xmlNodeGetContent(cur_node);
-					sscanf(value, "%d", &PRF_HMAC_SHA1);
+					sscanf(value, "%d", &PRF_SUITE);
 					xmlFree(value);
-					if (PRF_HMAC_SHA1 <=0 || PRF_HMAC_SHA1 > 4){
-						pana_error("PaC PRF algorithm must be set to a number between 1 and 4");
+					#ifdef AESCRYPTO
+					if (PRF_SUITE != 5){
+						pana_error("PaC PRF algorithm must be set 5 because you have compiled the AES cryptographic suite");
 						checkconfig = TRUE;
 					}
+					#else
+					if (PRF_SUITE != 2){
+						pana_error("PaC PRF algorithm must be set to 2 because is the PRF cryptographic suite by default. You can compile the AES cryptographic suite (see INSTALL)");
+						checkconfig = TRUE;
+					}
+					#endif
 				}
 			}
 			else if (strcmp((char *)cur_node->name, "INTEGRITY")==0){ // Integrity algorithm configurable value
 				if (pac) {
 					char * value = (char *)xmlNodeGetContent(cur_node);
-					sscanf(value , "%d", &AUTH_HMAC_SHA1_160);
+					sscanf(value , "%d", &AUTH_SUITE);
 					xmlFree(value);
-					if (AUTH_HMAC_SHA1_160 <=0 || AUTH_HMAC_SHA1_160 > 7){
-						pana_error("PaC Integrity algorithm must be set to a number between 1 and 7");
+					#ifdef AESCRYPTO
+					if (AUTH_SUITE != 8){
+						pana_error("PaC AUTH algorithm must be set 8 because you have compiled the AES cryptographic suite");
 						checkconfig = TRUE;
 					}
+					#else
+					if (PRF_SUITE != 7){
+						pana_error("PaC AUTH algorithm must be set to 7 because is the AUTH cryptographic suite by default. You can compile the AES cryptographic suite (see INSTALL)");
+						checkconfig = TRUE;
+					}
+					#endif
 				}
 			}
 			else if (strcmp((char *)cur_node->name, "USER")==0){ // User name configurable value
@@ -345,23 +359,37 @@ static void parse_xml_server(xmlNode * a_node){
 			else if (strcmp((char *)cur_node->name, "PRF")==0){// PRF algorithm configurable value
 				if (paa){
 					char * value = (char *)xmlNodeGetContent(cur_node);
-					sscanf(value, "%d", &PRF_HMAC_SHA1);
+					sscanf(value, "%d", &PRF_SUITE);
 					xmlFree(value);
-					if (PRF_HMAC_SHA1 <=0 || PRF_HMAC_SHA1 > 4){
-						pana_error("PAA PRF algorithm must be set to a number between 1 and 4");
+					#ifdef AESCRYPTO
+					if (PRF_SUITE != 5){
+						pana_error("PAA PRF algorithm must be set 5 because you have compiled the AES cryptographic suite");
 						checkconfig = TRUE;
 					}
+					#else
+					if (PRF_SUITE != 2){
+						pana_error("PAA PRF algorithm must be set to 2 because is the PRF cryptographic suite by default. You can compile the AES cryptographic suite (see INSTALL)");
+						checkconfig = TRUE;
+					}
+					#endif
 				}
 			}
 			else if (strcmp((char *)cur_node->name, "INTEGRITY")==0){ // Integrity algorithm configurable value
 				if (paa){
 					char * value = (char *)xmlNodeGetContent(cur_node);
-					sscanf(value, "%d", &AUTH_HMAC_SHA1_160);
+					sscanf(value, "%d", &AUTH_SUITE);
 					xmlFree(value);
-					if (AUTH_HMAC_SHA1_160 <=0 || AUTH_HMAC_SHA1_160 > 7){
-						pana_error("PAA Integrity algorithm must be set to a number between 1 and 7");
+					#ifdef AESCRYPTO
+					if (AUTH_SUITE != 8){
+						pana_error("PAA AUTH algorithm must be set 8 because you have compiled the AES cryptographic suite");
 						checkconfig = TRUE;
 					}
+					#else
+					if (PRF_SUITE != 7){
+						pana_error("PAA AUTH algorithm must be set to 7 because is the AUTH cryptographic suite by default. You can compile the AES cryptographic suite (see INSTALL)");
+						checkconfig = TRUE;
+					}
+					#endif
 				}
 			}
 			else if (strcmp((char *)cur_node->name, "TIMEOUT_CLIENT")==0){ // Timeout for client's session.

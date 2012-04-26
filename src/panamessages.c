@@ -258,7 +258,14 @@ char * transmissionMessage(char * msgtype, uint16_t flags, uint32_t *sequence_nu
 			pana_fatal("sendPana");
 		}
 	}
-	
+
+#ifdef AESCRYPTO
+	//After sending a PNA message, there should be a pause for the constrained device 
+	if ( strcmp ("PNA", msgtype) ==0) {
+		usleep(50000);
+	}
+#endif
+
 	return (char*)msg;
 }
 	

@@ -18,6 +18,10 @@ are not the installation instructions for Windows systems.
   You can just run the './configure --sysconfdir=/etc/openpana' script and 'make'.
   If the --sysconfdir option is not added, configuration files will be placed under the '/usr/local/etc' directory.
 
+  You can also run the '--enable-debug' configure option in order to get a full debugging.
+
+  You can also run the '--enable-aes' configure option in order to get the AES cryptographic suite available.
+
  3. By running 'make install' as root OpenPANA will be installed tipically under '/usr/local/bin' and configuration files will be placed in '/etc/	openpana'.
 
 * OpenPANA can be uninstalled by the 'make uninstall' command.

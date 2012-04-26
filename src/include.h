@@ -122,7 +122,11 @@
 #endif
 
 #ifndef NONCE_AVP_VALUE_LENGTH
-	#define NONCE_AVP_VALUE_LENGTH  20
+	#ifdef AESCRYPTO
+		#define NONCE_AVP_VALUE_LENGTH  8
+	#else
+		#define NONCE_AVP_VALUE_LENGTH  20
+	#endif
 #endif
 
 #ifndef PRF_AVP_VALUE_LENGTH
@@ -142,7 +146,11 @@
 #endif
 
 #ifndef AUTH_AVP_VALUE_LENGTH
-	#define AUTH_AVP_VALUE_LENGTH  20
+	#ifdef AESCRYPTO
+		#define AUTH_AVP_VALUE_LENGTH  16	
+	#else
+		#define AUTH_AVP_VALUE_LENGTH  20
+	#endif
 #endif
 
 #ifndef MSK_LENGTH
