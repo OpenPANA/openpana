@@ -45,3 +45,8 @@ ChangeLog for OpenPANA
 		- Segmentation fault in the ping message exchange
 		- Deleted checking of PAA port (before this version it must be set to 716)
 	
+2012-04-26 - v0.2.2
+	* New features developed:
+		- Added support for AES cryptographic suite (needed for panatiki testbed):
+			PRF function: AES-CMAC
+			AUTH function: AES-CMAC

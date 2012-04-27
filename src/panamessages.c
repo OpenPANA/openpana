@@ -258,7 +258,14 @@ char * transmissionMessage(char * msgtype, uint16_t flags, uint32_t *sequence_nu
 			pana_fatal("sendPana");
 		}
 	}
-	
+
+#ifdef AESCRYPTO
+	//After sending a PNA message, there should be a pause for the constrained device 
+	if ( strcmp ("PNA", msgtype) ==0) {
+		usleep(50000);
+	}
+#endif
+
 	return (char*)msg;
 }
 	
@@ -335,7 +342,10 @@ uint16_t insertAvps(char** message, int avps, void **data) {
 				//It's supposed that the PaC and the PAA each are not
 				//trusted with regard to the computation of a random nonce
 				//A 20 octets random value will be generated
-				avpsize = sizeof(avp_pana) + NONCE_AVP_VALUE_LENGTH;
+				if (PRF_SUITE == PRF_AES128_CBC)
+					avpsize = sizeof(avp_pana) + NONCE_AES_AVP_VALUE_LENGTH;
+				else if (PRF_SUITE == PRF_HMAC_SHA1)
+					avpsize = sizeof(avp_pana) + NONCE_HMAC_AVP_VALUE_LENGTH;
 				break;
 			case PRFALG_AVP:
 				avps -= F_PRF;
@@ -383,7 +393,10 @@ uint16_t insertAvps(char** message, int avps, void **data) {
 				//The AVP length varies depending on the
 				//integrity algorithm used. The AVP data is of type OctetString.
 				//AVP value size = 20, to get the 160bits result key
-				avpsize = sizeof(avp_pana) + AUTH_AVP_VALUE_LENGTH;
+				if (AUTH_SUITE == AUTH_AES_CMAC)
+					avpsize = sizeof(avp_pana) + AUTH_AES_AVP_VALUE_LENGTH;
+				else if (AUTH_SUITE == AUTH_HMAC_SHA1_160)
+					avpsize = sizeof(avp_pana) + AUTH_HMAC_AVP_VALUE_LENGTH;
 				break;
 		}
 		

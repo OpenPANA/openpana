@@ -110,23 +110,45 @@ static void parse_xml_client(xmlNode * a_node) {
 			else if (strcmp((char *)cur_node->name, "PRF")==0){ // PRF algorithm configurable value
 				if (pac) {
 					char * value = (char *)xmlNodeGetContent(cur_node);
-					sscanf(value, "%d", &PRF_HMAC_SHA1);
+					sscanf(value, "%d", &PRF_SUITE);
 					xmlFree(value);
-					if (PRF_HMAC_SHA1 <=0 || PRF_HMAC_SHA1 > 4){
-						pana_error("PaC PRF algorithm must be set to a number between 1 and 4");
+					#ifdef AESCRYPTO
+					if ((PRF_SUITE != 5) && (PRF_SUITE != 2)){
+						pana_error("PaC PRF algorithm %d is not supported yet", PRF_SUITE);
 						checkconfig = TRUE;
 					}
+					#else
+					if (PRF_SUITE == 5){
+						pana_error("PaC PRF algorithm based on AES is not compiled. You can compile the AES cryptographic suite (see INSTALL)");
+						checkconfig = TRUE;
+					}
+					else if (PRF_SUITE != 2) {
+						pana_error("PaC PRF algorithm %d is not supported yet", PRF_SUITE);
+						checkconfig = TRUE;
+					}
+					#endif
 				}
 			}
 			else if (strcmp((char *)cur_node->name, "INTEGRITY")==0){ // Integrity algorithm configurable value
 				if (pac) {
 					char * value = (char *)xmlNodeGetContent(cur_node);
-					sscanf(value , "%d", &AUTH_HMAC_SHA1_160);
+					sscanf(value , "%d", &AUTH_SUITE);
 					xmlFree(value);
-					if (AUTH_HMAC_SHA1_160 <=0 || AUTH_HMAC_SHA1_160 > 7){
-						pana_error("PaC Integrity algorithm must be set to a number between 1 and 7");
+					#ifdef AESCRYPTO
+					if ((AUTH_SUITE != 8) && (AUTH_SUITE != 7)){
+						pana_error("PaC AUTH algorithm %d is no supported yet.", AUTH_SUITE);
 						checkconfig = TRUE;
 					}
+					#else
+					if (AUTH_SUITE == 8){
+						pana_error("PaC AUTH algorithm based on AES is not compiled. You can compile the AES cryptographic suite (see INSTALL)");
+						checkconfig = TRUE;
+					}
+					else if (AUTH_SUITE != 7) {
+						pana_error("PaC AUTH algorithm %d is no supported yet.", AUTH_SUITE);
+						checkconfig = TRUE;
+					}
+					#endif
 				}
 			}
 			else if (strcmp((char *)cur_node->name, "USER")==0){ // User name configurable value
@@ -345,23 +367,45 @@ static void parse_xml_server(xmlNode * a_node){
 			else if (strcmp((char *)cur_node->name, "PRF")==0){// PRF algorithm configurable value
 				if (paa){
 					char * value = (char *)xmlNodeGetContent(cur_node);
-					sscanf(value, "%d", &PRF_HMAC_SHA1);
+					sscanf(value, "%d", &PRF_SUITE);
 					xmlFree(value);
-					if (PRF_HMAC_SHA1 <=0 || PRF_HMAC_SHA1 > 4){
-						pana_error("PAA PRF algorithm must be set to a number between 1 and 4");
+					#ifdef AESCRYPTO
+					if ((PRF_SUITE != 5) && (PRF_SUITE != 2)){
+						pana_error("PAA PRF algorithm %d is not supported", PRF_SUITE);
 						checkconfig = TRUE;
 					}
+					#else
+					if (PRF_SUITE == 5){
+						pana_error("PAA PRF algorithm based on AES is not compiled. You can compile the AES cryptographic suite (see INSTALL)");
+						checkconfig = TRUE;
+					}
+					else if (PRF_SUITE != 2) {
+						pana_error("PAA PRF algorithm %d is not supported", PRF_SUITE);
+						checkconfig = TRUE;
+					}
+					#endif
 				}
 			}
 			else if (strcmp((char *)cur_node->name, "INTEGRITY")==0){ // Integrity algorithm configurable value
 				if (paa){
 					char * value = (char *)xmlNodeGetContent(cur_node);
-					sscanf(value, "%d", &AUTH_HMAC_SHA1_160);
+					sscanf(value, "%d", &AUTH_SUITE);
 					xmlFree(value);
-					if (AUTH_HMAC_SHA1_160 <=0 || AUTH_HMAC_SHA1_160 > 7){
-						pana_error("PAA Integrity algorithm must be set to a number between 1 and 7");
+					#ifdef AESCRYPTO
+					if ((AUTH_SUITE != 8) && (AUTH_SUITE != 7)){
+						pana_error("PAA AUTH algorithm %d is not suppported yet", AUTH_SUITE);
 						checkconfig = TRUE;
 					}
+					#else
+					if (AUTH_SUITE == 8){
+						pana_error("PAA AUTH algorithm based on AES is not compiled. You can compile the AES cryptographic suite (see INSTALL)");
+						checkconfig = TRUE;
+					}
+					else if (AUTH_SUITE != 7){
+						pana_error("PAA AUTH algorithm %d is not suppported yet", AUTH_SUITE);
+						checkconfig = TRUE;
+					}
+					#endif
 				}
 			}
 			else if (strcmp((char *)cur_node->name, "TIMEOUT_CLIENT")==0){ // Timeout for client's session.

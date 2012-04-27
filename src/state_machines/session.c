@@ -91,8 +91,8 @@ void initSession(pana_ctx * pana_session) {
 
 	//FIXME: De momento, tanto cliente como servidor solamente tienen el prf_alg y el integrity algorithm estáticos
     // definidos aquí.
-    pana_session->avp_data[PRFALG_AVP] = (void*) PRF_HMAC_SHA1; //see rfc4306 page 50
-    pana_session->avp_data[INTEGRITYALG_AVP] = (void*) AUTH_HMAC_SHA1_160; //see rfc4306 page 50
+    pana_session->avp_data[PRFALG_AVP] = (void*) PRF_SUITE; //see rfc4306 page 50
+    pana_session->avp_data[INTEGRITYALG_AVP] = (void*) AUTH_SUITE; //see rfc4306 page 50
     
     // Init client's variables
 #ifdef ISCLIENT //Include session variables only for PANA clients
@@ -190,7 +190,8 @@ void updateSession(char *message, pana_ctx *pana_session) {
 		char* value =(((char*)attribute) + sizeof(avp_pana));
 
 		int number = Hex2Dec(value, PRF_AVP_VALUE_LENGTH);
-		if (number != PRF_HMAC_SHA1) {
+		
+		if (number != PRF_SUITE) {
 			pana_fatal("The prf algorithm specified: %d, is not supported\n", number);
 		}
 
@@ -204,7 +205,8 @@ void updateSession(char *message, pana_ctx *pana_session) {
 		char* value =(((char*)attribute) + sizeof(avp_pana));
 
 		int number = Hex2Dec(value, INTEG_AVP_VALUE_LENGTH);
-		if (number != AUTH_HMAC_SHA1_160) {
+
+		if (number != AUTH_SUITE) {
 			pana_fatal("The integrity algorithm specified: %d, is not supported\n", number);
 		}
 

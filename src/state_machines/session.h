@@ -36,8 +36,8 @@
  * Declaration of client configurable variables
  * */
 int IP_VERSION;		// Version of IP protocol used in PANA communication
-int PRF_HMAC_SHA1;   //PRF algorithm negociated in handshake
-int AUTH_HMAC_SHA1_160;   // Integrity algorithm negociated ni handshake
+int PRF_SUITE;   //PRF algorithm negociated in handshake
+int AUTH_SUITE;   // Integrity algorithm negociated in handshake
 int FAILED_SESS_TIMEOUT_CONFIG; // Timeout used in the PANA session saved in PaC
 short SRCPORT;  // Source port used in messages sent to PAA
 short DSTPORT;  // Destination port used in messages sent to PAA
@@ -64,8 +64,8 @@ bool EAP_PIGGYBACK;    // Indicates if eap piggyback is activated.
  * Declaration of server configurable variables
  * */
 int IP_VERSION;		// Version of IP protocol used in PANA communication
-int PRF_HMAC_SHA1;  //PRF algorithm negociated in handshake
-int AUTH_HMAC_SHA1_160; // Integrity algorithm negociated ni handshake
+int PRF_SUITE;  //PRF algorithm negociated in handshake
+int AUTH_SUITE; // Integrity algorithm negociated ni handshake
 int SRCPORT;			// Source port used in messages sent to PaC
 int LIFETIME_SESSION_TIMEOUT_CONFIG;  // Timeout used in the PANA session saved in PAA
 int LIFETIME_SESSION_CLIENT_TIMEOUT_CONFIG; // Timeout to send to PaC
