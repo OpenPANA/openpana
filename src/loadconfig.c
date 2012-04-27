@@ -113,13 +113,17 @@ static void parse_xml_client(xmlNode * a_node) {
 					sscanf(value, "%d", &PRF_SUITE);
 					xmlFree(value);
 					#ifdef AESCRYPTO
-					if (PRF_SUITE != 5){
-						pana_error("PaC PRF algorithm must be set 5 because you have compiled the AES cryptographic suite");
+					if ((PRF_SUITE != 5) && (PRF_SUITE != 2)){
+						pana_error("PaC PRF algorithm %d is not supported yet", PRF_SUITE);
 						checkconfig = TRUE;
 					}
 					#else
-					if (PRF_SUITE != 2){
-						pana_error("PaC PRF algorithm must be set to 2 because is the PRF cryptographic suite by default. You can compile the AES cryptographic suite (see INSTALL)");
+					if (PRF_SUITE == 5){
+						pana_error("PaC PRF algorithm based on AES is not compiled. You can compile the AES cryptographic suite (see INSTALL)");
+						checkconfig = TRUE;
+					}
+					else if (PRF_SUITE != 2) {
+						pana_error("PaC PRF algorithm %d is not supported yet", PRF_SUITE);
 						checkconfig = TRUE;
 					}
 					#endif
@@ -131,13 +135,17 @@ static void parse_xml_client(xmlNode * a_node) {
 					sscanf(value , "%d", &AUTH_SUITE);
 					xmlFree(value);
 					#ifdef AESCRYPTO
-					if (AUTH_SUITE != 8){
-						pana_error("PaC AUTH algorithm must be set 8 because you have compiled the AES cryptographic suite");
+					if ((AUTH_SUITE != 8) && (AUTH_SUITE != 7)){
+						pana_error("PaC AUTH algorithm %d is no supported yet.", AUTH_SUITE);
 						checkconfig = TRUE;
 					}
 					#else
-					if (PRF_SUITE != 7){
-						pana_error("PaC AUTH algorithm must be set to 7 because is the AUTH cryptographic suite by default. You can compile the AES cryptographic suite (see INSTALL)");
+					if (AUTH_SUITE == 8){
+						pana_error("PaC AUTH algorithm based on AES is not compiled. You can compile the AES cryptographic suite (see INSTALL)");
+						checkconfig = TRUE;
+					}
+					else if (AUTH_SUITE != 7) {
+						pana_error("PaC AUTH algorithm %d is no supported yet.", AUTH_SUITE);
 						checkconfig = TRUE;
 					}
 					#endif
@@ -362,13 +370,17 @@ static void parse_xml_server(xmlNode * a_node){
 					sscanf(value, "%d", &PRF_SUITE);
 					xmlFree(value);
 					#ifdef AESCRYPTO
-					if (PRF_SUITE != 5){
-						pana_error("PAA PRF algorithm must be set 5 because you have compiled the AES cryptographic suite");
+					if ((PRF_SUITE != 5) && (PRF_SUITE != 2)){
+						pana_error("PAA PRF algorithm %d is not supported", PRF_SUITE);
 						checkconfig = TRUE;
 					}
 					#else
-					if (PRF_SUITE != 2){
-						pana_error("PAA PRF algorithm must be set to 2 because is the PRF cryptographic suite by default. You can compile the AES cryptographic suite (see INSTALL)");
+					if (PRF_SUITE == 5){
+						pana_error("PAA PRF algorithm based on AES is not compiled. You can compile the AES cryptographic suite (see INSTALL)");
+						checkconfig = TRUE;
+					}
+					else if (PRF_SUITE != 2) {
+						pana_error("PAA PRF algorithm %d is not supported", PRF_SUITE);
 						checkconfig = TRUE;
 					}
 					#endif
@@ -380,13 +392,17 @@ static void parse_xml_server(xmlNode * a_node){
 					sscanf(value, "%d", &AUTH_SUITE);
 					xmlFree(value);
 					#ifdef AESCRYPTO
-					if (AUTH_SUITE != 8){
-						pana_error("PAA AUTH algorithm must be set 8 because you have compiled the AES cryptographic suite");
+					if ((AUTH_SUITE != 8) && (AUTH_SUITE != 7)){
+						pana_error("PAA AUTH algorithm %d is not suppported yet", AUTH_SUITE);
 						checkconfig = TRUE;
 					}
 					#else
-					if (PRF_SUITE != 7){
-						pana_error("PAA AUTH algorithm must be set to 7 because is the AUTH cryptographic suite by default. You can compile the AES cryptographic suite (see INSTALL)");
+					if (AUTH_SUITE == 8){
+						pana_error("PAA AUTH algorithm based on AES is not compiled. You can compile the AES cryptographic suite (see INSTALL)");
+						checkconfig = TRUE;
+					}
+					else if (AUTH_SUITE != 7){
+						pana_error("PAA AUTH algorithm %d is not suppported yet", AUTH_SUITE);
 						checkconfig = TRUE;
 					}
 					#endif

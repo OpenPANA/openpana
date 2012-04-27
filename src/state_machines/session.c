@@ -190,6 +190,7 @@ void updateSession(char *message, pana_ctx *pana_session) {
 		char* value =(((char*)attribute) + sizeof(avp_pana));
 
 		int number = Hex2Dec(value, PRF_AVP_VALUE_LENGTH);
+		
 		if (number != PRF_SUITE) {
 			pana_fatal("The prf algorithm specified: %d, is not supported\n", number);
 		}
@@ -204,6 +205,7 @@ void updateSession(char *message, pana_ctx *pana_session) {
 		char* value =(((char*)attribute) + sizeof(avp_pana));
 
 		int number = Hex2Dec(value, INTEG_AVP_VALUE_LENGTH);
+
 		if (number != AUTH_SUITE) {
 			pana_fatal("The integrity algorithm specified: %d, is not supported\n", number);
 		}

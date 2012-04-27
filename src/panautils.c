@@ -340,9 +340,15 @@ u8 * generateAUTH(pana_ctx * session) {
 	}
 	#endif*/
 #ifdef AESCRYPTO
-	//Generate auth with aes-cmac
-    AES_CMAC ( session->msk_key, (unsigned char *) sequence, seq_length,
+	if (PRF_SUITE == PRF_AES128_CBC) {
+		//Generate auth with aes-cmac
+		AES_CMAC ( session->msk_key, (unsigned char *) sequence, seq_length,
                   result );
+	}
+	else if (PRF_SUITE == PRF_HMAC_SHA1) {
+		PRF_plus(2, session->msk_key, session->key_len, (u8*) sequence, seq_length, result);
+	}
+	
 #else	
 	//Generate auth with hmac-sha1
     PRF_plus(2, session->msk_key, session->key_len, (u8*) sequence, seq_length, result);
@@ -375,9 +381,16 @@ int hashAuth(char *msg, char* key, int key_len) {
         return 1;
 
 #ifdef AESCRYPTO
-	 //Hash with aes-cmac
-    AES_CMAC ((unsigned char *)key, (unsigned char *)msg, ntohs(((pana*)msg)->msg_length),
-                  (u8*) (elmnt + sizeof(avp_pana)) );
+
+	if (AUTH_SUITE == AUTH_AES_CMAC) {
+		//Hash with aes-cmac
+		AES_CMAC ((unsigned char *)key, (unsigned char *)msg, ntohs(((pana*)msg)->msg_length),
+					  (u8*) (elmnt + sizeof(avp_pana)) );
+    }
+    else if (AUTH_SUITE == AUTH_HMAC_SHA1_160){
+		//Hash with hmac-sha1
+		PRF_plus(1, (u8*) key, key_len, (u8*) msg, ntohs(((pana*)msg)->msg_length), (u8*) (elmnt + sizeof(avp_pana)) );
+	}
 #else
 	//Hash with hmac-sha1
     PRF_plus(1, (u8*) key, key_len, (u8*) msg, ntohs(((pana*)msg)->msg_length), (u8*) (elmnt + sizeof(avp_pana)) );

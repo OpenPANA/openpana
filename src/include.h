@@ -108,6 +108,12 @@
 
 #include <stdarg.h>
 
+//Cryptographic suites implemented
+#define PRF_HMAC_SHA1 2
+#define PRF_AES128_CBC 5
+#define AUTH_HMAC_SHA1_160 7
+#define AUTH_AES_CMAC 8
+
 #ifndef EXIT_SUCCESS
 	#define EXIT_SUCCESS  0
 	#define EXIT_FAILURE  1
@@ -122,11 +128,8 @@
 #endif
 
 #ifndef NONCE_AVP_VALUE_LENGTH
-	#ifdef AESCRYPTO
-		#define NONCE_AVP_VALUE_LENGTH  8
-	#else
-		#define NONCE_AVP_VALUE_LENGTH  20
-	#endif
+#define NONCE_AES_AVP_VALUE_LENGTH  8
+#define NONCE_HMAC_AVP_VALUE_LENGTH  20
 #endif
 
 #ifndef PRF_AVP_VALUE_LENGTH
@@ -146,11 +149,8 @@
 #endif
 
 #ifndef AUTH_AVP_VALUE_LENGTH
-	#ifdef AESCRYPTO
-		#define AUTH_AVP_VALUE_LENGTH  16	
-	#else
-		#define AUTH_AVP_VALUE_LENGTH  20
-	#endif
+#define AUTH_AES_AVP_VALUE_LENGTH  16	
+#define AUTH_HMAC_AVP_VALUE_LENGTH  20
 #endif
 
 #ifndef MSK_LENGTH

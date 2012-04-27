@@ -102,7 +102,7 @@ AC_ARG_ENABLE([aes],
     [aesit=no])
 AC_MSG_RESULT([$aesit])
 
-if test x"$debugit" = x"yes"; then
+if test x"$aesit" = x"yes"; then
     AC_DEFINE([AES],[],[Aes Mode])
     AM_CFLAGS="$AM_CFLAGS -g -Wall -Wextra -pedantic -DAESCRYPTO"
     AC_SUBST(DBG_LINKOPT," ")
