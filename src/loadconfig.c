@@ -28,6 +28,54 @@
 
 int pac =0;
 int paa =0;
+int pre =0;
+
+
+char * getInterfaceIPaddress (int ip_version, char* interface){
+	char * address; //It will contain the address
+
+	struct ifaddrs * ifAddrStruct=NULL;
+    struct ifaddrs * ifa=NULL;
+    void * tmpAddrPtr=NULL;
+
+	if (ip_version != 4 && ip_version!= 6 ){
+		pana_error("getInterfaceIPaddress: the IP version must be IPv4 or IPv6");
+		return NULL;
+	}
+	
+    getifaddrs(&ifAddrStruct);
+
+	if (ifAddrStruct==NULL){
+		freeifaddrs(ifAddrStruct);
+		pana_error("getInterfaceIPaddress: Unable of getting the interface information");
+	 }
+
+	
+	if (ip_version==4) {
+		for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
+			if ((ifa ->ifa_addr->sa_family==AF_INET) && (strcmp(ifa->ifa_name, interface)==0)) { // check it is IP4 and it is the correct interface
+				address = XMALLOC(char, INET_ADDRSTRLEN);
+				inet_ntop(AF_INET, &((struct sockaddr_in *)ifa->ifa_addr)->sin_addr, address, INET_ADDRSTRLEN);
+				
+				return address;
+			}
+		}
+	}
+
+	else if (ip_version == 6) {
+		for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
+			if ((ifa ->ifa_addr->sa_family==AF_INET6) && (strcmp(ifa->ifa_name, interface)==0)) { // check it is IP4 and it is the correct interface
+				address = XMALLOC(char, INET6_ADDRSTRLEN);
+				inet_ntop(AF_INET6, &((struct sockaddr_in6 *)ifa->ifa_addr)->sin6_addr, address, INET6_ADDRSTRLEN);
+
+				return address;
+			}
+		}
+	}
+
+	return NULL;
+}
+
 
 /**
  * parse_xml_client:
@@ -59,33 +107,31 @@ static void parse_xml_client(xmlNode * a_node) {
 				paa=1;
 				pac=0;
 			}
-			else if (strcmp((char *)cur_node->name, "IP")==0){  // IP configurable value
-				if (paa){
-
+			else if (strcmp((char *)cur_node->name, "INTERFACE")==0){  // IP configurable value
+				if (pac) {
+					char * value = (char*)xmlNodeGetContent(cur_node);
+					char * aux = getInterfaceIPaddress(IP_VERSION, value);
+					if (aux == NULL) {
+						pana_error("The interface where the PAC is going to listen incoming messages is not correct");
+						checkconfig=TRUE;
+					}
+					else {
+						LOCALIP = XMALLOC(char, strlen(aux));
+						memcpy(LOCALIP, aux, strlen(aux));
+						xmlFree(value);
+					}
+				}
+			}
+			else if (strcmp((char *)cur_node->name, "IP_PAA")==0){  // IP configurable value
+				if (pac) {
 					xmlChar * value = xmlNodeGetContent(cur_node);
 					DESTIP = XMALLOC(char,strlen((char*)value));
-					sprintf(DESTIP, "%s",(char *) value);
-					xmlFree(value);
-				}
-				else if (pac) {
-					xmlChar * value = xmlNodeGetContent(cur_node);
-					LOCALIP = XMALLOC(char,strlen((char*)value));
-					sprintf(LOCALIP, "%s", (char *)value);
+					sprintf(DESTIP, "%s", (char *)value);
 					xmlFree (value);
 				}
 			}
 			else if (strcmp((char *)cur_node->name, "PORT")==0){ // Port configurable value
-				if (paa){
-					char * value = (char *)xmlNodeGetContent(cur_node);
-					sscanf(value, "%hd", &DSTPORT);
-					xmlFree(value);
-					//This checking is avoided to let us use whichever port
-					/*if (DSTPORT != 716){
-						pana_error("PAA Port must be set to 716");
-						checkconfig = TRUE;
-					}*/
-				}
-				else if (pac) {
+				if (pac) {
 					
 					xmlChar * value = xmlNodeGetContent(cur_node);
 					sscanf((char *) value, "%hd", &SRCPORT);
@@ -94,6 +140,19 @@ static void parse_xml_client(xmlNode * a_node) {
 						pana_error("PaC Port must be set to a number higher than 1024.");
 						checkconfig = TRUE;
 					}
+				}
+			}
+			else if (strcmp((char *)cur_node->name, "PORT_PAA")==0){ // Port configurable value
+				if (pac) {
+					
+					xmlChar * value = xmlNodeGetContent(cur_node);
+					sscanf((char *) value, "%hd", &DSTPORT);
+					xmlFree(value);
+					//This checking is avoided to let us use whichever port
+					//if (DSTPORT != 716){
+					//	pana_error("PAA Port must be set to 716");
+					//	checkconfig = TRUE;
+					//}
 				}
 			}
 			else if (strcmp((char *)cur_node->name, "TIMEOUT")==0){ // Timeout configurable value
@@ -341,6 +400,16 @@ static void parse_xml_server(xmlNode * a_node){
 				paa=1;
 				pac=0;
 			}
+			else if (strcmp((char *)cur_node->name, "INTERFACE")==0){  // IP configurable value
+				if (paa) {
+					char * value = (char*)xmlNodeGetContent(cur_node);
+					char * aux = getInterfaceIPaddress(IP_VERSION, value);
+					if (aux == NULL) {
+						pana_error("The interface where the PAA is going to listen to PAC incoming messages is not correct");
+						checkconfig=TRUE;
+					}
+				}
+			}
 			else if (strcmp((char *)cur_node->name, "PORT")==0){ // Port configurable value
 				if (paa){
 					char * value = (char *)xmlNodeGetContent(cur_node);
@@ -541,6 +610,126 @@ static void parse_xml_server(xmlNode * a_node){
 
 
 /**
+ * parse_xml_pre:
+ * @param a_node: the initial xml node to consider.
+ *
+ * Parse all the xml pre elements
+ * that are siblings or children of a given xml node.
+ */
+static void parse_xml_pre(xmlNode * a_node) {
+
+    xmlNode *cur_node = NULL;
+	int checkconfig = FALSE;
+    for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
+        if (cur_node->type == XML_ELEMENT_NODE) {
+			if (strcmp((char*) cur_node->name, "IP_VERSION")==0) {
+				char * value = (char *)xmlNodeGetContent(cur_node);
+				sscanf(value, "%d", &IP_VERSION);
+				xmlFree(value);
+				if (IP_VERSION != 4 && IP_VERSION != 6){
+					pana_error("IP_VERSION must be set to 4 for IPv4 or to 6 for IPv6.");
+					checkconfig = TRUE;
+				}
+			}
+			else if (strcmp((char*) cur_node->name, "PAC")==0) { //If the PaC configurable values are being checked
+				paa=0;
+				pac=1;
+				pre=0;
+			}
+			else if (strcmp((char *)cur_node->name, "PAA")==0) { //If the PAA configurable values are being checked
+				paa=1;
+				pac=0;
+				pre=0;
+			}
+			else if (strcmp((char *)cur_node->name, "PRE")==0) { //If the PAA configurable values are being checked
+				paa=0;
+				pac=0;
+				pre=1;
+			}
+			else if (strcmp((char *)cur_node->name, "IP_PAA")==0){  // IP configurable value
+				if (pre){
+
+					xmlChar * value = xmlNodeGetContent(cur_node);
+					IP_PAA = XMALLOC(char,strlen((char*)value));
+					sprintf(IP_PAA, "%s",(char *) value);
+					xmlFree(value);
+				}
+			}
+			else if (strcmp((char *)cur_node->name, "PORT_PAA")==0){ // Port configurable value
+				if (pre){
+					char * value = (char *)xmlNodeGetContent(cur_node);
+					sscanf(value, "%hd", &PORT_PAA);
+					xmlFree(value);
+
+					if (PORT_PAA <=0) {
+						pana_error("The PAA Port must be set to a number higher than 0");
+						checkconfig = TRUE;
+					}
+				}
+			}
+			
+			else if (strcmp((char *)cur_node->name, "INTERFACE_PAC")==0){
+				char * value = (char*)xmlNodeGetContent(cur_node);
+				char * aux = getInterfaceIPaddress(IP_VERSION, value);
+				if (aux == NULL) {
+					pana_error("The interface where the PRE is going to listen to PAC incoming messages is not correct");
+					checkconfig=TRUE;
+				}
+				else {
+					IP_LISTEN_PAC = XMALLOC(char, strlen(aux));
+					memcpy(IP_LISTEN_PAC, aux, strlen(aux));
+					xmlFree(value);
+				}
+			}
+
+			else if (strcmp((char *)cur_node->name, "PORT_PAC")==0){
+				char * value = (char *)xmlNodeGetContent(cur_node);
+				sscanf(value, "%hd", &PORT_LISTEN_PAC);
+				xmlFree(value);
+
+				if (PORT_LISTEN_PAC <=0) {
+					pana_error("The port where the PRE will listen to incoming PAC messages must be set to a number higher than 0");
+					checkconfig=TRUE;
+				}
+			}
+			
+			else if (strcmp((char *)cur_node->name, "INTERFACE_PAA")==0){
+				char * value = (char*)xmlNodeGetContent(cur_node);
+				char * aux = getInterfaceIPaddress(IP_VERSION, value);
+				if (aux == NULL) {
+					pana_error("The interface where the PRE is going to listen to PAA incoming messages is not correct");
+					checkconfig=TRUE;
+				}
+				else {
+					IP_LISTEN_PAA = XMALLOC(char, strlen(aux));
+					memcpy(IP_LISTEN_PAA, aux, strlen(aux));
+					xmlFree(value);
+				}
+			}
+
+			else if (strcmp((char *)cur_node->name, "PORT_PAA")==0){
+				char * value = (char *)xmlNodeGetContent(cur_node);
+				sscanf(value, "%hd", &PORT_LISTEN_PAA);
+				xmlFree(value);
+
+				if (PORT_LISTEN_PAA <=0) {
+					pana_error("The port where the PRE will listen to incoming PAA messages must be set to a number higher than 0");
+					checkconfig=TRUE;
+				}
+			}
+        }
+
+        parse_xml_pre(cur_node->children);
+    }
+    
+    if(checkconfig){
+		pana_fatal("Check configuration to continue");
+	}
+
+}
+
+
+/**
  * Parse configurable values from client context
  */
 int
@@ -627,6 +816,57 @@ load_config_server()
     root_element = xmlDocGetRootElement(doc);
 
     parse_xml_server(root_element);
+
+    /*free the document */
+    xmlFreeDoc(doc);
+
+    /*
+     *Free the global variables that may
+     *have been allocated by the parser.
+     */
+    xmlCleanupParser();
+
+    return 0;
+}
+
+
+/**
+ * Parse configurable values from PANA Relay context
+ */
+int
+load_config_pre()
+{
+    xmlDoc *doc = NULL;
+    xmlNode *root_element = NULL;
+
+    
+
+    /*
+     * this initialize the library and check potential ABI mismatches
+     * between the version it was compiled for and the actual shared
+     * library used.
+     */
+    LIBXML_TEST_VERSION
+
+    /*parse the file and get the DOM */
+	//First check if CONFIGDIR"/config.xml" exists
+	if( access( CONFIGDIR"/config.xml", F_OK ) != -1 ) {
+		// file exists and it can be opened
+		doc = xmlReadFile(CONFIGDIR"/config.xml", NULL, 0);
+	} else {
+		// file doesn't exist
+		pana_warning("Loading config.xml from current directory");
+		doc = xmlReadFile("config.xml", NULL, 0);
+	}
+ 	
+	if(doc==NULL){
+		pana_fatal("Could not parse file config.xml. \nThe application can't run without this file");
+	}
+
+    /*Get the root element node */
+    root_element = xmlDocGetRootElement(doc);
+
+    parse_xml_pre(root_element);
 
     /*free the document */
     xmlFreeDoc(doc);

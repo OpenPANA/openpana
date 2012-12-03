@@ -228,10 +228,54 @@ void retransmit() {
 
     current_session->RTX_TIMEOUT = 0;
     int numbytes;
-    numbytes = sendPana(current_session->eap_ll_dst_addr, current_session->retr_msg, current_session->socket);
-    if (0 >= numbytes) {
-        pana_fatal("sendPana in rentransmit");
-    }
+    if (IP_VERSION==4){
+		#ifdef ISSERVER
+		if (current_session->pre_dst_addr.sin_family==AF_INET) {
+			numbytes = sendPana(current_session->pre_dst_addr, current_session->retr_msg, current_session->socket);
+			if (0 >= numbytes) {
+				pana_fatal("sendPana in rentransmit");
+			}
+		}
+		else{
+			numbytes = sendPana(current_session->eap_ll_dst_addr, current_session->retr_msg, current_session->socket);
+			if (0 >= numbytes) {
+				pana_fatal("sendPana in rentransmit");
+			}
+		}
+		#endif
+
+		#ifdef ISCLIENT
+		numbytes = sendPana(current_session->eap_ll_dst_addr, current_session->retr_msg, current_session->socket);
+		if (0 >= numbytes) {
+			pana_fatal("sendPana in rentransmit");
+		}
+		#endif
+		
+	}
+
+	else if (IP_VERSION==6) {
+		#ifdef ISSERVER
+		if (current_session->pre_dst_addr6.sin6_family==AF_INET6) {
+			numbytes = sendPana6(current_session->pre_dst_addr6, current_session->retr_msg, current_session->socket);
+			if (0 >= numbytes) {
+				pana_fatal("sendPana6 in rentransmit");
+			}
+		}
+		else {
+			numbytes = sendPana6(current_session->eap_ll_dst_addr6, current_session->retr_msg, current_session->socket);
+			if (0 >= numbytes) {
+				pana_fatal("sendPana6 in rentransmit");
+			}
+		}
+		#endif
+
+		#ifdef ISCLIENT
+		numbytes = sendPana6(current_session->eap_ll_dst_addr6, current_session->retr_msg, current_session->socket);
+		if (0 >= numbytes) {
+			pana_fatal("sendPana6 in rentransmit");
+		}
+		#endif
+	}
     current_session->RTX_COUNTER += 1;
     current_session->RT = 2 * current_session->RT + current_session->RAND * current_session->RT;
     if (current_session->MRT /*MRT != 0*/ && current_session->RT > current_session->MRT){//See rfc 5191 page 34
@@ -449,10 +493,31 @@ int livenessTestPeer() {
     if ((LMTYPE == PNOTIF_MSG) && (LMFLAGS & R_FLAG) && (LMFLAGS & P_FLAG)) {
 		char * unused;
 		if (IP_VERSION==4){
-			unused = transmissionMessage("PNA", P_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, 0, IP_VERSION, &(current_session->eap_ll_dst_addr), current_session->avp_data, current_session->socket);
+			#ifdef ISCLIENT
+				unused = transmissionMessage("PNA", P_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, 0, IP_VERSION, &(current_session->eap_ll_dst_addr), current_session->avp_data, current_session->socket,  FALSE);
+			#endif
+			
+			#ifdef ISSERVER
+			unused = transmissionMessage("PNA", P_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, 0, IP_VERSION, &(current_session->eap_ll_dst_addr), current_session->avp_data, current_session->socket, (current_session->pre_dst_addr.sin_family == AF_INET));
+			
+			if (current_session->pre_dst_addr.sin_family==AF_INET){
+				current_session->retr_msg = transmissionRelayedMessage(IP_VERSION, &(current_session->pre_dst_addr), unused, current_session->socket, &(current_session->eap_ll_dst_addr));
+			}
+			#endif
+
 		}
 		else if (IP_VERSION==6){
-			unused = transmissionMessage("PNA", P_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, 0, IP_VERSION, &(current_session->eap_ll_dst_addr6), current_session->avp_data, current_session->socket);
+			#ifdef ISCLIENT
+				unused = transmissionMessage("PNA", P_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, 0, IP_VERSION, &(current_session->eap_ll_dst_addr6), current_session->avp_data, current_session->socket, FALSE);
+			#endif
+			
+			#ifdef ISSERVER
+			unused = transmissionMessage("PNA", P_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, 0, IP_VERSION, &(current_session->eap_ll_dst_addr6), current_session->avp_data, current_session->socket, (current_session->pre_dst_addr6.sin6_family == AF_INET6));
+			
+			if (current_session->pre_dst_addr6.sin6_family == AF_INET6) {
+				current_session->retr_msg = transmissionRelayedMessage(IP_VERSION, &(current_session->pre_dst_addr6), unused, current_session->socket, &(current_session->eap_ll_dst_addr6));
+			}
+			#endif
 		}
         XFREE(unused);
         return NO_CHANGE;

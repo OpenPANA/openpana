@@ -28,7 +28,13 @@
 #define LOADCONFIG_H
 
 #include "include.h"
-#include "state_machines/session.h"
+
+#ifndef ISPRE
+	#include "state_machines/session.h"
+#endif
+
+#include "mainpre.h"
+
 
 /** A procedure to load client's configurable variables.
  *
@@ -38,5 +44,20 @@ int load_config_client();
  *
  * @return 0 if the execution is correct.*/
 int load_config_server();
+
+/** A procedure to load pre's configurable variables.
+ *
+ * @return 0 if the execution is correct.*/
+int load_config_pre();
+
+/**
+ * Get the IP address from the local machine interfaces.
+ *
+ * @param ip_version IP version being used.
+ * @param interface Name of the interface being used.
+ *
+ * @return String with the ip address. NULL is returned when the IP address can not be obtained.
+ * */
+char * getInterfaceIPaddress (int ip_version, char* interface);
 
 #endif

@@ -106,7 +106,6 @@ void initSession(pana_ctx * pana_session) {
 		pana_session->eap_ll_dst_addr.sin_family = AF_INET;
 		pana_session->eap_ll_dst_addr.sin_port = htons(DSTPORT);
 		pana_session->eap_ll_dst_addr.sin_addr.s_addr = inet_addr(DESTIP);
-		printf("PEDRO: Se ha iniciado la ip con %s\n", DESTIP);
 	}
 	else if(IP_VERSION==6){
 		pana_session->eap_ll_dst_addr6.sin6_family = AF_INET6;

@@ -4,7 +4,7 @@ WPA_SRC =$(srcdir)/wpa_supplicant/src
 INCLUDES		      = -I$(WPA_SRC) -I$(WPA_SRC)/utils
 
 ### user programs ###
-bin_PROGRAMS = openpaa openpac
+bin_PROGRAMS = openpaa openpac openpre
 
 ### source declarations ###
 openpaa_SOURCES               =	state_machines/session.c \
@@ -47,11 +47,25 @@ openpac_LDFLAGS		      = $(DBG_LINKOPT)
 
 openpac_LDADD                     = libeapstack/libeap.a
 
+
+### source declarations ###
+
+openpre_SOURCES               =	mainpre.c \
+				loadconfig.c \
+				panautils.c \
+				panamessages.c
+
+openpre_CPPFLAGS 	      = $(AM_CPPFLAGS) 
+openpre_CFLAGS		      = $(AM_CFLAGS) -DISPRE
+openpre_LDFLAGS		      = $(DBG_LINKOPT)
+
+
+
+
 ## Adding PANA header files to distribute using "make dist"
-EXTRA_DIST =  *.h state_machines/*.h config.xml dtd.xml
+EXTRA_DIST =  *.h state_machines/*.h config.xml
 
 ## Extra config files needed
 sysconf_DATA = \
-		config.xml \
-		dtd.xml
+		config.xml 
 

@@ -107,6 +107,12 @@
 #define FALSE false
 
 #include <stdarg.h>
+#include <stdio.h>      
+#include <sys/types.h>
+#include <ifaddrs.h>
+#include <netinet/in.h> 
+#include <string.h> 
+#include <arpa/inet.h>
 
 //Cryptographic suites implemented
 #define PRF_HMAC_SHA1 2

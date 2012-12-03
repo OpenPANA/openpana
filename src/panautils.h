@@ -25,10 +25,13 @@
 #ifndef PANAUTILS_H
 #define PANAUTILS_H
 
+
 #include "include.h"
 
 #include "panamessages.h"
-#include "./state_machines/session.h"
+#ifndef ISPRE //In the PRE there is no session
+	#include "./state_machines/session.h"
+#endif
 
 /** UDP port used for PANA.*/
 #define PANAPORT 716
@@ -45,7 +48,9 @@
   * @return 0 If the message is incorrect. 
   * @return 1 If the message is correct.
   * */
-int checkPanaMessage(pana *msg, pana_ctx *pana_session);
+#ifndef ISPRE //The PRE does not check the message, only forwards it
+	int checkPanaMessage(pana *msg, pana_ctx *pana_session);
+#endif
 
 /** 
  * Generates a Session ID from an IP and port given.
@@ -55,7 +60,9 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session);
  * 
  * @return Session Id generated.
  * */
+#ifndef ISPRE //The session id is set to 0 in Relayed messages
 uint32_t generateSessionId (char * ip, uint16_t port);
+#endif
 
 /** 
  * Generates the AUTH key given a PANA session.
@@ -70,7 +77,9 @@ uint32_t generateSessionId (char * ip, uint16_t port);
  * 
  * @return AUTH key generated. It must to be freed when no longer needed.
  * */
-u8 * generateAUTH(pana_ctx * current_session);
+#ifndef ISPRE //The PRE entity does not work with the original PANA message
+	u8 * generateAUTH(pana_ctx * current_session);
+#endif
 
 /**
  * Adds 1 to a character array given it's length.
@@ -96,7 +105,9 @@ void increase_one (char *value, int length);
  * @return 0 The hash was successful.
  * @return 1 No AUTH AVP was found in the PANA message.
  * */
+#ifndef ISPRE//The PRE does not authenticate the messages
 int hashAuth(char *msg, char* key, int key_len);
+#endif
 
 /**
  * Given a string cointaining an hexadecimal number and its length, 
@@ -149,6 +160,8 @@ void waitusec(unsigned int wait);
  * @param wait Nanoseconds.
  * */
 void waitnano(long wait);
+
+
 /**
  * Prints a warning message. Its used the same exact way printf() would.
  * @param *message warning message.
@@ -171,4 +184,5 @@ void pana_fatal (const char *message, ...);
  * @param *message debug message.
  * */
 void pana_debug (const char *message, ...);
+
 #endif

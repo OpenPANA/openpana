@@ -39,14 +39,16 @@ o STANDARD REFERENCES
              (PANA) Framework"
     RFC5609 - "State Machines for the Protocol for Carrying
               Authentication for Network Access (PANA)"
+	RFC6345 - "Protocol for Carrying Authentication for Network Access
+			 (PANA) Relay Element"
+        
 
   EAP
     RFC3748 - "Extensible Authentication Protocol (EAP)"
     RFC4137 - "State Machines for EAP Peer and Authenticator"
 
-  EAP-PSK
-    RFC4764 - "The EAP-PSK Protocol: A Pre-Shared Key Extensible
-              Authentication Protocol (EAP) Method"
+  EAP-TLS
+	RFC5216 - "The EAP-TLS Authentication Protocol"
 
 o Install
 
@@ -61,8 +63,9 @@ o Install
  2. Configuring OpenPANA:
 
     Default settings can be changed by modifying the config.xml file found in ./src and /etc/openpana when installed.
-    - Common Settings:
-	- IP <IP>
+    * Common Settings:
+    - IP version <IP_VERSION>
+	- Interface <INTERFACE>
 	- Port <PORT>
 	- Session Timeout: Lifetime of the session. <SESSION><TIMEOUT>
 	- PRF Algorithms: Supported PRF Algorithms. <ALGORITHMS><PRF>
@@ -77,10 +80,15 @@ o Install
 		- Client's key <CLIENT_KEY>
 		- Client's private key <PRIVATE_KEY>
 	- Fragment Size <FRAGMENT_SIZE>
-    - PAA's Settings <PAA>
+
+	* PaC's Settings <PAC>
+	- IP PAA <IP_PAA>
+	- Port PAA <PORT_PAA>
+	
+    * PAA's Settings <PAA>
 	- Client's Timeout: Seconds before client's session expires. <TIMEOUT_CLIENT>
 	- Threads to use: Number of threads used to manage tasks on server. <WORKERS>
-    	- PCI expire time: Time while a session is on the server without answer for the first PAR message. <TIME_ANSWER>
+    - PCI expire time: Time while a session is on the server without answer for the first PAR message. <TIME_ANSWER>
 	- Server's Certificates files, located under the AAA server folder. The name of the files may be changed by modifying this values.
 		- CA Certificate Filename <CA_CERT>
 		- Server's Certificate Filename <SERVER_CERT>
@@ -90,6 +98,14 @@ o Install
 		- Port of the Radius Server <AS_PORT>
 		- Radius' shared secret <SHARED_SECRET>
 
+	* PRE Settings <PRE>
+	- Interface where the PRE listen to incoming PAC messages <INTERFACE_PAC>
+	- Port where the PRE listen to incoming PAC messages <PORT_PAC>
+	- Interface where the PRE listen to incoming PAA messages <INTERFACE_PAA>
+	- Port where the PRE listen to incoming PAA messages <PORT_PAA>
+	- IP where PAA is listening to incoming messages <IP_PAA>
+	- Port where PAA is listening to incoming messages <PORT_PAA>
+
  3. Building the OpenPANA softwares:
 
   You can just run the './configure --sysconfdir=/etc/openpana' script and 'make'.
@@ -98,6 +114,8 @@ o Install
   You can also run the '--enable-debug' configure option in order to get a full debugging.
 
   You can also run the '--enable-aes' configure option in order to get the AES cryptographic suite available.
+
+  You can also run the '--enable-relay' configure option in order to get the PRE functionality integrated within the PaC entity.
   
  4. OpenPANA will need a working installation of a Radius Server using EAP-TLS method.
     OpenPANA will require the following certificate files in config folder or in the current directory:
@@ -107,7 +125,7 @@ o Install
   
    An example of certificates and a working eap.conf (to use with freeRadius) can be found in radius_conf folder of svn root.
    
- 5. After all you have 'openpaa' and 'openpac' in the ./src application's folder.
+ 5. After all you have 'openpaa', 'openpre' and 'openpac' in the ./src application's folder.
  
  6. By running 'make install' as root OpenPANA will be installed tipically under '/usr/local/bin' and configuration files 
     will be placed in '/etc/openpana'.
@@ -143,7 +161,7 @@ o Initial Authors
 
 o Acknowledgments
 
- Yosihiro Ohba   - Toshiba
+ Yoshihiro Ohba  - Toshiba
  Jouni Malinen   - Hostapd implementation
  Ibán Morote     - OpenPANA Logo http://cargocollective.com/ibanmorote
  Alejandro Pérez - Bugfixes

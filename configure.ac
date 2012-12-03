@@ -1,6 +1,6 @@
 
 AC_PREREQ([2.65])
-AC_INIT([OpenPANA], [0.2.2], [openpana-users@lists.sourceforge.net],[openpana],[http://openpana.sf.net])
+AC_INIT([OpenPANA], [0.2.3], [openpana-users@lists.sourceforge.net],[openpana],[http://openpana.sf.net])
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_AUX_DIR(config)
 AM_INIT_AUTOMAKE()
@@ -105,6 +105,27 @@ AC_MSG_RESULT([$aesit])
 if test x"$aesit" = x"yes"; then
     AC_DEFINE([AES],[],[Aes Mode])
     AM_CFLAGS="$AM_CFLAGS -g -Wall -Wextra -pedantic -DAESCRYPTO"
+    AC_SUBST(DBG_LINKOPT," ")
+fi
+
+##########################################################################
+
+
+##########################################################################
+# Relay functionality in the PaC compilation support
+##########################################################################
+
+AC_MSG_CHECKING([whether to build relay functionality in the PaC])
+AC_ARG_ENABLE([relay],
+    [AS_HELP_STRING([--enable-relay],
+        [enable relay functionality in the PaC (def=no)])],
+    [relayit="$enableval"],
+    [relayit=no])
+AC_MSG_RESULT([$relayit])
+
+if test x"$relayit" = x"yes"; then
+    AC_DEFINE([RELAY],[],[Relay Mode])
+    AM_CFLAGS="$AM_CFLAGS -g -Wall -Wextra -pedantic -DPACPRE"
     AC_SUBST(DBG_LINKOPT," ")
 fi
 

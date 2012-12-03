@@ -104,7 +104,7 @@ int sendPana6(struct sockaddr_in6 destaddr6, char *msg, int sock) {
     else return total;
 }
 
-
+#ifndef ISPRE //The PRE does not check the message, only forwards it
 int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
 	
     //Checks pana header fields.
@@ -203,7 +203,9 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
     
     return TRUE;
 }
+#endif
 
+#ifndef ISPRE //The session id is set to 0 in Relayed messages
 uint32_t generateSessionId(char * ip, uint16_t port) {
 	//The seed to generate the sessionId will be port + ip
     char * seed = NULL; //To create the seed
@@ -225,7 +227,10 @@ uint32_t generateSessionId(char * ip, uint16_t port) {
     XFREE(result);
     return rc;
 }
+#endif
 
+
+#ifndef ISPRE //The PRE entity does not work with the original PANA message
 u8 * generateAUTH(pana_ctx * session) {
 
     if (session->PaC_nonce == NULL) {
@@ -297,8 +302,8 @@ u8 * generateAUTH(pana_ctx * session) {
 	
     pac_nonce = (u8*) getAvp(session->PaC_nonce,NONCE_AVP);
     paa_nonce = (u8*) getAvp(session->PAA_nonce,NONCE_AVP);
-    uint16_t paa_nonce_length = ntohs(((avp_pana*)pac_nonce)->length);
-    uint16_t pac_nonce_length = ntohs(((avp_pana*)paa_nonce)->length);
+    uint16_t pac_nonce_length = ntohs(((avp_pana*)pac_nonce)->length);
+    uint16_t paa_nonce_length = ntohs(((avp_pana*)paa_nonce)->length);
     
     seq_length += pac_nonce_length; 
     seq_length += paa_nonce_length;
@@ -333,12 +338,12 @@ u8 * generateAUTH(pana_ctx * session) {
     XFREE(result);
     result = XMALLOC(u8,40); //To get the 320bits result key
 	
-	/*#ifdef DEBUG
-	fprintf(stderr,"DEBUG: PRF Seed is: \n");
+	
+	/*fprintf(stderr,"DEBUG: PRF Seed is: \n");
 	for (int j=0; j<seq_length; j++){
-		fprintf(stderr, "%02x ", sequence[j]);
-	}
-	#endif*/
+		pana_debug( "%02x ", sequence[j]);
+	}*/
+	
 #ifdef AESCRYPTO
 	if (PRF_SUITE == PRF_AES128_CBC) {
 		//Generate auth with aes-cmac
@@ -360,13 +365,15 @@ u8 * generateAUTH(pana_ctx * session) {
 
     /*int i;
     for (i = 0; i < 40; i++) {
-        fprintf(stderr, "%02x ", (u8) result[i]);
+        pana_debug( "%02x ", (u8) result[i]);
     }*/
 
     XFREE(sequence); //Seed's memory is freed
     return result;
 }
+#endif
 
+#ifndef ISPRE //The PRE does not authenticate the messages
 int hashAuth(char *msg, char* key, int key_len) {
 	//The AVP code (AUTH) to compare with the one in the panaMessage
     char * elmnt = getAvp(msg, AUTH_AVP);
@@ -398,6 +405,7 @@ int hashAuth(char *msg, char* key, int key_len) {
 
     return 0; //Everything went better than expected
 }
+#endif
 
 //Add 1 to the current KeyID value
 void increase_one(char *value, int length) {

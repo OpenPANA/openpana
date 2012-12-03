@@ -102,14 +102,62 @@ void * process_receive_eap_ll_msg(void *arg) {
     // Current pana session.
     pana_ctx * pana_session;
     pana * msg = pana_params->pana_msg;
+	struct sockaddr_in pre_dst_addr;
+	struct sockaddr_in6 pre_dst_addr6;
 
+	//Init the PRE address (for IPv4 and IPv6)
+    memset(&pre_dst_addr, 0, sizeof(pre_dst_addr));
+    memset(&pre_dst_addr6, 0, sizeof(pre_dst_addr6));
+
+    //If the message is a PRY
+	if (ntohs(msg->msg_type) == PRY_MSG){
+		char * elmnt;
+		
+		/////Get the PRE address information and get the PaC address information
+		if (IP_VERSION==4){
+			
+			pre_dst_addr.sin_family= AF_INET;
+			memcpy (&(pre_dst_addr.sin_addr), &(pana_params->eap_ll_dst_addr->sin_addr), sizeof(struct in_addr));
+			pre_dst_addr.sin_port = pana_params->eap_ll_dst_addr->sin_port;
+
+			//Restore the PaC Information as param
+			elmnt = getAvp(pana_params->pana_msg, PACINFORMATION_AVP);
+			memcpy (&(pana_params->eap_ll_dst_addr->sin_addr), (elmnt+sizeof(avp_pana)), sizeof (struct in_addr));
+			memcpy (&(pana_params->eap_ll_dst_addr->sin_port), (elmnt+sizeof(avp_pana)+sizeof(struct in_addr)), sizeof(short));
+		}
+		else if (IP_VERSION ==6){
+			
+			pre_dst_addr6.sin6_family= AF_INET6;
+			memcpy (&(pre_dst_addr6.sin6_addr), &(pana_params->eap_ll_dst_addr6->sin6_addr), sizeof(struct in6_addr));
+			pre_dst_addr6.sin6_port = pana_params->eap_ll_dst_addr6->sin6_port;
+
+			//Restore the PaC Information as param
+			elmnt = getAvp(pana_params->pana_msg, PACINFORMATION_AVP);
+			memcpy (&(pana_params->eap_ll_dst_addr6->sin6_addr), (elmnt+sizeof(avp_pana)), sizeof (struct in6_addr));
+			memcpy (&(pana_params->eap_ll_dst_addr6->sin6_port), (elmnt+sizeof(avp_pana)+sizeof(struct in6_addr)), sizeof(short));
+		}
+
+		//Restore the message sent by the PaC from the RelayedMessage AVP
+		msg = (pana*) (getAvp(pana_params->pana_msg, RELAYEDMESSAGE_AVP)+sizeof(avp_pana));
+		
+
+	}
+		
     if (ntohs(msg->msg_type) == PCI_MSG) {//If a PCI message is received
 
 		// A session is created to make a transition but it's not saved. It tries to avoid
 		// attacks from clients (PCI flood).
         pana_session = XMALLOC(pana_ctx,1);
         initSession(pana_session); 
-		
+
+		//If a PRY message has been received, the PRE destination address must have been updated
+		if(IP_VERSION==4 && pre_dst_addr.sin_family!=0){
+			memcpy(&(pana_session->pre_dst_addr),  &(pre_dst_addr), sizeof(struct sockaddr_in));
+		}
+		else if (IP_VERSION==6 && pre_dst_addr6.sin6_family!=0) {
+			memcpy(&(pana_session->pre_dst_addr6),  &(pre_dst_addr6), sizeof(struct sockaddr_in6));
+		}
+
         //Update variables depends on server
         uint16_t port;
         char * ip;
@@ -225,6 +273,7 @@ void * process_receive_eap_ll_msg(void *arg) {
 
 
 
+
 void* process_receive_radius_msg(void* arg) {
     struct radius_func_parameter radius_params = *((struct radius_func_parameter*) arg);
 
@@ -247,8 +296,10 @@ void* process_receive_radius_msg(void* arg) {
     pthread_mutex_lock(&(ll_session->mutex));
 
     //Delete the alarm associated to this message
+    pana_debug("Getting an alarm session in radius function with id: %d\n", ll_session->session_id);
+    pana_debug("Generating new session id with ip: %s and port: %d\n", inet_ntoa(ll_session->eap_ll_dst_addr.sin_addr), ntohs(ll_session->eap_ll_dst_addr.sin_port));
 	get_alarm_session(ll_session->list_of_alarms, ll_session->session_id, RETR_AAA);
-
+	
     if (eap_ctx != NULL) {
 		
         radius_client_receive(radmsg, radius_data, &radius_type);
