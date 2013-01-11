@@ -37,7 +37,7 @@
 		<PORT>7777</PORT> <!-- Port used to send messages to the PAA -->
 
 		<IP_PAA>::1</IP_PAA>  <!-- IP address of the PAA (or the PRE in case it exists) -->
-		<PORT_PAA>3333</PORT_PAA>   <!-- Port of the PAA (or the PRE in case it exists) -->
+		<PORT_PAA>5555</PORT_PAA>   <!-- Port of the PAA (or the PRE in case it exists) -->
 
 		<SESSION> 
 			<TIMEOUT>150</TIMEOUT> <!-- Maximum time to do the authentication. -->
@@ -64,7 +64,7 @@
 		</ALGORITHMS>
 
 		<USER>user</USER>         <!-- User's credential -->
-		<PASSWORD>password</PASSWORD>
+		<PASSWORD>passwordpassword</PASSWORD>
 		
 		<CLIENT_CERTS> <!-- Client certificates configuration -->
 			<CA_CERT>ca.pem</CA_CERT>
