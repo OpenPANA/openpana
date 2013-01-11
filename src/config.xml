@@ -89,8 +89,8 @@
 <!-- *********************************************************************  -->	
 	<PAA>
 	
-		<INTERFACE>lo</INTERFACE>
-		<PORT>5555</PORT>
+		<INTERFACE>tap0</INTERFACE>
+		<PORT>61613</PORT>
 		
 		<SESSION>
 			<TIMEOUT>100</TIMEOUT> <!-- Timeout for expiring a session in the server -->
