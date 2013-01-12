@@ -27,7 +27,7 @@
 
 <CONFIG>
 
-	<IP_VERSION>6</IP_VERSION>
+	<IP_VERSION>4</IP_VERSION>
 <!-- *********************************************************************  -->	
 <!-- ******************** PaC CONFIGURATION DATA *************************  -->	
 <!-- *********************************************************************  -->
@@ -36,8 +36,8 @@
 		
 		<PORT>7777</PORT> <!-- Port used to send messages to the PAA -->
 
-		<IP_PAA>::1</IP_PAA>  <!-- IP address of the PAA (or the PRE in case it exists) -->
-		<PORT_PAA>5555</PORT_PAA>   <!-- Port of the PAA (or the PRE in case it exists) -->
+		<IP_PAA>127.0.0.1</IP_PAA>  <!-- IP address of the PAA (or the PRE in case it exists) -->
+		<PORT_PAA>3333</PORT_PAA>   <!-- Port of the PAA (or the PRE in case it exists) -->
 
 		<SESSION> 
 			<TIMEOUT>150</TIMEOUT> <!-- Maximum time to do the authentication. -->
@@ -63,8 +63,8 @@
 											8 AUTH_AES_CMAC 			(See INSTALL to get AES cryptographic suite)-->
 		</ALGORITHMS>
 
-		<USER>user</USER>         <!-- User's credential -->
-		<PASSWORD>passwordpassword</PASSWORD>
+		<USER>user1</USER>         <!-- User's credential -->
+		<PASSWORD>SecretPassphrase</PASSWORD>
 		
 		<CLIENT_CERTS> <!-- Client certificates configuration -->
 			<CA_CERT>ca.pem</CA_CERT>

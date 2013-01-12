@@ -631,7 +631,7 @@ uint16_t insertAvps(char** message, int avps, void **data) {
 				((pana *)msg)->msg_length = htons(totalsize);
 				
 				//If the message contains an auth avp, it must be hashed
-				hashAuth(msg, data[AUTH_AVP], AUTH_KEY_LENGTH);
+				hashAuth(msg, data[AUTH_AVP], MSK_LENGTH);
 				break;
 		}
 		

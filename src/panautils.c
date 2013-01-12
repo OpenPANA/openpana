@@ -178,7 +178,7 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
         memset(avpbytes + sizeof(avp_pana), 0, size); //Auth value set to 0
 
         //If the AUTH value cannot be hashed, its an error
-        if(hashAuth((char*)msg, pana_session->avp_data[AUTH_AVP], AUTH_KEY_LENGTH)){
+        if(hashAuth((char*)msg, pana_session->avp_data[AUTH_AVP], 40)){
 			return FALSE; //Auth AVP not found
 		}
 
@@ -336,7 +336,7 @@ u8 * generateAUTH(pana_ctx * session) {
     seq_length += session->key_id_length;
 
     XFREE(result);
-    result = XMALLOC(u8,AUTH_KEY_LENGTH); //To get the 320bits result key
+    result = XMALLOC(u8,40); //To get the 320bits result key
 	
 	
 	/*fprintf(stderr,"DEBUG: PRF Seed is: \n");
@@ -351,12 +351,12 @@ u8 * generateAUTH(pana_ctx * session) {
                   result );
 	}
 	else if (PRF_SUITE == PRF_HMAC_SHA1) {
-		PRF_plus(1, session->msk_key, session->key_len, (u8*) sequence, seq_length, result);
+		PRF_plus(2, session->msk_key, session->key_len, (u8*) sequence, seq_length, result);
 	}
 	
 #else	
 	//Generate auth with hmac-sha1
-    PRF_plus(1, session->msk_key, session->key_len, (u8*) sequence, seq_length, result);
+    PRF_plus(2, session->msk_key, session->key_len, (u8*) sequence, seq_length, result);
 #endif
     
     if (result != NULL) {
@@ -364,11 +364,9 @@ u8 * generateAUTH(pana_ctx * session) {
     }
 
     /*int i;
-    for (i = 0; i < AUTH_KEY_LENGTH; i++) {
-        //pana_debug( "%02x ", (u8) result[i]);
-		printf( "%02x ", (u8) result[i]);
-    }
-    printf("\n");*/
+    for (i = 0; i < 40; i++) {
+        pana_debug( "%02x ", (u8) result[i]);
+    }*/
 
     XFREE(sequence); //Seed's memory is freed
     return result;

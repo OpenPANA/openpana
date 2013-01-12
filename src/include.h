@@ -160,11 +160,7 @@
 #endif
 
 #ifndef MSK_LENGTH
-	#define MSK_LENGTH  64
-#endif
-
-#ifndef AUTH_KEY_LENGTH
-	#define AUTH_KEY_LENGTH  20
+	#define MSK_LENGTH  40
 #endif
 
 #define SET		1 /**< SET state. */
