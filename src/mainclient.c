@@ -1,5 +1,5 @@
 /**
- * @file maincliente.c
+ * @file mainclient.c
  * @brief  PaC's main program.
  **/
 /*
@@ -25,7 +25,7 @@
  *  https://sourceforge.net/projects/openpana/
  */
  
-#include "maincliente.h"
+#include "mainclient.h"
 
 #include "state_machines/statemachine.h"
 #include "panamessages.h"
@@ -163,6 +163,10 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
+/* Deleted bind to a source port in the client. This is not mandatory in the RFC 5191.
+ * In addition, this makes openpana fail in case debug is activated.
+ * Without this bind in both versions, the PaC will take a random UDP source port assigned
+ * by the operating system.
 	if (IP_VERSION==4){
 		struct sockaddr_in ipbind;
 		ipbind.sin_family = AF_INET;
@@ -184,7 +188,8 @@ int main(int argc, char *argv[]) {
 			perror("bind");
 			pana_error("bind in mainCliente");
 		}
-	}
+	} */
+	
 	//Update the socket number in the session.
 	pana_session.socket = pana_sock;
 
@@ -348,7 +353,6 @@ int main(int argc, char *argv[]) {
         }
 		#endif
         
-
 		//If a PANA packet is received
         if (FD_ISSET(pana_sock, &readfds)) {
             uint16_t length =0;

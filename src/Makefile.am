@@ -14,7 +14,7 @@ openpaa_SOURCES               =	state_machines/session.c \
 				panamessages.c \
 				lalarm.c \
 				panautils.c \
-				mainservidor.c \
+				mainserver.c \
 				loadconfig.c \
 				aes.c \
 				cmac.c
@@ -36,7 +36,7 @@ openpac_SOURCES               =	state_machines/session.c \
 				panamessages.c \
 				lalarm.c \
 				panautils.c \
-				maincliente.c \
+				mainclient.c \
 				loadconfig.c \
 				aes.c \
 				cmac.c
