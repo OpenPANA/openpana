@@ -1,5 +1,5 @@
 /**
- * @file mainservidor.h
+ * @file mainserver.h
  * @brief  PAA's headers.
  **/
 /*
@@ -25,8 +25,8 @@
  *  https://sourceforge.net/projects/openpana/
  */
 
-#ifndef MAINSERVIDOR_H
-#define MAINSERVIDOR_H
+#ifndef MAINSERVER_H
+#define MAINSERVER_H
 
 #include "include.h"
 

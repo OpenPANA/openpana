@@ -1,5 +1,5 @@
 /**
- * @file mainservidor.c
+ * @file mainserver.c
  * @brief  PAA's main program.
  **/
 /*
@@ -25,7 +25,7 @@
  *  https://sourceforge.net/projects/openpana/
  */
 
-#include "mainservidor.h"
+#include "mainserver.h"
 
 #include "state_machines/statemachine.h"
 #include "state_machines/paamachine.h"

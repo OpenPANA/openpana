@@ -1,6 +1,6 @@
 
 AC_PREREQ([2.65])
-AC_INIT([OpenPANA], [0.2.3], [openpana-users@lists.sourceforge.net],[openpana],[http://openpana.sf.net])
+AC_INIT([OpenPANA], [0.2.4], [openpana-users@lists.sourceforge.net],[openpana],[http://openpana.sf.net])
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_AUX_DIR(config)
 AM_INIT_AUTOMAKE()
@@ -23,8 +23,10 @@ CFLAGS=$OLD_CFLAGS
 # Checks for libraries.
 AC_CHECK_LIB([pthread], [pthread_mutex_lock])
 AC_CHECK_LIB([ssl], [HMAC],[],[
-        echo "Error! You need to have ssl to continue."
-        exit -1
+		AC_CHECK_LIB([crypto], [HMAC],[],[
+			echo "Error! You need to have ssl or crypto to continue. Check which of these libraries contain the HMAC function in your system and install it to continue"
+			exit -1
+			])
         ])
 AC_CHECK_LIB([xml2], [xmlCleanupParser],[],[
         echo "Error! You need to have libxml2-dev to continue."
@@ -83,7 +85,7 @@ if test x"$debugit" = x"yes"; then
 else
     AC_DEFINE([NDEBUG],[],[No-debug Mode])
     AM_CFLAGS="$AM_CFLAGS -Os -ffunction-sections -fdata-sections "
-    AC_SUBST(DBG_LINKOPT," -Wl --gc-sections ")
+    AC_SUBST(DBG_LINKOPT," -Wl ")
     #AM_CPPFLAGS="$AM_CPPFLAGS -Wl --gc-sections "
 fi
 

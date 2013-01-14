@@ -57,8 +57,8 @@ int sendPana(struct sockaddr_in destaddr, char *msg, int sock) {
         bytesleft -= n;
     }
 
-	pana_debug("Sended to IP: %s , port %d", inet_ntoa(destaddr.sin_addr), ntohs(destaddr.sin_port));
-	pana_debug("Sended %d bytes to %s", total, inet_ntoa(destaddr.sin_addr));
+	pana_debug("Sent to IP: %s , port %d", inet_ntoa(destaddr.sin_addr), ntohs(destaddr.sin_port));
+	pana_debug("Sent %d bytes to %s", total, inet_ntoa(destaddr.sin_addr));
 
     if (n == -1) return -1;
     else return total;
@@ -97,8 +97,8 @@ int sendPana6(struct sockaddr_in6 destaddr6, char *msg, int sock) {
     }
 	
 	inet_ntop(AF_INET6, &(destaddr6.sin6_addr),str6, INET6_ADDRSTRLEN);
-	pana_debug("Sended to IP: %s , port %d", str6, ntohs(destaddr6.sin6_port));
-	pana_debug("Sended %d bytes to %s", total, str6);
+	pana_debug("Sent to IP: %s , port %d", str6, ntohs(destaddr6.sin6_port));
+	pana_debug("Sent %d bytes to %s", total, str6);
 
     if (n == -1) return -1;
     else return total;
@@ -178,7 +178,7 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
         memset(avpbytes + sizeof(avp_pana), 0, size); //Auth value set to 0
 
         //If the AUTH value cannot be hashed, its an error
-        if(hashAuth((char*)msg, pana_session->avp_data[AUTH_AVP], 40)){
+        if(hashAuth((char*)msg, pana_session->avp_data[AUTH_AVP], AUTH_KEY_LENGTH)){
 			return FALSE; //Auth AVP not found
 		}
 
@@ -336,7 +336,7 @@ u8 * generateAUTH(pana_ctx * session) {
     seq_length += session->key_id_length;
 
     XFREE(result);
-    result = XMALLOC(u8,40); //To get the 320bits result key
+    result = XMALLOC(u8,AUTH_KEY_LENGTH); //To get the 320bits result key
 	
 	
 	/*fprintf(stderr,"DEBUG: PRF Seed is: \n");
@@ -351,12 +351,12 @@ u8 * generateAUTH(pana_ctx * session) {
                   result );
 	}
 	else if (PRF_SUITE == PRF_HMAC_SHA1) {
-		PRF_plus(2, session->msk_key, session->key_len, (u8*) sequence, seq_length, result);
+		PRF_plus(1, session->msk_key, session->key_len, (u8*) sequence, seq_length, result);
 	}
 	
 #else	
 	//Generate auth with hmac-sha1
-    PRF_plus(2, session->msk_key, session->key_len, (u8*) sequence, seq_length, result);
+    PRF_plus(1, session->msk_key, session->key_len, (u8*) sequence, seq_length, result);
 #endif
     
     if (result != NULL) {
@@ -364,9 +364,11 @@ u8 * generateAUTH(pana_ctx * session) {
     }
 
     /*int i;
-    for (i = 0; i < 40; i++) {
-        pana_debug( "%02x ", (u8) result[i]);
-    }*/
+    for (i = 0; i < AUTH_KEY_LENGTH; i++) {
+        //pana_debug( "%02x ", (u8) result[i]);
+		printf( "%02x ", (u8) result[i]);
+    }
+    printf("\n");*/
 
     XFREE(sequence); //Seed's memory is freed
     return result;
@@ -400,7 +402,7 @@ int hashAuth(char *msg, char* key, int key_len) {
 	}
 #else
 	//Hash with hmac-sha1
-    PRF_plus(1, (u8*) key, key_len, (u8*) msg, ntohs(((pana*)msg)->msg_length), (u8*) (elmnt + sizeof(avp_pana)) );
+    PRF((u8*) key, key_len, (u8*) msg, ntohs(((pana*)msg)->msg_length), (u8*) (elmnt + sizeof(avp_pana)) );
 #endif
 
     return 0; //Everything went better than expected

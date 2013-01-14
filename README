@@ -50,6 +50,9 @@ o STANDARD REFERENCES
   EAP-TLS
 	RFC5216 - "The EAP-TLS Authentication Protocol"
 
+  EAP-PSK
+	RFC4764 - "The EAP-PSK Protocol: A Pre-Shared Key Extensible Authentication Protocol (EAP) Method"
+
 o Install
 
  1. OpenPANA requires the following libraries:
@@ -154,9 +157,9 @@ o  License
 
 o Initial Authors
 
-	Rafa Marín López <rafa@um.es>		    - Universidad de Murcia
-	Pedro Moreno Sánchez <p.morenosanchez@um.es>- Universidad de Murcia
-	Francisco Vidal Meca <f.vidalmeca@um.es>    - Universidad de Murcia
+	Rafa Marín López <rafa@um.es>		         - Universidad de Murcia
+	Pedro Moreno Sánchez <p.morenosanchez@um.es> - Universidad de Murcia
+	Francisco Vidal Meca <f.vidalmeca@um.es>     - Universidad de Murcia
 
 
 o Acknowledgments
@@ -165,4 +168,5 @@ o Acknowledgments
  Jouni Malinen   - Hostapd implementation
  Ibán Morote     - OpenPANA Logo http://cargocollective.com/ibanmorote
  Alejandro Pérez - Bugfixes
+
 

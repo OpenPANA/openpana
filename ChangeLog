@@ -52,7 +52,7 @@ ChangeLog for OpenPANA
 			PRF function: AES-CMAC
 			AUTH function: AES-CMAC
 
-2012-05-08 - v0.2-3
+2012-06-01 - v0.2.3
 	* New features developed:
 		- PANA Relay Support. Added openpre entity. Supported in IPv4 and IPv6.
 			· Added transmissionMessage function parameter  (msg_relayed) to indicate if a message needs to be relayed.
@@ -76,3 +76,22 @@ ChangeLog for OpenPANA
 			· PORT_PAA. Port where the PRE listen to incoming PAA messages.
 			· IP_PAA. IP address of the PANA Agent.
 			· PORT_PAA. Port where the PANA Agent is listening to PANA messages.
+
+2013-01-14 - v0.2.4
+	* Adaptation in configure.ac for new Linux based systems (e.g. Ubuntu 12.04)
+		- HMAC function is located in libcrypto library instead of libssl. Checking performed
+		in configure.ac file has been adapted correspondingly.
+		- --gc-sections compilation flag is not recognized. It has been deleted.
+
+	* PANA_AUTH_KEY has been redefined as 20 bytes length. This must be the length when function HMAC_SHA1 is agreed as defined in RFC 5191.
+
+	* Solved problem with PRF and PRF_plus functions. Changed call to PRF_plus function with 1 iteration by a call to PRF function.
+
+	* Solved problem with bind in mainclient. Commented piece of code where the source port was bind.
+
+	* Changed name to some files:
+		-	maincliente.* --> mainclient.*
+		-	mainservidor.* --> mainserver.*
+
+	* Config.xml has been updated with a working configuration example already set. 
+
