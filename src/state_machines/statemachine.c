@@ -494,11 +494,11 @@ int livenessTestPeer() {
 		char * unused;
 		if (IP_VERSION==4){
 			#ifdef ISCLIENT
-				unused = transmissionMessage("PNA", P_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, 0, IP_VERSION, &(current_session->eap_ll_dst_addr), current_session->avp_data, current_session->socket,  FALSE);
+				unused = transmissionMessage("PNA", P_FLAG, &(current_session->NEXT_INCOMING_REQUEST), current_session->session_id, 0, IP_VERSION, &(current_session->eap_ll_dst_addr), current_session->avp_data, current_session->socket,  FALSE);
 			#endif
 			
 			#ifdef ISSERVER
-			unused = transmissionMessage("PNA", P_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, 0, IP_VERSION, &(current_session->eap_ll_dst_addr), current_session->avp_data, current_session->socket, (current_session->pre_dst_addr.sin_family == AF_INET));
+			unused = transmissionMessage("PNA", P_FLAG, &(current_session->NEXT_INCOMING_REQUEST), current_session->session_id, 0, IP_VERSION, &(current_session->eap_ll_dst_addr), current_session->avp_data, current_session->socket, (current_session->pre_dst_addr.sin_family == AF_INET));
 			
 			if (current_session->pre_dst_addr.sin_family==AF_INET){
 				current_session->retr_msg = transmissionRelayedMessage(IP_VERSION, &(current_session->pre_dst_addr), unused, current_session->socket, &(current_session->eap_ll_dst_addr));
@@ -508,11 +508,11 @@ int livenessTestPeer() {
 		}
 		else if (IP_VERSION==6){
 			#ifdef ISCLIENT
-				unused = transmissionMessage("PNA", P_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, 0, IP_VERSION, &(current_session->eap_ll_dst_addr6), current_session->avp_data, current_session->socket, FALSE);
+				unused = transmissionMessage("PNA", P_FLAG, &(current_session->NEXT_INCOMING_REQUEST), current_session->session_id, 0, IP_VERSION, &(current_session->eap_ll_dst_addr6), current_session->avp_data, current_session->socket, FALSE);
 			#endif
 			
 			#ifdef ISSERVER
-			unused = transmissionMessage("PNA", P_FLAG, &(current_session->SEQ_NUMBER), current_session->session_id, 0, IP_VERSION, &(current_session->eap_ll_dst_addr6), current_session->avp_data, current_session->socket, (current_session->pre_dst_addr6.sin6_family == AF_INET6));
+			unused = transmissionMessage("PNA", P_FLAG, &(current_session->NEXT_INCOMING_REQUEST), current_session->session_id, 0, IP_VERSION, &(current_session->eap_ll_dst_addr6), current_session->avp_data, current_session->socket, (current_session->pre_dst_addr6.sin6_family == AF_INET6));
 			
 			if (current_session->pre_dst_addr6.sin6_family == AF_INET6) {
 				current_session->retr_msg = transmissionRelayedMessage(IP_VERSION, &(current_session->pre_dst_addr6), unused, current_session->socket, &(current_session->eap_ll_dst_addr6));

@@ -140,19 +140,22 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
         //o un número menos del que se ha recibido.
         //Aunque en el servidor no se va a dar nunca el 0, puede suceder con el PCI en el cliente
         
-        if (pana_session->SEQ_NUMBER != 0 && pana_session->SEQ_NUMBER != ( seq_number - 1)) {
+
+        if (pana_session->NEXT_INCOMING_REQUEST != 0 && pana_session->NEXT_INCOMING_REQUEST != ( seq_number - 1)) {
+		
 			pana_error("Wrong Request secuence number. Dropping message");
             return 0;
         }
         //Si recibes un request válido, hay que actualizar el número de secuencia para el answer
-        pana_session->SEQ_NUMBER = seq_number;
+        pana_session->NEXT_INCOMING_REQUEST = seq_number;
     } else if (msg_type != PCI_MSG) { //No es PCI, es un Answer
 		
-        if (pana_session->SEQ_NUMBER != seq_number) { //Si se recibe un answer erroneo
+        if (pana_session->NEXT_OUTGOING_REQUEST != seq_number) { //Si se recibe un answer erroneo
 			pana_error("Wrong Answer secuence number. Dropping message");
-			pana_debug("Values: session -> %d, message -> %d", pana_session->SEQ_NUMBER, seq_number);
+			pana_debug("Values: session -> %d, message -> %d", pana_session->NEXT_OUTGOING_REQUEST, seq_number);
             return 0;
         }
+	
     }
     
     //Then the AUTH avp value is checked if found

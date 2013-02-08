@@ -159,7 +159,11 @@ typedef struct {
     /**
      * This event variable is set with the number of the package number in the sequence
      */
-    uint32_t SEQ_NUMBER;
+//    uint32_t SEQ_NUMBER;
+
+    uint32_t NEXT_INCOMING_REQUEST;
+    uint32_t NEXT_OUTGOING_REQUEST;
+
     /**
      * This event variable is set with the last Pana Message received
      */
