@@ -139,10 +139,8 @@ void * process_receive_eap_ll_msg(void *arg) {
 
 		//Restore the message sent by the PaC from the RelayedMessage AVP
 		msg = (pana*) (getAvp(pana_params->pana_msg, RELAYEDMESSAGE_AVP)+sizeof(avp_pana));
-		
-
 	}
-		
+
     if (ntohs(msg->msg_type) == PCI_MSG) {//If a PCI message is received
 
 		// A session is created to make a transition but it's not saved. It tries to avoid
@@ -310,7 +308,7 @@ void* process_receive_radius_msg(void* arg) {
 			transition((pana_ctx *) eap_ctx->eap_ll_ctx);
 		}
 		
-        if ((eap_auth_get_eapReq(eap_ctx) == TRUE)
+        else if ((eap_auth_get_eapReq(eap_ctx) == TRUE)
                 || (eap_auth_get_eapSuccess(eap_ctx) == TRUE)) {
 					
 			pana_debug("There's an eap request in RADIUS");
@@ -319,6 +317,8 @@ void* process_receive_radius_msg(void* arg) {
             pthread_mutex_unlock(&(ll_session->mutex));
             return NULL;
         }
+        else
+			pana_debug("There is not eap information in the last received RADIUS message");
     }
     pthread_mutex_unlock(&(ll_session->mutex));
     return NULL;
@@ -883,13 +883,14 @@ void check_eap_status(pana_ctx *pana_session) {
 		pana_debug("There's an EAPSUCESS");
         transition(pana_session);
     }
+    //FIXME: Is it necessary to check the EAP NO Request and EAP Timeout every time?
     if (eap_auth_get_eapNoReq(&(pana_session->eap_ctx)) == TRUE) {
 		pana_debug("There's an EAP NO REQUEST");
-        transition(pana_session);
+        //transition(pana_session);
     }
     if (eap_auth_get_eapTimeout(&(pana_session->eap_ctx)) == TRUE) {
 		pana_debug("There's an EAP TIMEOUT");
-        transition(pana_session);
+        //transition(pana_session);
     }
     //It is not necessary to check the availability of the key every time
     /*if (eap_auth_get_eapKeyAvailable(&(pana_session->eap_ctx)) == TRUE) {

@@ -119,8 +119,6 @@ void initSession(pana_ctx * pana_session) {
     pana_session->NEXT_INCOMING_REQUEST = 0;
     pana_session->NEXT_OUTGOING_REQUEST = rand();
 
-	printf("EL VALOR ALEATORI0 GENERADO PARA EL CLIENTE ES: %02x \n",pana_session->NEXT_OUTGOING_REQUEST);
-
     pana_session->session_id = 0;
 	
     //Init the EAP user
@@ -147,8 +145,7 @@ void initSession(pana_ctx * pana_session) {
 //    pana_session->SEQ_NUMBER = rand(); //rand has been initialized before
 
     srand(time(NULL));
-    pana_session->NEXT_OUTGOING_REQUEST = rand(); //rand has been initialized before    
-    printf("EL VALOR ALEATORI0 GENERADO PARA EL SERVIDOR ES: %02x \n",pana_session->NEXT_OUTGOING_REQUEST);
+    pana_session->NEXT_OUTGOING_REQUEST = rand(); //rand has been initialized before
     pana_session->NEXT_INCOMING_REQUEST = 0;	
 	
 	pana_session->server_ctx.global_key_id = NULL;

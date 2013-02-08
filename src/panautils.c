@@ -84,6 +84,7 @@ int sendPana6(struct sockaddr_in6 destaddr6, char *msg, int sock) {
     uint16_t total = 0; // Total bytes sended
     short n = 0;
     uint16_t bytesleft = len;
+    
     while (total < len) {
         n = sendto(sock, msg + total, bytesleft, 0,
                 (struct sockaddr *) & destaddr6, sizeof (destaddr6));
@@ -155,7 +156,6 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
 			pana_debug("Values: session -> %d, message -> %d", pana_session->NEXT_OUTGOING_REQUEST, seq_number);
             return 0;
         }
-	
     }
     
     //Then the AUTH avp value is checked if found

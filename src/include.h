@@ -45,7 +45,6 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-
 #ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
 #endif
