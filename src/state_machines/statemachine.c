@@ -55,6 +55,8 @@ void initTable() {
     table [WAIT_FAIL_PAN][RETRANSMISSION] = retransmission;
 
     table [WAIT_SUCC_PAN][RETRANSMISSION] = retransmission;
+
+    table [WAIT_PAN_OR_PAR][RETRANSMISSION] = retransmission;
     //-----------------------------------------------------------------------//
 
     table [INITIAL][REACH_MAX_NUM_RT] = reachMaxNumRt;

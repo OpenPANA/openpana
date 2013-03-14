@@ -84,6 +84,7 @@ int sendPana6(struct sockaddr_in6 destaddr6, char *msg, int sock) {
     uint16_t total = 0; // Total bytes sended
     short n = 0;
     uint16_t bytesleft = len;
+    
     while (total < len) {
         n = sendto(sock, msg + total, bytesleft, 0,
                 (struct sockaddr *) & destaddr6, sizeof (destaddr6));
@@ -513,31 +514,40 @@ void pana_warning (const char *message, ...){
 
 void pana_error (const char *message, ...){
 	va_list args;
-    fprintf (stderr,"PANA: ERROR: ");
+    //fprintf (stderr,"PANA: ERROR: ");
+    fprintf (stdout,"PANA: ERROR: ");
     va_start( args, message );
-    vfprintf( stderr, message, args );
+    //vfprintf( stderr, message, args );
+    vfprintf( stdout, message, args );
     va_end( args );
-    fprintf( stderr, ".\n" );
+    //fprintf( stderr, ".\n" );
+    fprintf( stdout, ".\n" );
 }
 
 void pana_fatal (const char *message, ...){
 	va_list args;
-    fprintf (stderr,"PANA: FATAL: ");
+    //fprintf (stderr,"PANA: FATAL: ");
+    fprintf (stdout,"PANA: FATAL: ");
     va_start( args, message );
-    vfprintf( stderr, message, args );
+    //vfprintf( stderr, message, args );
+    vfprintf( stdout, message, args );
     va_end( args );
-    fprintf( stderr, ".\n" );
+    //fprintf( stderr, ".\n" );
+    fprintf( stdout, ".\n" );
 	exit(EXIT_FAILURE);
 }
 
 void pana_debug (const char *message, ...) {
 	#ifdef DEBUG
 	va_list args;
-    fprintf (stderr,"PANA: DEBUG: ");
+    //fprintf (stderr,"PANA: DEBUG: ");
+    fprintf (stdout,"PANA: DEBUG: ");
     va_start( args, message );
-    vfprintf( stderr, message, args );
+    //vfprintf( stderr, message, args );
+    vfprintf( stdout, message, args );
     va_end( args );
-    fprintf( stderr, ".\n" );
+    //fprintf( stderr, ".\n" );
+    fprintf( stdout, ".\n" );
 	#endif
 }
 

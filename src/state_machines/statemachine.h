@@ -105,28 +105,14 @@
 
 
 // Events
-#ifdef ISCLIENT
 /** Retransmission Event. */
-#define RETRANSMISSION			11
+#define RETRANSMISSION			0
 /** Reached maximum number of retransmissions event. */
-#define REACH_MAX_NUM_RT		12
+#define REACH_MAX_NUM_RT		1
 /** Liveness test peer event. */
-#define LIVENESS_TEST_PEER		13
+#define LIVENESS_TEST_PEER		2
 /** Liveness test response event. */
-#define LIVENESS_TEST_RESPONSE  14
-#endif
-
-
-#ifdef ISSERVER
-/** Retransmission Event. */
-#define RETRANSMISSION			18
-/** Reached maximum number of retransmissions event. */
-#define REACH_MAX_NUM_RT		19
-/** Liveness test peer event. */
-#define LIVENESS_TEST_PEER		20
-/** Liveness test response event. */
-#define LIVENESS_TEST_RESPONSE  21
-#endif
+#define LIVENESS_TEST_RESPONSE  3
 
 
 /** Array to show PANA state's names. */ 

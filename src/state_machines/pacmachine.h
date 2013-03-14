@@ -28,27 +28,27 @@
 
 // Events
 /** PaC-initiated Handshake event. */
-#define PAC_INIT_HANDSHAKE      0
+#define PAC_INIT_HANDSHAKE      4
 /** PAA-initiated Handshake event. */
-#define PAA_INIT_HANDSHAKE 		1
+#define PAA_INIT_HANDSHAKE 		5
 /** PANA result event. */
-#define PANA_RESULT				2
+#define PANA_RESULT				6
 /** PAR-PAN exchange event. */
-#define PAR_PAN_EXCHANGE   		3
+#define PAR_PAN_EXCHANGE   		7
 /** Return PAN/PAR from EAP event. */
-#define RETURN_PAN_PAR_FROM_EAP	4
+#define RETURN_PAN_PAR_FROM_EAP	8
 /** EAP result event.*/
-#define EAP_RESULT				5
+#define EAP_RESULT				9
 /** Liveness test initiated by PaC event. */
-#define LIVENESS_TEST_INIT_PAC	6
+#define LIVENESS_TEST_INIT_PAC	10
 /** Session termination initiated by PAA event. */
-#define SESSION_TERM_INIT_PAA	7
+#define SESSION_TERM_INIT_PAA	11
 /** Session termination initiated by PaC event. */
-#define SESSION_TERM_INIT_PAC	8
+#define SESSION_TERM_INIT_PAC	12
 /** Re-authentication initiated by PaC event. */
-#define REAUTH_INIT_PAC			9
+#define REAUTH_INIT_PAC			13
 /** Re-authentication initiated by PAA event. */
-#define REAUTH_INIT_PAA			10
+#define REAUTH_INIT_PAA			14
 
 // Procedures
 /**

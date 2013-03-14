@@ -29,7 +29,7 @@
 int pac =0;
 int paa =0;
 int pre =0;
-
+static int checkconfig = FALSE;
 
 char * getInterfaceIPaddress (int ip_version, char* interface){
 	char * address; //It will contain the address
@@ -41,6 +41,13 @@ char * getInterfaceIPaddress (int ip_version, char* interface){
 	if (ip_version != 4 && ip_version!= 6 ){
 		pana_error("getInterfaceIPaddress: the IP version must be IPv4 or IPv6");
 		return NULL;
+	}
+
+	if (strcmp(interface, "tun0") == 0){
+		pana_error("tun0 interface is not supported");
+		address="aaaa::ff:fe00:1";
+		return address;
+		exit(0);
 	}
 	
     getifaddrs(&ifAddrStruct);
@@ -87,7 +94,7 @@ char * getInterfaceIPaddress (int ip_version, char* interface){
 static void parse_xml_client(xmlNode * a_node) {
 #ifdef ISCLIENT
     xmlNode *cur_node = NULL;
-	int checkconfig = FALSE;
+	checkconfig = FALSE;
     for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
         if (cur_node->type == XML_ELEMENT_NODE) {
 			if (strcmp((char*) cur_node->name, "IP_VERSION")==0) {
@@ -379,7 +386,7 @@ static void parse_xml_client(xmlNode * a_node) {
 static void parse_xml_server(xmlNode * a_node){
 #ifdef ISSERVER
     xmlNode *cur_node = a_node;
-	int checkconfig = FALSE;
+	checkconfig = FALSE;
 	
     for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
         if (cur_node->type == XML_ELEMENT_NODE) {
@@ -619,7 +626,7 @@ static void parse_xml_server(xmlNode * a_node){
 static void parse_xml_pre(xmlNode * a_node) {
 
     xmlNode *cur_node = NULL;
-	int checkconfig = FALSE;
+	checkconfig = FALSE;
     for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
         if (cur_node->type == XML_ELEMENT_NODE) {
 			if (strcmp((char*) cur_node->name, "IP_VERSION")==0) {

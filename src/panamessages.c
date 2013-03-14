@@ -217,6 +217,7 @@ char * transmissionRelayedMessage (int ip_ver, void *destaddr, char* msg, int so
 			pana_fatal("sendPana");
 		}
 	}
+
 	return message;
 }
 
@@ -409,13 +410,6 @@ char * transmissionMessage(char * msgtype, uint16_t flags, uint32_t *sequence_nu
 		}
 	}
 	#endif
-
-#ifdef AESCRYPTO
-	//After sending a PNA message, there should be a pause for the constrained device 
-	if ( strcmp ("PNA", msgtype) ==0) {
-		usleep(50000);
-	}
-#endif
 
 	return (char*)msg;
 }
@@ -691,6 +685,7 @@ char * getMsgName(uint16_t msg_type) {
 
 void debug_msg(pana *hdr){
 	#ifdef DEBUG
+    /*fprintf(stderr,"Pana Message Name: %s \n", getMsgName(ntohs(hdr->msg_type)));
     fprintf(stderr,"Pana Message Name: %s \n", getMsgName(ntohs(hdr->msg_type)));
     //fprintf(stderr," 0                   1                   2                   3\n");
     //fprintf(stderr," 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1\n");
@@ -710,8 +705,30 @@ void debug_msg(pana *hdr){
     fprintf(stderr,"|                     Session Identifier: %#X            |\n", ntohl(hdr->session_id));
     fprintf(stderr,"+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
     fprintf(stderr,"|                     Sequence Number: %#X               |\n", ntohl(hdr->seq_number));
-    fprintf(stderr,"+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
+    fprintf(stderr,"+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");*/
 
+	fprintf(stdout,"Pana Message Name: %s \n", getMsgName(ntohs(hdr->msg_type)));
+    fprintf(stdout,"Pana Message Name: %s \n", getMsgName(ntohs(hdr->msg_type)));
+    //fprintf(stdout," 0                   1                   2                   3\n");
+    //fprintf(stdout," 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1\n");
+    fprintf(stdout,"+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
+    fprintf(stdout,"|        Reserved:%d           |          MessageLength: %d      |\n", ntohs(hdr->reserved), ntohs(hdr->msg_length));
+    fprintf(stdout,"+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
+    fprintf(stdout,"|       Flags: ");
+    uint16_t flags = ntohs(hdr->flags);//R S C A P I
+    fprintf(stdout,"%s",(flags & R_FLAG)?"R":"-");
+    fprintf(stdout,"%s",(flags & S_FLAG)?"S":"-");
+    fprintf(stdout,"%s",(flags & C_FLAG)?"C":"-");
+    fprintf(stdout,"%s",(flags & A_FLAG)?"A":"-");
+    fprintf(stdout,"%s",(flags & P_FLAG)?"P":"-");
+    fprintf(stdout,"%s",(flags & I_FLAG)?"I":"-");
+    fprintf(stdout,"         |       MessageType: %d            |\n",  ntohs(hdr->msg_type));
+    fprintf(stdout,"+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
+    fprintf(stdout,"|                     Session Identifier: %#X            |\n", ntohl(hdr->session_id));
+    fprintf(stdout,"+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
+    fprintf(stdout,"|                     Sequence Number: %#X               |\n", ntohl(hdr->seq_number));
+    fprintf(stdout,"+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
+    
     uint16_t size = ntohs(hdr->msg_length) - sizeof (pana);
     uint16_t offset = 0;
     char * msg = (char *) hdr;
@@ -735,7 +752,7 @@ void debug_avp(avp_pana * datos){
 	if(avpname != NULL){
 		
 		uint16_t sizevalue = ntohs(datos->length);
-		fprintf(stderr,"AVP Name: %s\n", avpname);
+		/*fprintf(stderr,"AVP Name: %s\n", avpname);
 		//fprintf(stderr," 0                   1                   2                   3\n");
 		//fprintf(stderr," 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1\n");
 		fprintf(stderr,"+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
@@ -743,25 +760,41 @@ void debug_avp(avp_pana * datos){
 		fprintf(stderr,"+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
 		fprintf(stderr,"|       AVP Length: %d           |       Reserved: %d           |\n", sizevalue, ntohs(datos->reserved));
 		fprintf(stderr,"+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
-		fprintf(stderr,"|    Value: ");
+		fprintf(stderr,"|    Value: ");*/
+
+		fprintf(stdout,"AVP Name: %s\n", avpname);
+		//fprintf(stdout," 0                   1                   2                   3\n");
+		//fprintf(stdout," 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1\n");
+		fprintf(stdout,"+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
+		fprintf(stdout,"|        AVP Code:%d            |           AVP Flags:%d         |\n", ntohs(datos->code), ntohs(datos->flags));
+		fprintf(stdout,"+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
+		fprintf(stdout,"|       AVP Length: %d           |       Reserved: %d           |\n", sizevalue, ntohs(datos->reserved));
+		fprintf(stdout,"+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
+		fprintf(stdout,"|    Value: ");
 
 		if(ntohs(datos->code) == EAPPAYLOAD_AVP){
-			fprintf(stderr," EAP-Payload omitted.");
+			//fprintf(stderr," EAP-Payload omitted.");
+			fprintf(stdout," EAP-Payload omitted.");
 		}
 		else if(ntohs(datos->code) == RELAYEDMESSAGE_AVP){
-			fprintf(stderr," Relayed-Message payload omitted.");
+			//fprintf(stderr," Relayed-Message payload omitted.");
+			fprintf(stdout," Relayed-Message payload omitted.");
 		}
 		else if (sizevalue > 0 ) {
 			for(uint16_t i = 0; i< sizevalue; i++){
-				fprintf(stderr," %.2X",((*(((char*)datos) + sizeof(avp_pana) + i))&0xFF));
+				//fprintf(stderr," %.2X",((*(((char*)datos) + sizeof(avp_pana) + i))&0xFF));
+				fprintf(stdout," %.2X",((*(((char*)datos) + sizeof(avp_pana) + i))&0xFF));
 				if (i!=0 && i%16 == 0)
-				fprintf(stderr,"\n            ");
+				//fprintf(stderr,"\n            ");
+				fprintf(stdout,"\n            ");
 			}
 		}
 		else{
-			fprintf(stderr," (none)");
+			//fprintf(stderr," (none)");
+			fprintf(stdout," (none)");
 		}
-		fprintf(stderr,"\n+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
+		//fprintf(stderr,"\n+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
+		fprintf(stdout,"\n+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
     }
     #endif
 }
