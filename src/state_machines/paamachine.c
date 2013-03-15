@@ -515,12 +515,11 @@ int reauthInitPacStateOpen() {
 			if (current_session->pre_dst_addr6.sin6_family==AF_INET6) {
 				current_session->retr_msg = transmissionRelayedMessage(IP_VERSION, &(current_session->pre_dst_addr6), current_session->retr_msg, current_session->socket, &(current_session->eap_ll_dst_addr6));
 			}
-			/*#ifdef AESCRYPTO
+			#ifdef AESCRYPTO
 			// Hack to operate with small nodes such as z1, jennic.
 			// In those scenarios, PNA and next message (EAP Request Identity) cannot be sent simultaneously
 			pana_warning("Sleeping node because of constrained working mode");
-			waitusec(100000);
-			//usleep(500000);
+			waitusec(500000);
 			#endif*/
 		}
         return WAIT_EAP_MSG;
