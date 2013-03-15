@@ -44,7 +44,6 @@ char * getInterfaceIPaddress (int ip_version, char* interface){
 	}
 
 	if (strcmp(interface, "tun0") == 0){
-		pana_error("tun0 interface is not supported");
 		address="aaaa::ff:fe00:1";
 		return address;
 		exit(0);
@@ -244,8 +243,8 @@ static void parse_xml_client(xmlNode * a_node) {
 						// file doesn't exist in config directory
 						if( access( value, F_OK ) == -1 ) {
 							//FIXME
-							pana_error("CA Certificate \"%s\" needed to run doesn't exist",value);
-							checkconfig = TRUE;
+							pana_warning("CA Certificate \"%s\" needed to run EAP-TLS doesn't exist",value);
+							//checkconfig = TRUE;
 						}
 						else{
 							printf("PANA: Loading %s from current directory.\n",value);
@@ -271,8 +270,8 @@ static void parse_xml_client(xmlNode * a_node) {
 					if( access( complete, F_OK ) == -1 ) {
 						// file doesn't exist in config directory
 						if( access( value, F_OK ) == -1 ) {
-							pana_error("Client's certificate \"%s\" needed to run doesn't exist",value);
-							checkconfig = TRUE;
+							pana_warning("Client's certificate \"%s\" needed to run EAP-TLS doesn't exist",value);
+							//checkconfig = TRUE;
 						}
 						else{
 							printf("PANA: Loading %s from current directory.\n",value);
@@ -296,8 +295,8 @@ static void parse_xml_client(xmlNode * a_node) {
 					if( access( complete, F_OK ) == -1 ) {
 						// file doesn't exist in config directory
 						if( access( value, F_OK ) == -1 ) {
-							pana_error("Client's key file \"%s\" needed to run doesn't exist",value);
-							checkconfig = TRUE;
+							pana_warning("Client's key file \"%s\" needed to run EAP-TLS doesn't exist",value);
+							//checkconfig = TRUE;
 						}
 						else{
 							printf("PANA: Loading %s from current directory.\n",value);
