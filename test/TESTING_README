@@ -1,0 +1,51 @@
+                   OpenPANA Unit Testing Framework
+                   ===============================
+
+Author: Francisco Vidal Meca
+Date: 2013-07-07 Sun
+
+
+Table of Contents
+=================
+1 Framework Used
+    1.1 Requirements
+2 Testing
+3 Work
+
+
+1 Framework Used 
+-----------------
+[Ceedling] (CMock + Unity + CException).
+
+Documentation available in the folder
+$OPENPANA/vendor/ceedling/docs
+Where "$OPENPANA" is the OpenPANA project root folder.
+
+
+[Ceedling]: http://throwtheswitch.org/white-papers/ceedling-intro.html
+
+1.1 Requirements 
+=================
+Tested in Ubuntu 11.10 Oneiric. 
+Bash and Ruby [1.9] needed.
+
+ $ rake version
+ Ceedling:: 0.10.226
+ CException:: 1.2.16
+ CMock:: 2.0.212
+ Unity:: 2.1.0.118
+
+*Warning:* /Rake has proven not to work correctly with Ruby <1.9 and other shells (not creating modules with Z Shell (zsh)./
+
+2 Testing 
+----------
+To run tests, go to the root folder and using bash:
+$ rake test:all
+Other options available with:
+$ rake -T
+
+3 TODO Work 
+------------
+- Integrate with autotools? May not be needed, Tests do not ship with releases!
+- Example module added. Still to determine Mocking and real-example.
+- Start testing modules.

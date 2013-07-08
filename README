@@ -14,13 +14,19 @@ o DIRECTORIES
 
   src/ - All the code, certs and example applications including client (openpac) and server (openpaa) and config file.
   
-  src/wpa_supplicant/ - WPA Supplicant's implementation done by Jouni Malinen ( http://hostap.epitest.fi ) using v0.7.1
+  src/wpa_supplicant/ - WPA Supplicant's implementation done by Jouni Malinen ( http://hostap.epitest.fi ) using v0.7.1 .
 			
-  src/libeapstack/ - Implementation of the wrapper done from EAP library by Rafa Marín López
+  src/libeapstack/ - Implementation of the wrapper done from EAP library by Rafa Marín López.
   
-  src/state_machines/ - Code implementing the conceptual state machines for PANA (RFC 5609)  
+  src/state_machines/ - Code implementing the conceptual state machines for PANA (RFC 5609)  .
 
   doxyfiles/ - Files needed for generating the documentation.
+
+  build/ - Build directory for Unit Testing. Contents will be recreated on testing.
+
+  test/ - Test cases.
+
+  vendor/ - Ceedling Unit Test Framework files.
 
 o What is the OpenPANA?
 
@@ -157,7 +163,7 @@ o  License
 
 o Initial Authors
 
-	Rafa Marín López <rafa@um.es>		         - Universidad de Murcia
+	Rafa Marín López <rafa@um.es>		     - Universidad de Murcia
 	Pedro Moreno Sánchez <p.morenosanchez@um.es> - Universidad de Murcia
 	Francisco Vidal Meca <f.vidalmeca@um.es>     - Universidad de Murcia
 
@@ -168,5 +174,3 @@ o Acknowledgments
  Jouni Malinen   - Hostapd implementation
  Ibán Morote     - OpenPANA Logo http://cargocollective.com/ibanmorote
  Alejandro Pérez - Bugfixes
-
-

@@ -1,6 +1,6 @@
 
 AC_PREREQ([2.65])
-AC_INIT([OpenPANA], [0.2.4], [openpana-users@lists.sourceforge.net],[openpana],[http://openpana.sf.net])
+AC_INIT([OpenPANA], [0.2.4.1], [openpana-users@lists.sourceforge.net],[openpana],[http://openpana.sf.net])
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_AUX_DIR(config)
 AM_INIT_AUTOMAKE()

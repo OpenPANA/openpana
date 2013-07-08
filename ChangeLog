@@ -95,3 +95,10 @@ ChangeLog for OpenPANA
 
 	* Config.xml has been updated with a working configuration example already set. 
 
+2013-07-07 - v0.2.4.1
+	* Added Ceedling Unit Testing Framework.
+	See http://throwtheswitch.org/white-papers/ceedling-intro.html
+
+	* TODO:
+	Implement Unit Tests.
+	Integrate with Autotools.
