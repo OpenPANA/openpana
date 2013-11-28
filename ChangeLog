@@ -1,0 +1,97 @@
+ChangeLog for OpenPANA
+
+
+2011-09-15 - v0.1
+	* Initial version of OpenPANA.
+	* Many aspects defined in IETF RFC 5191 and 5609 are covered such as
+		- Integrity check.
+		- Authentication, authorization, reauthentication and termination phases
+		  are implemented.
+		- Sequence Number and Retransmission.
+		- PANA SA.
+		- Message Authentication.
+		- Session Lifetime.
+
+	* Some features developed:
+		- Multithreading solution.
+		- It is allowed the authentication of a lot of users.
+		- Available multiple EAP methods (see hostapd implementation for more
+		  information).
+		- XML based configuration file available in ./src/ and when the program is installed in /etc/openpana
+		- Doxygen documentation.
+
+2011-11-30 - v0.2
+	* Some bugs fixed:
+		- Bad transcription of a transition in PaC state machine.
+		- Increased Maximum size of a packet
+
+	* New features developed:
+		- Ping messages exchange. This exchange can be initiated by both PaC and PAA.
+		- IPv6 support:
+			· Added struct sockaddr_in6 in the pana_ctx.
+			· Added initializing of this struct in case of using IPv6 addressing.
+			· Added sendPana6 function. The same function as sendPana but with IPv6 support.
+			· Added parameter in transmissionMessage function. The sixth parameter is the
+			  version of IP which is used.
+
+	* New configurable values in the configuration file:
+		- EAP PIGGYBACK. To set or unset the eap piggyback option in the message exchange.
+		- PING TIME. Delay between two ping messages exchanged in the access phase.
+		- NUMBER PING. Number of ping messages exchanged in the access phase.
+		- IP VERSION. Version IP used between PaC and PAA. (4 for IPv4 and 6 for IPv6)
+		- IP VERSION AUTH. Version IP used in the communication between PAA and AAA server. (4 for IPv4 and 6 for IPv6)
+
+2012-02-03 - v0.2.1
+	* Some bugs fixed:
+		- Segmentation fault in the ping message exchange
+		- Deleted checking of PAA port (before this version it must be set to 716)
+	
+2012-04-26 - v0.2.2
+	* New features developed:
+		- Added support for AES cryptographic suite (needed for panatiki testbed):
+			PRF function: AES-CMAC
+			AUTH function: AES-CMAC
+
+2012-06-01 - v0.2.3
+	* New features developed:
+		- PANA Relay Support. Added openpre entity. Supported in IPv4 and IPv6.
+			· Added transmissionMessage function parameter  (msg_relayed) to indicate if a message needs to be relayed.
+			· Added function transmissionRelayedMessage(). This function sends the message relayed if it is called.
+			· Added PRE destination address in pana_ctx. 
+		- The PaC entity can be PANA Relay after authenticated. (See INSTALL for knowing how to get this way of working).
+			· Added two additional sockets management (pac_sock: message from PaC to be relayed; paa_sock: message from PAA to extract from the relayed received).
+			· Added authenticated_flag variable. Indicate if the PaC is authenticated and it can relay messages.
+		- Added PANA Relay Messages:
+			· PaC-Information AVP
+			· Relayed-Message AVP
+
+	* New configurable values in the configuration file:
+		- INTERFACE. To indicate what is the interface to listen to messages.
+		- PAC/IP_PAA. IP address of the PANA Agent.
+		- PAC/PORT_PAA. Port where the PANA Agent is listening to PANA messages.
+		- PRE. Configuration parameters of the PANA Relay.
+			· INTERFACE_PAC. Interface where the PRE listen to incoming PAC messages.
+			· PORT_PAC. Port where the PRE listen to incoming PAC messages.
+			· INTERFACE_PAA. Interface where the PRE listen to incoming PAA messages.
+			· PORT_PAA. Port where the PRE listen to incoming PAA messages.
+			· IP_PAA. IP address of the PANA Agent.
+			· PORT_PAA. Port where the PANA Agent is listening to PANA messages.
+
+2013-01-14 - v0.2.4
+	* Adaptation in configure.ac for new Linux based systems (e.g. Ubuntu 12.04)
+		- HMAC function is located in libcrypto library instead of libssl. Checking performed
+		in configure.ac file has been adapted correspondingly.
+		- --gc-sections compilation flag is not recognized. It has been deleted.
+
+	* PANA_AUTH_KEY has been redefined as 20 bytes length. This must be the length when function HMAC_SHA1 is agreed as defined in RFC 5191.
+
+	* Solved problem with PRF and PRF_plus functions. Changed call to PRF_plus function with 1 iteration by a call to PRF function.
+
+	* Solved problem with bind in mainclient. Commented piece of code where the source port was bind.
+
+	* Changed name to some files:
+		-	maincliente.* --> mainclient.*
+		-	mainservidor.* --> mainserver.*
+
+	* Config.xml has been updated with a working configuration example already set. 
+

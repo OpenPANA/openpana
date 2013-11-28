@@ -1,0 +1,93 @@
+Installation
+============
+
+These are installation instructions for Unix and Unix-like systems
+that can run the "configure" script in this same directory. These
+are not the installation instructions for Windows systems.
+
+  1. OpenPANA requires the following libraries:
+
+  - OpennSSL library
+    http://wwww.openssl.org
+
+  - Libxml2
+    http://xmlsoft.org/
+
+ 2. Configuring OpenPANA:
+
+    Default settings can be changed by modifying the config.xml file found in ./src and /etc/openpana when installed.
+    * Common Settings:
+    - IP version <IP_VERSION>
+	- Interface <INTERFACE>
+	- Port <PORT>
+	- Session Timeout: Lifetime of the session. <SESSION><TIMEOUT>
+	- PRF Algorithms: Supported PRF Algorithms. <ALGORITHMS><PRF>
+	- Integrity Algorithms: Supported Integrity Algorithms. <ALGORITHMS><INTEGRITY>
+    - PaC's Settings <PAC>
+	- Client's EAP username <USER>
+	- Client's EAP password <PASSWORD>
+	- Client's Certificates files, located under the configuration directory after installation or otherwise under
+	  the directory where the executable is launched from. The name of the files may be changed by modifying this values.
+		- CA Certificate Filename <CA_CERT>
+		- Client's Certificate Filename <CLIENT_CERT>
+		- Client's key <CLIENT_KEY>
+		- Client's private key <PRIVATE_KEY>
+	- Fragment Size <FRAGMENT_SIZE>
+
+	* PaC's Settings <PAC>
+	- IP PAA <IP_PAA>
+	- Port PAA <PORT_PAA>
+	
+    * PAA's Settings <PAA>
+	- Client's Timeout: Seconds before client's session expires. <TIMEOUT_CLIENT>
+	- Threads to use: Number of threads used to manage tasks on server. <WORKERS>
+    - PCI expire time: Time while a session is on the server without answer for the first PAR message. <TIME_ANSWER>
+	- Server's Certificates files, located under the AAA server folder. The name of the files may be changed by modifying this values.
+		- CA Certificate Filename <CA_CERT>
+		- Server's Certificate Filename <SERVER_CERT>
+		- Server's key <SERVER_KEY>
+	- Radius Server Information. <AUTH_SERVER>
+		- IP of the Radius Server <AS_IP>
+		- Port of the Radius Server <AS_PORT>
+		- Radius' shared secret <SHARED_SECRET>
+
+	* PRE Settings <PRE>
+	- Interface where the PRE listen to incoming PAC messages <INTERFACE_PAC>
+	- Port where the PRE listen to incoming PAC messages <PORT_PAC>
+	- Interface where the PRE listen to incoming PAA messages <INTERFACE_PAA>
+	- Port where the PRE listen to incoming PAA messages <PORT_PAA>
+	- IP where PAA is listening to incoming messages <IP_PAA>
+	- Port where PAA is listening to incoming messages <PORT_PAA>
+
+ 3. Building the OpenPANA softwares:
+
+  You can just run the './configure --sysconfdir=/etc/openpana' script and 'make'.
+  If the --sysconfdir option is not added, configuration files will be placed under the '/usr/local/etc' directory.
+
+  You can also run the '--enable-debug' configure option in order to get a full debugging.
+
+  You can also run the '--enable-aes' configure option in order to get the AES cryptographic suite available.
+
+  You can also run the '--enable-relay' configure option in order to get the PRE functionality integrated within the PaC entity.
+  
+ 4. OpenPANA will need a working installation of a Radius Server using EAP-TLS method.
+    OpenPANA will require the following certificate files in config folder or in the current directory:
+    	- ca.pem 
+    	- client.pem
+    	- client.pk8 (Can be obtained from client.key using: openssl pkcs8 -topk8 -in client.key -out client.pk8 -nocrypt )
+  
+   An example of certificates and a working eap.conf (to use with freeRadius) can be found in radius_conf folder of svn root.
+   
+ 5. After all you have 'openpaa', 'openpre' and 'openpac' in the ./src application's folder.
+ 
+ 6. By running 'make install' as root OpenPANA will be installed tipically under '/usr/local/bin' and configuration files 
+    will be placed in '/etc/openpana'.
+
+    In order to produce an executable much smaller and faster, the application can be installed by the command 'make install-strip'.
+
+* OpenPANA can be uninstalled by the 'make uninstall' command.
+
+If you have trouble with the build or installation process, you can
+find assistance on the openapana-users@list.sourceforge.net mailing list.
+See http://openpana.sf.net for details.
+

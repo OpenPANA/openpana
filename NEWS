@@ -1,0 +1,20 @@
+2011-09-15	- Version 0.1 stable released. Also several documents have been published in
+		the project's web page http://openpana.sf.net
+
+2011-05-09 - OpenPANA released
+We are proud to present the first release of OpenPANA.
+
+OpenPANA it'll be soon a full functional free solution which implements the PANA protocol.
+By now, it's a multithreading implementation, supported by a framework, which allows multiple
+users to authenticate.
+
+Many aspects defined in IETF RFC 5191 and 5609 are covered such as
+- Integrity check
+- Authentication, authorization, reauthentication and termination phases are implemented.
+- Sequence Number and Retransmission
+- Pana SA
+- Message Authentication
+- Session Lifetime
+
+Any comments and reports are welcomed in the OpenPANA mailing list available at 
+openpana-users@lists.sourceforge.net
