@@ -35,6 +35,11 @@
 #include "./libeapstack/eap_peer_interface.h"
 #include "lalarm.h"
 
+/** Reqs for getrusage function, maybe included somewhere else (performance test)*/
+#include <sys/time.h>
+#include <sys/resource.h>
+/** end performance includes*/
+
 #ifdef PACPRE
 	#include "mainpre.h"
 #endif
@@ -204,16 +209,21 @@ int main(int argc, char *argv[]) {
 		inet_pton(AF_INET6, LOCALIP, &eap_auth_ll_sockaddr6.sin6_addr);
 	}
 
+        struct rusage usage;//To measure cpu usage
 	struct timeval ti, tf;
 	double timestamp;
-	gettimeofday(&ti, NULL);
+        //Get usage measurement for the initial time
+        getrusage(RUSAGE_SELF, &usage);
+        ti = usage.ru_utime;
 	
     //Step pana state machine
     pthread_mutex_lock(&session_mutex);
     transition(&pana_session);
     pthread_mutex_unlock(&session_mutex);
-
-	gettimeofday(&tf, NULL);
+    
+        //Get usage for the final time
+	getrusage(RUSAGE_SELF, &usage);
+        tf = usage.ru_utime;
 	timestamp= (tf.tv_sec - ti.tv_sec)*1000 + (tf.tv_usec - ti.tv_usec)/1000.0;
 	fprintf(stderr, "%g\n", timestamp);
 				
@@ -371,8 +381,9 @@ int main(int argc, char *argv[]) {
 			//length is >0 when it's correctly received only
             if (length > 0) {
 
-				
-				gettimeofday(&ti, NULL);
+                //Get usage measurement for the initial time
+                getrusage(RUSAGE_SELF, &usage);
+                ti = usage.ru_utime;
 				
                 pthread_mutex_lock(&session_mutex);
                 updateSession(pana_packet, &pana_session);
@@ -384,13 +395,17 @@ int main(int argc, char *argv[]) {
                 transition(&pana_session);
                 pthread_mutex_unlock(&session_mutex);
 
-				gettimeofday(&tf, NULL);
+                //Get usage for the final time
+                getrusage(RUSAGE_SELF, &usage);
+                tf = usage.ru_utime;
+
                 timestamp= (tf.tv_sec - ti.tv_sec)*1000 + (tf.tv_usec - ti.tv_usec)/1000.0;
 				fprintf(stderr, "%g\n", timestamp);
             }
 
-
-			gettimeofday(&ti, NULL);
+                //Get usage measurement for the initial time
+                getrusage(RUSAGE_SELF, &usage);
+                ti = usage.ru_utime;
             //Check if eap authentication has finished with a fail
                 if (eap_peer_get_eapFail(&(current_session->eap_ctx)) == TRUE) {
 					pana_debug("There's an eapFail");
@@ -416,7 +431,9 @@ int main(int argc, char *argv[]) {
                     pthread_mutex_unlock(&session_mutex);
                 }
 
-				gettimeofday(&tf, NULL);
+                //Get usage for the final time
+                getrusage(RUSAGE_SELF, &usage);
+                tf = usage.ru_utime;
                 timestamp= (tf.tv_sec - ti.tv_sec)*1000 + (tf.tv_usec - ti.tv_usec)/1000.0;
 				fprintf(stderr, "%g\n", timestamp);
 				

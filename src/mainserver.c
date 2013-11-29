@@ -36,6 +36,11 @@
 #include "lalarm.h"
 #include "prf_plus.h"
 
+/** Reqs for getrusage function, maybe included somewhere else (performance test)*/
+#include <sys/time.h>
+#include <sys/resource.h>
+/** end performance includes*/
+
 //Global variables
 static bool fin = FALSE;
 
@@ -238,19 +243,35 @@ void * process_receive_eap_ll_msg(void *arg) {
     
 	pthread_mutex_lock(&(pana_session->mutex));
 
+        struct rusage usage;//To measure cpu usage
 	struct timeval ti, tf;
 	double timestamp;
-	gettimeofday(&ti, NULL);
+
+        //Get usage measurement for the initial time
+        getrusage(RUSAGE_SELF, &usage);
+        ti = usage.ru_utime;
+
     //Use the correct session
     updateSession((char *)msg, pana_session);
     transition(pana_session);
-    gettimeofday(&tf, NULL);
+    
+        //Get usage for the final time
+	getrusage(RUSAGE_SELF, &usage);
+        tf = usage.ru_utime;
+
 	timestamp= (tf.tv_sec - ti.tv_sec)*1000 + (tf.tv_usec - ti.tv_usec)/1000.0;
 	fprintf(stderr, "%g\n", timestamp);
 
-	gettimeofday(&ti, NULL);
+        //Get usage measurement for the initial time
+        getrusage(RUSAGE_SELF, &usage);
+        ti = usage.ru_utime;
+
     check_eap_status(pana_session);
-    gettimeofday(&tf, NULL);
+
+        //Get usage for the final time
+	getrusage(RUSAGE_SELF, &usage);
+        tf = usage.ru_utime;
+
 	timestamp= (tf.tv_sec - ti.tv_sec)*1000 + (tf.tv_usec - ti.tv_usec)/1000.0;
 	fprintf(stderr, "%g\n", timestamp);
 
