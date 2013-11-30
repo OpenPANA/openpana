@@ -214,7 +214,7 @@ int main(int argc, char *argv[]) {
 	double timestamp;
         //Get usage measurement for the initial time
         getrusage(RUSAGE_SELF, &usage);
-        ti = usage.ru_utime;
+        ti = usage.ru_stime;
 	
     //Step pana state machine
     pthread_mutex_lock(&session_mutex);
@@ -223,7 +223,7 @@ int main(int argc, char *argv[]) {
     
         //Get usage for the final time
 	getrusage(RUSAGE_SELF, &usage);
-        tf = usage.ru_utime;
+        tf = usage.ru_stime;
 	timestamp= (tf.tv_sec - ti.tv_sec)*1000 + (tf.tv_usec - ti.tv_usec)/1000.0;
 	fprintf(stderr, "%g\n", timestamp);
 				
@@ -383,7 +383,7 @@ int main(int argc, char *argv[]) {
 
                 //Get usage measurement for the initial time
                 getrusage(RUSAGE_SELF, &usage);
-                ti = usage.ru_utime;
+                ti = usage.ru_stime;
 				
                 pthread_mutex_lock(&session_mutex);
                 updateSession(pana_packet, &pana_session);
@@ -397,7 +397,7 @@ int main(int argc, char *argv[]) {
 
                 //Get usage for the final time
                 getrusage(RUSAGE_SELF, &usage);
-                tf = usage.ru_utime;
+                tf = usage.ru_stime;
 
                 timestamp= (tf.tv_sec - ti.tv_sec)*1000 + (tf.tv_usec - ti.tv_usec)/1000.0;
 				fprintf(stderr, "%g\n", timestamp);
@@ -405,7 +405,7 @@ int main(int argc, char *argv[]) {
 
                 //Get usage measurement for the initial time
                 getrusage(RUSAGE_SELF, &usage);
-                ti = usage.ru_utime;
+                ti = usage.ru_stime;
             //Check if eap authentication has finished with a fail
                 if (eap_peer_get_eapFail(&(current_session->eap_ctx)) == TRUE) {
 					pana_debug("There's an eapFail");
@@ -433,7 +433,7 @@ int main(int argc, char *argv[]) {
 
                 //Get usage for the final time
                 getrusage(RUSAGE_SELF, &usage);
-                tf = usage.ru_utime;
+                tf = usage.ru_stime;
                 timestamp= (tf.tv_sec - ti.tv_sec)*1000 + (tf.tv_usec - ti.tv_usec)/1000.0;
 				fprintf(stderr, "%g\n", timestamp);
 				
