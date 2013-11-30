@@ -35,9 +35,8 @@
 #include "./libeapstack/eap_peer_interface.h"
 #include "lalarm.h"
 
-/** Reqs for getrusage function, maybe included somewhere else (performance test)*/
+/** Reqs for performance test maybe included somewhere else */
 #include <sys/time.h>
-#include <sys/resource.h>
 /** end performance includes*/
 
 #ifdef PACPRE
@@ -209,22 +208,22 @@ int main(int argc, char *argv[]) {
 		inet_pton(AF_INET6, LOCALIP, &eap_auth_ll_sockaddr6.sin6_addr);
 	}
 
-        struct rusage usage;//To measure cpu usage
-	struct timeval ti, tf;
+        struct timespec ti, tf, differ;
 	double timestamp;
-        //Get usage measurement for the initial time
-        getrusage(RUSAGE_SELF, &usage);
-        ti = usage.ru_stime;
+        //Get time measurement for the initial time
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ti);
 	
     //Step pana state machine
     pthread_mutex_lock(&session_mutex);
     transition(&pana_session);
     pthread_mutex_unlock(&session_mutex);
     
-        //Get usage for the final time
-	getrusage(RUSAGE_SELF, &usage);
-        tf = usage.ru_stime;
-	timestamp= (tf.tv_sec - ti.tv_sec)*1000 + (tf.tv_usec - ti.tv_usec)/1000.0;
+        //Get time for the final time
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &tf);
+        
+        differ = diff(ti,tf);
+        fprintf(stderr,"time in microseconds\n");
+	timestamp= differ.tv_sec*1000000 + differ.tv_nsec/1000.0;
 	fprintf(stderr, "%g\n", timestamp);
 				
 	struct sockaddr_in eap_auth_ll_addr;
@@ -381,9 +380,8 @@ int main(int argc, char *argv[]) {
 			//length is >0 when it's correctly received only
             if (length > 0) {
 
-                //Get usage measurement for the initial time
-                getrusage(RUSAGE_SELF, &usage);
-                ti = usage.ru_stime;
+        //Get usage measurement for the initial time
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ti);
 				
                 pthread_mutex_lock(&session_mutex);
                 updateSession(pana_packet, &pana_session);
@@ -391,21 +389,21 @@ int main(int argc, char *argv[]) {
                 
                 pana_debug("My state to begin a transition is: %s", state_name[pana_session.CURRENT_STATE + 1]);
                 
-				pthread_mutex_lock(&session_mutex);
+                pthread_mutex_lock(&session_mutex);
                 transition(&pana_session);
                 pthread_mutex_unlock(&session_mutex);
-
-                //Get usage for the final time
-                getrusage(RUSAGE_SELF, &usage);
-                tf = usage.ru_stime;
-
-                timestamp= (tf.tv_sec - ti.tv_sec)*1000 + (tf.tv_usec - ti.tv_usec)/1000.0;
-				fprintf(stderr, "%g\n", timestamp);
+                //Get time for the final time
+                clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &tf);
+        
+                differ = diff(ti,tf);
+                fprintf(stderr,"time in microseconds\n");
+                timestamp= differ.tv_sec*1000000 + differ.tv_nsec/1000.0;
+                fprintf(stderr, "%g\n", timestamp);
             }
 
-                //Get usage measurement for the initial time
-                getrusage(RUSAGE_SELF, &usage);
-                ti = usage.ru_stime;
+        //Get usage measurement for the initial time
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ti);
+
             //Check if eap authentication has finished with a fail
                 if (eap_peer_get_eapFail(&(current_session->eap_ctx)) == TRUE) {
 					pana_debug("There's an eapFail");
@@ -431,11 +429,13 @@ int main(int argc, char *argv[]) {
                     pthread_mutex_unlock(&session_mutex);
                 }
 
-                //Get usage for the final time
-                getrusage(RUSAGE_SELF, &usage);
-                tf = usage.ru_stime;
-                timestamp= (tf.tv_sec - ti.tv_sec)*1000 + (tf.tv_usec - ti.tv_usec)/1000.0;
-				fprintf(stderr, "%g\n", timestamp);
+                //Get time for the final time
+                clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &tf);
+        
+                differ = diff(ti,tf);
+                fprintf(stderr,"time in microseconds\n");
+                timestamp= differ.tv_sec*1000000 + differ.tv_nsec/1000.0;
+                fprintf(stderr, "%g\n", timestamp);
 				
 				//FIXME: Este if no debería ser necesario siguiendo el rfc.
                 if (current_session->CURRENT_STATE == WAIT_EAP_RESULT_CLOSE){

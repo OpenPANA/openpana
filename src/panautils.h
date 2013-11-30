@@ -27,6 +27,7 @@
 
 
 #include "include.h"
+#include <time.h>
 
 #include "panamessages.h"
 #ifndef ISPRE //In the PRE there is no session
@@ -184,5 +185,7 @@ void pana_fatal (const char *message, ...);
  * @param *message debug message.
  * */
 void pana_debug (const char *message, ...);
+
+struct timespec diff(struct timespec start, struct timespec end);
 
 #endif

@@ -36,9 +36,8 @@
 #include "lalarm.h"
 #include "prf_plus.h"
 
-/** Reqs for getrusage function, maybe included somewhere else (performance test)*/
+/** Reqs for performance test maybe included somewhere else */
 #include <sys/time.h>
-#include <sys/resource.h>
 /** end performance includes*/
 
 //Global variables
@@ -242,37 +241,33 @@ void * process_receive_eap_ll_msg(void *arg) {
     }
     
 	pthread_mutex_lock(&(pana_session->mutex));
-
-        struct rusage usage;//To measure cpu usage
-	struct timeval ti, tf;
+        struct timespec ti, tf, differ;
 	double timestamp;
-
-        //Get usage measurement for the initial time
-        getrusage(RUSAGE_SELF, &usage);
-        ti = usage.ru_stime;
+        //Get time measurement for the initial time
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ti);
 
     //Use the correct session
     updateSession((char *)msg, pana_session);
     transition(pana_session);
-    
-        //Get usage for the final time
-	getrusage(RUSAGE_SELF, &usage);
-        tf = usage.ru_stime;
 
-	timestamp= (tf.tv_sec - ti.tv_sec)*1000 + (tf.tv_usec - ti.tv_usec)/1000.0;
+        //Get time for the final time
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &tf);
+        
+        differ = diff(ti,tf);
+        fprintf(stderr,"time in microseconds\n");
+	timestamp= differ.tv_sec*1000000 + differ.tv_nsec/1000.0;
 	fprintf(stderr, "%g\n", timestamp);
 
-        //Get usage measurement for the initial time
-        getrusage(RUSAGE_SELF, &usage);
-        ti = usage.ru_stime;
+        //Get time measurement for the initial time
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ti);
 
     check_eap_status(pana_session);
-
-        //Get usage for the final time
-	getrusage(RUSAGE_SELF, &usage);
-        tf = usage.ru_stime;
-
-	timestamp= (tf.tv_sec - ti.tv_sec)*1000 + (tf.tv_usec - ti.tv_usec)/1000.0;
+        //Get time for the final time
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &tf);
+        
+        differ = diff(ti,tf);
+        fprintf(stderr,"time in microseconds\n");
+	timestamp= differ.tv_sec*1000000 + differ.tv_nsec/1000.0;
 	fprintf(stderr, "%g\n", timestamp);
 
 	if (current_session->CURRENT_STATE == OPEN){

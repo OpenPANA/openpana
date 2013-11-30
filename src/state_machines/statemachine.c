@@ -29,9 +29,8 @@
 #include "../prf_plus.h"
 #include "../lalarm.h"
 
-/** Reqs for getrusage function, maybe included somewhere else (performance test)*/
+/** Reqs for performance test maybe included somewhere else */
 #include <sys/time.h>
-#include <sys/resource.h>
 /** end performance includes*/
 
 // Init the state machine table's positions
@@ -356,14 +355,11 @@ void eapRestart() {
 }
 
 void txEAP() {
-        struct rusage usage;//To measure cpu usage
-	struct timeval ti, tf;
+
+        struct timespec ti, tf, differ;
 	double timestamp;
-
-
-        //Get usage measurement for the initial time
-        getrusage(RUSAGE_SELF, &usage);
-        ti = usage.ru_stime;
+        //Get time measurement for the initial time
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ti);
 	
 	pana_debug("txEAP function");
     //Get the EAP_Payload Avp
@@ -394,12 +390,14 @@ void txEAP() {
 #endif
 	pana_debug("Finished txEAP function\n");
 
-        //Get usage for the final time
-	getrusage(RUSAGE_SELF, &usage);
-        tf = usage.ru_stime;
+        //Get time for the final time
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &tf);
+        
+        differ = diff(ti,tf);
+        fprintf(stderr,"time in microseconds\n");
+	timestamp= differ.tv_sec*1000000 + differ.tv_nsec/1000.0;
+	fprintf(stderr, "%g\n", timestamp);
 
-	timestamp= (tf.tv_sec - ti.tv_sec)*1000 + (tf.tv_usec - ti.tv_usec)/1000.0;
-	fprintf(stderr, "%f ", timestamp);
 }
 
 void sessionTimerStop() {

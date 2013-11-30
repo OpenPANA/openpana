@@ -21,6 +21,7 @@ AC_PROG_RANLIB
 CFLAGS=$OLD_CFLAGS
 
 # Checks for libraries.
+AC_CHECK_LIB([rt],[clock_gettime])
 AC_CHECK_LIB([pthread], [pthread_mutex_lock])
 AC_CHECK_LIB([ssl], [HMAC],[],[
 		AC_CHECK_LIB([crypto], [HMAC],[],[
