@@ -1,5 +1,5 @@
 /**
- * @file maincliente.h
+ * @file mainclient.h
  * @brief  PaC's headers.
  **/
 /* 
@@ -22,8 +22,8 @@
  *  https://sourceforge.net/projects/openpana/
  */
 
-#ifndef MAINCLIENTE_H
-#define	MAINCLIENTE_H
+#ifndef MAINCLIENT_H
+#define	MAINCLIENT_H
 
 #include "include.h"
 
@@ -41,4 +41,4 @@ void signal_handler(int sig);
 /** PaC's main program.*/
 int main(int argc, char *argv[]);
 
-#endif	/* _MAINCLIENTE_H */
+#endif	/* _MAINCLIENT_H */

@@ -45,7 +45,6 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-
 #ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
 #endif
@@ -107,6 +106,12 @@
 #define FALSE false
 
 #include <stdarg.h>
+#include <stdio.h>      
+#include <sys/types.h>
+#include <ifaddrs.h>
+#include <netinet/in.h> 
+#include <string.h> 
+#include <arpa/inet.h>
 
 //Cryptographic suites implemented
 #define PRF_HMAC_SHA1 2
@@ -154,7 +159,11 @@
 #endif
 
 #ifndef MSK_LENGTH
-	#define MSK_LENGTH  40
+	#define MSK_LENGTH  64
+#endif
+
+#ifndef AUTH_KEY_LENGTH
+	#define AUTH_KEY_LENGTH  20
 #endif
 
 #define SET		1 /**< SET state. */

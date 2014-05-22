@@ -23,12 +23,15 @@
  */
 
 #include "panamessages.h"
-#include "state_machines/statemachine.h"
-#include "state_machines/session.h"
+//#include "state_machines/statemachine.h"
+#ifndef ISPRE
+	#include "state_machines/session.h"
+#endif
+
 #include "panautils.h"
 #include "prf_plus.h"
 
-static char * avp_names[] = {"AUTH", "EAP-Payload", "Integrity-Algorithm", "Key-Id", "Nonce", "PRF-Algorithm", "Result-Code", "Session-Lifetime", "Termination-Cause"};
+static char * avp_names[] = {"AUTH", "EAP-Payload", "Integrity-Algorithm", "Key-Id", "Nonce", "PRF-Algorithm", "Result-Code", "Session-Lifetime", "Termination-Cause", "PaC-Information", "Relayed-Message"};
 
 /** 
  * Returns the name of the AVP given its code.
@@ -39,8 +42,8 @@ static char * avp_names[] = {"AUTH", "EAP-Payload", "Integrity-Algorithm", "Key-
  * */
 static char * getAvpName(uint16_t avp_code) {
 	
-	// All AVP codes are between AUTH and TERMINATIONCAUSE
-    if (avp_code >= AUTH_AVP && avp_code <= TERMINATIONCAUSE_AVP) {
+	// All AVP codes are between AUTH and Relayed-Message
+    if (avp_code >= AUTH_AVP && avp_code <= RELAYEDMESSAGE_AVP) {
         return avp_names[avp_code - 1];
     }
     
@@ -56,7 +59,7 @@ static char * getAvpName(uint16_t avp_code) {
  * */
 
 static bool isOctetString(uint16_t type){
-	return (type==AUTH_AVP || type ==EAPPAYLOAD_AVP || type == NONCE_AVP);		
+	return (type==AUTH_AVP || type ==EAPPAYLOAD_AVP || type == NONCE_AVP || type == PACINFORMATION_AVP || type == RELAYEDMESSAGE_AVP);		
 }
 /**
  * Returns the padding space needed given an OctetString size.
@@ -109,7 +112,118 @@ static uint16_t identifyAVP(uint16_t flag){
     return 0;
 }
 
-char * transmissionMessage(char * msgtype, uint16_t flags, uint32_t *sequence_number, uint32_t sess_id, uint16_t avps, int ip_ver, void * destaddr, void **data, int sock) {
+char * transmissionRelayedMessage (int ip_ver, void *destaddr, char* msg, int sock, void *pacaddr){
+	if (ip_ver != 4 && ip_ver != 6){
+		pana_error("transmissionRelayedMessage: Unable of using the IP version %d", ip_ver);
+		return NULL;
+	}
+	if (destaddr == NULL || sock == 0){
+		pana_error("transmissionRelayedMessage: Invalid communication parameters");
+		return NULL;
+	}
+	if (msg == NULL){
+		pana_error("transmissionRelayedMessage: There is no message to be relayed");
+		return NULL;
+	}
+
+	int msg_size; //Relayed message total size
+	int relay_size; //Size of the message contained in the Relayed-Message AVP
+	char * position; //Position where to save values.
+	
+	//The total size is:
+	// PANA Header
+	//   PaC-Information AVP Header
+	//        PaC-Information Value (calculated later) + paddingOctetString
+	//   Relayed-Message AVP Header
+	//        Relayed-Message Value + paddingOctetString
+	msg_size = sizeof(pana) + 2 * sizeof(avp_pana) + ntohs(((pana*)msg)->msg_length) + paddingOctetString( ntohs(((pana*)msg)->msg_length));
+
+	//Now we calculate the PaC-Information Value + paddingOctetString
+	if (ip_ver == 4){
+		msg_size += (4+2) + paddingOctetString(4+2); //4 octets for IPv4 address, 2 octets for port number;
+	}
+	else if (ip_ver ==6) {
+		msg_size += (16+2) + paddingOctetString(16+2); //16 octets for IPv4 address, 2 octets for port number;
+	}
+
+	//Create a buffer with the message size
+	char * message = XMALLOC(char, msg_size);
+	memset (message, 0, msg_size);
+	pana * header = (pana*) message;
+
+	//////Fill the PANA header
+	header->msg_length = htons(msg_size);
+	header->msg_type = htons(PRY_MSG);
+	header->session_id = 0;
+	header->seq_number = 0;
+
+	//////Create the PAC-Information AVP
+	int avp_size; //Avp_size of the PaC-Information AVP
+	avp_pana * elmnt = (avp_pana*) (message+sizeof(pana));
+	position = message + sizeof(pana) + sizeof(avp_pana);
+	
+	if (ip_ver==4){
+		avp_size = (4+2) + paddingOctetString(4+2); //4 octets for IPv4 address, 2 octets for port number;
+
+		//Copy the value of the avp
+		//Copy the IP address
+		memcpy( position, &( ((struct sockaddr_in*) pacaddr)->sin_addr ), sizeof(struct in_addr));
+		//Transform & copy the port
+		memcpy(position+sizeof(struct in_addr), &( ((struct sockaddr_in*) pacaddr)->sin_port), sizeof(unsigned short) );
+	}
+	else if (ip_ver==6){
+		avp_size = (16+2) + paddingOctetString(16+2);
+
+		//Copy the value of the avp
+		//Copy the IP address
+		memcpy(position, &( ((struct sockaddr_in6*) pacaddr)->sin6_addr.s6_addr ), 16);
+		//Copy the port
+		memcpy(position+16, &( ((struct sockaddr_in6*) pacaddr)->sin6_port), sizeof(unsigned short) );
+	}
+	//Fill the PaC-Information AVP header 
+	elmnt->code = htons(PACINFORMATION_AVP);
+	elmnt->length = htons(avp_size);
+
+
+	//////Create the Relayed-Message AVP
+	elmnt = (avp_pana*) (message + sizeof(pana) + sizeof(avp_pana) + avp_size);
+	//Position, where introduce the Relayed-Message AVP value, iss in the init of the PaC-Information AVP value. So, we need to jump:
+	// PaC-Inf AVP value length, Relayed-Message AVP Header length
+	position = position + avp_size + sizeof(avp_pana);
+
+	//Fill the Relayed-Message AVP header fields
+	elmnt->code = htons(RELAYEDMESSAGE_AVP);
+	relay_size = ntohs(((pana*)msg)->msg_length);
+	elmnt->length = htons(relay_size + paddingOctetString(relay_size));
+	memcpy(position, msg, relay_size);
+
+
+	//Once the message has been built, it is sended.
+	pana_debug("Tx PRY");
+	debug_msg ((pana*)message);
+
+	//Build de destaddr struct depending on the IP version used.
+	if (ip_ver==4){ //IPv4 is used.
+		struct sockaddr_in * dest_addr = (struct sockaddr_in *) destaddr;
+
+		if (0 >= sendPana(*dest_addr, message, sock)) {
+			pana_fatal("sendPana");
+		}
+	}
+	else if (ip_ver==6){
+		struct sockaddr_in6 * dest_addr = (struct sockaddr_in6 *) destaddr;
+	
+		if (0 >= sendPana6(*dest_addr, message, sock)) {
+			pana_fatal("sendPana");
+		}
+	}
+	return message;
+}
+
+
+
+#ifndef ISPRE
+char * transmissionMessage(char * msgtype, uint16_t flags, uint32_t *sequence_number, uint32_t sess_id, uint16_t avps, int ip_ver, void * destaddr, void **data, int sock, uint8_t msg_relayed) {
 //First, the msgtype argument is checked, it must meet certain conditions
 	//- Message type must have 3 positions
 	//- All messages start with 'P'
@@ -117,27 +231,28 @@ char * transmissionMessage(char * msgtype, uint16_t flags, uint32_t *sequence_nu
 	// 	'A' -> 3º must be 'R' or 'N'
 	// 	'C' -> 3º must be 'I'
 	// 	'N' or 'T' -> 3º must be 'A' or 'R'
-	// 	1P && ( (2A && (3R || 3N)) || (2C && 3I) || ((2N || 2T) && (3A || R)) )
+	// 	1P && ( (2A && (3R || 3N)) || (2C && 3I) || ((2N || 2T) && (3A || R)) || (2R && 3Y) )
 	//			is valid, so !() must be ignored
 	// If any of those is unmeet, tx will return an error.
 	if(strlen(msgtype) != 3 || !( msgtype[0] == 'P' && ( (msgtype[1] == 'A' && (msgtype[2] == 'R' ||
 		msgtype[2] == 'N')) || (msgtype[1] == 'C' && msgtype[2] == 'I') || 
-		((msgtype[1] == 'N' || msgtype[1] == 'T') && (msgtype[2] == 'A' || 
-											  msgtype[2] == 'R')) )    )){
+		((msgtype[1] == 'N' || msgtype[1] == 'T') && (msgtype[2] == 'A' || 							  msgtype[2] == 'R'))  )    )){
 		pana_debug("transmissionMessage ERROR: Invalid Message: %s",msgtype);
 		return NULL;
 	}
 	
 	if(sequence_number == NULL){
-		pana_debug("transmissionMessage ERROR: sequence number its NULL");
+		pana_error("transmissionMessage: sequence number its NULL");
 		return NULL;
 	}
-	
-	//fprintf(stderr,"AVPs a insertar: %s\n",avps);
+
+	if(ip_ver!=4 && ip_ver!=6){
+		pana_error("transmissionMessage: It is not available to send a message over IP version: %d", ip_ver);
+	}
 	
     if (flags & R_FLAG) { //The R_FLAG mustn't be specified in
         // the parameters, it'll be ignored
-        pana_debug("WARNING, trasmissionMessage received R_FLAG as a parameter, it'll be ignored!");
+        pana_warning("tramsmissionMessage: received R_FLAG as a parameter, it'll be ignored!");
         flags = (flags & !(R_FLAG));
     }
 
@@ -212,7 +327,19 @@ char * transmissionMessage(char * msgtype, uint16_t flags, uint32_t *sequence_nu
         else {
 			pana_debug("Tx PNA");
 		}
-    }
+    } else if (msgtype[2] == 'Y') { //PANA-Relay message
+		//The Sequence Number and Session Identifier fields in this
+        //message MUST be set to zero (0)
+		*(sequence_number) = 0;
+        session_id = 0;
+        msg_type = PRY_MSG;
+        //"PaC-Information" AVP must be added to the avp list
+		avpsflags = avpsflags | F_PACINF;
+		//"Relayed-Message" AVP must be added to the avp list
+		avpsflags = avpsflags | F_RLYMSG;
+        pana_debug("Tx PRY");
+	}
+   
 
     //The memory needed to create the PANA Header is reserved,
     //the memory for the AVPs will be reserved later
@@ -243,6 +370,9 @@ char * transmissionMessage(char * msgtype, uint16_t flags, uint32_t *sequence_nu
     pana_debug("Message to be sent");
     debug_msg(msg);
 
+	
+	
+	#ifdef ISCLIENT
 	//Build de destaddr struct depending on the IP version used.
 	if (ip_ver==4){ //IPv4 is used.
 		struct sockaddr_in * dest_addr = (struct sockaddr_in *) destaddr;
@@ -258,17 +388,32 @@ char * transmissionMessage(char * msgtype, uint16_t flags, uint32_t *sequence_nu
 			pana_fatal("sendPana");
 		}
 	}
+	#endif
 
-#ifdef AESCRYPTO
-	//After sending a PNA message, there should be a pause for the constrained device 
-	if ( strcmp ("PNA", msgtype) ==0) {
-		usleep(50000);
+	#ifdef ISSERVER
+	if (!msg_relayed) {
+		//Build de destaddr struct depending on the IP version used.
+		if (ip_ver==4){ //IPv4 is used.
+			struct sockaddr_in * dest_addr = (struct sockaddr_in *) destaddr;
+
+			if (0 >= sendPana(*dest_addr, (char*)msg, sock)) {
+				pana_fatal("sendPana");
+			}
+		}
+		else if (ip_ver==6){
+			struct sockaddr_in6 * dest_addr = (struct sockaddr_in6 *) destaddr;
+		
+			if (0 >= sendPana6(*dest_addr, (char*)msg, sock)) {
+				pana_fatal("sendPana");
+			}
+		}
 	}
-#endif
+	#endif
 
 	return (char*)msg;
 }
-	
+#endif
+
 bool existAvp(char * message, uint16_t avp) {
 	pana * msg = (pana *) message;
 	 //If there's no name
@@ -281,6 +426,7 @@ bool existAvp(char * message, uint16_t avp) {
     return (getAvp(message,identifyAVP(avp))!=NULL);
 }
 
+#ifndef ISPRE
 uint16_t insertAvps(char** message, int avps, void **data) {
 	char * msg = *message;
 	#ifdef DEBUG
@@ -398,6 +544,7 @@ uint16_t insertAvps(char** message, int avps, void **data) {
 				else if (AUTH_SUITE == AUTH_HMAC_SHA1_160)
 					avpsize = sizeof(avp_pana) + AUTH_HMAC_AVP_VALUE_LENGTH;
 				break;
+			
 		}
 		
 		if(isOctetString(act_avp)){
@@ -477,7 +624,7 @@ uint16_t insertAvps(char** message, int avps, void **data) {
 				((pana *)msg)->msg_length = htons(totalsize);
 				
 				//If the message contains an auth avp, it must be hashed
-				hashAuth(msg, data[AUTH_AVP], MSK_LENGTH);
+				hashAuth(msg, data[AUTH_AVP], AUTH_KEY_LENGTH);
 				break;
 		}
 		
@@ -492,12 +639,13 @@ uint16_t insertAvps(char** message, int avps, void **data) {
 	*message = msg;
 	return totalsize;
 }
+#endif
 
 char * getAvp(char *msg, uint16_t type) {
     char * elmnt = NULL;
     
     //Invalid AVP type or no message
-	if(type<AUTH_AVP || type>TERMINATIONCAUSE_AVP || msg == NULL){
+	if(type<AUTH_AVP || type>RELAYEDMESSAGE_AVP || msg == NULL){
 		return NULL;
 	}
 	
@@ -523,9 +671,9 @@ char * getAvp(char *msg, uint16_t type) {
 }
 
 char * getMsgName(uint16_t msg_type) {
-    char *pana_msg_type[] = {"PCI", "PANA-Auth", "PANA-Termination", "PANA-Notification"};
-	// All MSG types are between PCI and PNA
-    if (msg_type >= PCI_MSG && msg_type <= PNOTIF_MSG) {
+    char *pana_msg_type[] = {"PCI", "PANA-Auth", "PANA-Termination", "PANA-Notification", "PANA-Relay"};
+	// All MSG types are between PCI and PRY
+    if (msg_type >= PCI_MSG && msg_type <= PRY_MSG) {
         return pana_msg_type[msg_type - 1];
     } 
     
@@ -593,9 +741,9 @@ void debug_avp(avp_pana * datos){
 		if(ntohs(datos->code) == EAPPAYLOAD_AVP){
 			fprintf(stderr," EAP-Payload omitted.");
 		}
-		/*else if(ntohs(datos->code) == AUTH_AVP){
-			fprintf(stderr," AUTH omitted.");
-		}*/
+		else if(ntohs(datos->code) == RELAYEDMESSAGE_AVP){
+			fprintf(stderr," Relayed-Message payload omitted.");
+		}
 		else if (sizevalue > 0 ) {
 			for(uint16_t i = 0; i< sizevalue; i++){
 				fprintf(stderr," %.2X",((*(((char*)datos) + sizeof(avp_pana) + i))&0xFF));

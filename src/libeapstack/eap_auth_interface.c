@@ -859,6 +859,10 @@ int eap_auth_init(struct eap_auth_ctx *eap_ctx, void *eap_ll_ctx, char* cacert, 
 	 */
 	//radctx->eap_srv_ctx=eap_ctx;
 	eap_ctx->rad_ctx = global_rad_ctx;
+	
+    //Pedro: An eap_ctx is not valid until an EAP message is sent
+    eap_ctx->radius_identifier = -1;
+    
 	add_eap_ctx_rad_client(eap_ctx);
 	//eap_ctx->eap_ll_cb = eap_ll_cb;
 	eap_ctx->eap_ll_ctx = eap_ll_ctx;

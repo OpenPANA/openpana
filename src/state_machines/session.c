@@ -106,7 +106,6 @@ void initSession(pana_ctx * pana_session) {
 		pana_session->eap_ll_dst_addr.sin_family = AF_INET;
 		pana_session->eap_ll_dst_addr.sin_port = htons(DSTPORT);
 		pana_session->eap_ll_dst_addr.sin_addr.s_addr = inet_addr(DESTIP);
-		printf("PEDRO: Se ha iniciado la ip con %s\n", DESTIP);
 	}
 	else if(IP_VERSION==6){
 		pana_session->eap_ll_dst_addr6.sin6_family = AF_INET6;
@@ -115,7 +114,11 @@ void initSession(pana_ctx * pana_session) {
 	}
     /* Client's sequence number and session id is set to 0, the first message it's
      * always supposed to be a PCI. */
-    pana_session->SEQ_NUMBER = 0;
+
+//    pana_session->SEQ_NUMBER = 0;
+    pana_session->NEXT_INCOMING_REQUEST = 0;
+    pana_session->NEXT_OUTGOING_REQUEST = rand();
+
     pana_session->session_id = 0;
 	
     //Init the EAP user
@@ -138,7 +141,12 @@ void initSession(pana_ctx * pana_session) {
     
     //RCF 5191 11.1: Secuence numbers are randomly initialized at the
     //beginning of the session.
-    pana_session->SEQ_NUMBER = rand(); //rand has been initialized before
+
+//    pana_session->SEQ_NUMBER = rand(); //rand has been initialized before
+
+    srand(time(NULL));
+    pana_session->NEXT_OUTGOING_REQUEST = rand(); //rand has been initialized before
+    pana_session->NEXT_INCOMING_REQUEST = 0;	
 	
 	pana_session->server_ctx.global_key_id = NULL;
 	// Init EAP authenticator.
@@ -164,7 +172,7 @@ void updateSession(char *message, pana_ctx *pana_session) {
     // S_FLAG active
     if ((flags & S_FLAG) && (flags & R_FLAG) && ntohs(msg->msg_type) == PAUTH_MSG) {
 		pana_session->session_id = ntohl(msg->session_id);
-		pana_debug("Client's session updated with Session Id from PAA: %d",pana_session->session_id);
+		pana_debug("Client's session updated with Session Id from PAA: %x",pana_session->session_id);
 	}
 	#endif
     
@@ -275,10 +283,10 @@ void updateSession(char *message, pana_ctx *pana_session) {
             //saved in the pana session to be used in AUTH key generation
             //Also you must keep the sequence number
             if (flags & S_FLAG) {
-				XFREE(pana_session->I_PAR);
+		XFREE(pana_session->I_PAR);
                 pana_session->I_PAR = XMALLOC(char,ntohs(msg->msg_length));
                 memcpy(pana_session->I_PAR,message,ntohs(msg->msg_length));
-                pana_session->SEQ_NUMBER = ntohl(msg->seq_number);
+                pana_session->NEXT_INCOMING_REQUEST = ntohl(msg->seq_number);
             }
 
             //Check if it contains the Key-Id AVP and update its value
@@ -289,22 +297,22 @@ void updateSession(char *message, pana_ctx *pana_session) {
 
                 //elmnt is pointed to Key-Id AVP, the key-id value is copied
                 if (pana_session->key_id == NULL) {
-					int avpsize = ntohs(elmnt->length);
+		    int avpsize = ntohs(elmnt->length);
                     pana_session->key_id = XMALLOC(char,avpsize);
                     memcpy(pana_session->key_id, ((char*)elmnt)+sizeof(avp_pana),avpsize);
                 }
                 else {
-					pana_debug("Generated Key-Id when it's not needed by client?");
+			pana_debug("Generated Key-Id when it's not needed by client?");
                 }
             }
         } else { // PAN
             //If the PAN is the first one (bit S enabled), it must be
             //saved in the pana session to be used in AUTH key generation
             if (flags & S_FLAG) {
-				XFREE(pana_session->I_PAN);
+		XFREE(pana_session->I_PAN);
                 pana_session->I_PAN = XMALLOC(char,ntohs(msg->msg_length));
                 memcpy(pana_session->I_PAN,message,ntohs(msg->msg_length));
-                pana_session->SEQ_NUMBER = ntohl(msg->seq_number);
+                pana_session->NEXT_OUTGOING_REQUEST = ntohl(msg->seq_number);
             }
         }
     }

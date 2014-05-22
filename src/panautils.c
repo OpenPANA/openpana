@@ -57,8 +57,8 @@ int sendPana(struct sockaddr_in destaddr, char *msg, int sock) {
         bytesleft -= n;
     }
 
-	pana_debug("Sended to IP: %s , port %d", inet_ntoa(destaddr.sin_addr), ntohs(destaddr.sin_port));
-	pana_debug("Sended %d bytes to %s", total, inet_ntoa(destaddr.sin_addr));
+	pana_debug("Sent to IP: %s , port %d", inet_ntoa(destaddr.sin_addr), ntohs(destaddr.sin_port));
+	pana_debug("Sent %d bytes to %s", total, inet_ntoa(destaddr.sin_addr));
 
     if (n == -1) return -1;
     else return total;
@@ -84,6 +84,7 @@ int sendPana6(struct sockaddr_in6 destaddr6, char *msg, int sock) {
     uint16_t total = 0; // Total bytes sended
     short n = 0;
     uint16_t bytesleft = len;
+    
     while (total < len) {
         n = sendto(sock, msg + total, bytesleft, 0,
                 (struct sockaddr *) & destaddr6, sizeof (destaddr6));
@@ -97,14 +98,14 @@ int sendPana6(struct sockaddr_in6 destaddr6, char *msg, int sock) {
     }
 	
 	inet_ntop(AF_INET6, &(destaddr6.sin6_addr),str6, INET6_ADDRSTRLEN);
-	pana_debug("Sended to IP: %s , port %d", str6, ntohs(destaddr6.sin6_port));
-	pana_debug("Sended %d bytes to %s", total, str6);
+	pana_debug("Sent to IP: %s , port %d", str6, ntohs(destaddr6.sin6_port));
+	pana_debug("Sent %d bytes to %s", total, str6);
 
     if (n == -1) return -1;
     else return total;
 }
 
-
+#ifndef ISPRE //The PRE does not check the message, only forwards it
 int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
 	
     //Checks pana header fields.
@@ -140,17 +141,19 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
         //o un número menos del que se ha recibido.
         //Aunque en el servidor no se va a dar nunca el 0, puede suceder con el PCI en el cliente
         
-        if (pana_session->SEQ_NUMBER != 0 && pana_session->SEQ_NUMBER != ( seq_number - 1)) {
+
+        if (pana_session->NEXT_INCOMING_REQUEST != 0 && pana_session->NEXT_INCOMING_REQUEST != ( seq_number - 1)) {
+		
 			pana_error("Wrong Request secuence number. Dropping message");
             return 0;
         }
         //Si recibes un request válido, hay que actualizar el número de secuencia para el answer
-        pana_session->SEQ_NUMBER = seq_number;
+        pana_session->NEXT_INCOMING_REQUEST = seq_number;
     } else if (msg_type != PCI_MSG) { //No es PCI, es un Answer
 		
-        if (pana_session->SEQ_NUMBER != seq_number) { //Si se recibe un answer erroneo
+        if (pana_session->NEXT_OUTGOING_REQUEST != seq_number) { //Si se recibe un answer erroneo
 			pana_error("Wrong Answer secuence number. Dropping message");
-			pana_debug("Values: session -> %d, message -> %d", pana_session->SEQ_NUMBER, seq_number);
+			pana_debug("Values: session -> %d, message -> %d", pana_session->NEXT_OUTGOING_REQUEST, seq_number);
             return 0;
         }
     }
@@ -178,7 +181,7 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
         memset(avpbytes + sizeof(avp_pana), 0, size); //Auth value set to 0
 
         //If the AUTH value cannot be hashed, its an error
-        if(hashAuth((char*)msg, pana_session->avp_data[AUTH_AVP], 40)){
+        if(hashAuth((char*)msg, pana_session->avp_data[AUTH_AVP], AUTH_KEY_LENGTH)){
 			return FALSE; //Auth AVP not found
 		}
 
@@ -203,7 +206,9 @@ int checkPanaMessage(pana *msg, pana_ctx *pana_session) {
     
     return TRUE;
 }
+#endif
 
+#ifndef ISPRE //The session id is set to 0 in Relayed messages
 uint32_t generateSessionId(char * ip, uint16_t port) {
 	//The seed to generate the sessionId will be port + ip
     char * seed = NULL; //To create the seed
@@ -225,7 +230,10 @@ uint32_t generateSessionId(char * ip, uint16_t port) {
     XFREE(result);
     return rc;
 }
+#endif
 
+
+#ifndef ISPRE //The PRE entity does not work with the original PANA message
 u8 * generateAUTH(pana_ctx * session) {
 
     if (session->PaC_nonce == NULL) {
@@ -297,8 +305,8 @@ u8 * generateAUTH(pana_ctx * session) {
 	
     pac_nonce = (u8*) getAvp(session->PaC_nonce,NONCE_AVP);
     paa_nonce = (u8*) getAvp(session->PAA_nonce,NONCE_AVP);
-    uint16_t paa_nonce_length = ntohs(((avp_pana*)pac_nonce)->length);
-    uint16_t pac_nonce_length = ntohs(((avp_pana*)paa_nonce)->length);
+    uint16_t pac_nonce_length = ntohs(((avp_pana*)pac_nonce)->length);
+    uint16_t paa_nonce_length = ntohs(((avp_pana*)paa_nonce)->length);
     
     seq_length += pac_nonce_length; 
     seq_length += paa_nonce_length;
@@ -331,14 +339,14 @@ u8 * generateAUTH(pana_ctx * session) {
     seq_length += session->key_id_length;
 
     XFREE(result);
-    result = XMALLOC(u8,40); //To get the 320bits result key
+    result = XMALLOC(u8,AUTH_KEY_LENGTH); //To get the 320bits result key
 	
-	/*#ifdef DEBUG
-	fprintf(stderr,"DEBUG: PRF Seed is: \n");
+	
+	/*fprintf(stderr,"DEBUG: PRF Seed is: \n");
 	for (int j=0; j<seq_length; j++){
-		fprintf(stderr, "%02x ", sequence[j]);
-	}
-	#endif*/
+		pana_debug( "%02x ", sequence[j]);
+	}*/
+	
 #ifdef AESCRYPTO
 	if (PRF_SUITE == PRF_AES128_CBC) {
 		//Generate auth with aes-cmac
@@ -346,12 +354,12 @@ u8 * generateAUTH(pana_ctx * session) {
                   result );
 	}
 	else if (PRF_SUITE == PRF_HMAC_SHA1) {
-		PRF_plus(2, session->msk_key, session->key_len, (u8*) sequence, seq_length, result);
+		PRF_plus(1, session->msk_key, session->key_len, (u8*) sequence, seq_length, result);
 	}
 	
 #else	
 	//Generate auth with hmac-sha1
-    PRF_plus(2, session->msk_key, session->key_len, (u8*) sequence, seq_length, result);
+    PRF_plus(1, session->msk_key, session->key_len, (u8*) sequence, seq_length, result);
 #endif
     
     if (result != NULL) {
@@ -359,14 +367,18 @@ u8 * generateAUTH(pana_ctx * session) {
     }
 
     /*int i;
-    for (i = 0; i < 40; i++) {
-        fprintf(stderr, "%02x ", (u8) result[i]);
-    }*/
+    for (i = 0; i < AUTH_KEY_LENGTH; i++) {
+        //pana_debug( "%02x ", (u8) result[i]);
+		printf( "%02x ", (u8) result[i]);
+    }
+    printf("\n");*/
 
     XFREE(sequence); //Seed's memory is freed
     return result;
 }
+#endif
 
+#ifndef ISPRE //The PRE does not authenticate the messages
 int hashAuth(char *msg, char* key, int key_len) {
 	//The AVP code (AUTH) to compare with the one in the panaMessage
     char * elmnt = getAvp(msg, AUTH_AVP);
@@ -393,11 +405,12 @@ int hashAuth(char *msg, char* key, int key_len) {
 	}
 #else
 	//Hash with hmac-sha1
-    PRF_plus(1, (u8*) key, key_len, (u8*) msg, ntohs(((pana*)msg)->msg_length), (u8*) (elmnt + sizeof(avp_pana)) );
+    PRF((u8*) key, key_len, (u8*) msg, ntohs(((pana*)msg)->msg_length), (u8*) (elmnt + sizeof(avp_pana)) );
 #endif
 
     return 0; //Everything went better than expected
 }
+#endif
 
 //Add 1 to the current KeyID value
 void increase_one(char *value, int length) {
