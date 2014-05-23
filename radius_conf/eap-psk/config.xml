@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding='ISO-8859-1'?>
+
+<!--
+ *  config.xml
+ *  
+ * 	Contains configurable values needed in the execution of
+ *  OpenPANA's software
+ *
+ *  Copyright (C) Pedro Moreno Sánchez & Francisco Vidal Meca on 06/07/2011.
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *  
+ *  
+ *  https://sourceforge.net/projects/openpana/
+-->
+
+<CONFIG>
+
+	<IP_VERSION>6</IP_VERSION>
+<!-- *********************************************************************  -->	
+<!-- ******************** PaC CONFIGURATION DATA *************************  -->	
+<!-- *********************************************************************  -->
+	<PAC> 
+		<INTERFACE>lo</INTERFACE> <!-- This is the interface used to send messages to the PAA -->
+		
+		<PORT>7777</PORT> <!-- Port used to send messages to the PAA -->
+
+		<IP_PAA>::1</IP_PAA>  <!-- IP address of the PAA (or the PRE in case it exists) -->
+		<PORT_PAA>5555</PORT_PAA>   <!-- Port of the PAA (or the PRE in case it exists) -->
+
+		<SESSION> 
+			<TIMEOUT>150</TIMEOUT> <!-- Maximum time to do the authentication. -->
+		</SESSION>
+		
+		<ALGORITHMS> <!-- This tag must be set with the numbers of algorithms supported -->
+		
+			<PRF>2</PRF> <!-- PRF ALGORITHM
+								1 PRF_HMAC_MD5 		(Not supported yet)
+								2 PRF_HMAC_SHA1 
+								3 PRF_HMAC_TIGER	(Not supported yet)
+								4 PRF_AES128_XCBC	(Not supported yet)
+								5 PRF_AES128_CBC 	(See INSTALL to get AES cryptographic suite) -->
+								
+			<INTEGRITY>7</INTEGRITY> <!-- INTEGRITY ALGORITHM
+											1 AUTH_HMAC_MD5_96			(Not supported yet)
+											2 AUTH_HMAC_SHA1_96			(Not supported yet)
+											3 AUTH_DES_MAC				(Not supported yet)
+											4 AUTH_KPDK_MD5				(Not supported yet)
+											5 AUTH_AES_XCBC_96			(Not supported yet)
+											6 AUTH_HMAC_MD5_128			(Not supported yet)
+											7 AUTH_HMAC_SHA1_160 		
+											8 AUTH_AES_CMAC 			(See INSTALL to get AES cryptographic suite)-->
+		</ALGORITHMS>
+
+		<USER>user</USER>         <!-- User's credential -->
+		<PASSWORD>passwordpassword</PASSWORD>
+		
+		<CLIENT_CERTS> <!-- Client certificates configuration -->
+			<CA_CERT>ca.pem</CA_CERT>
+			<CLIENT_CERT>client.pem</CLIENT_CERT>
+			<CLIENT_KEY>client.pk8</CLIENT_KEY>
+			<PRIVATE_KEY>whatever</PRIVATE_KEY>
+		</CLIENT_CERTS>
+		
+		<FRAGMENT_SIZE>1398</FRAGMENT_SIZE>
+
+		<EAP_PIGGYBACK>0</EAP_PIGGYBACK>
+		
+		<PING_MECHANISM>
+			<PING_TIME>1</PING_TIME> <!-- Time to check keep alive-->
+			<NUMBER_PING>2</NUMBER_PING> <!-- Number of ping messages to be exchanged.
+											  Set to 0 to be desactivated. -->
+		</PING_MECHANISM>
+	</PAC>
+
+<!-- *********************************************************************  -->	
+<!-- ******************** PAA CONFIGURATION DATA *************************  -->	
+<!-- *********************************************************************  -->	
+	<PAA>
+	
+		<INTERFACE>lo</INTERFACE>
+		<PORT>5555</PORT>
+		
+		<SESSION>
+			<TIMEOUT>100</TIMEOUT> <!-- Timeout for expiring a session in the server -->
+		</SESSION>
+		
+		<ALGORITHMS> <!-- This tag must be set with the numbers of algorithms supported -->
+		
+			<PRF>2</PRF> <!-- PRF ALGORITHM
+								1 PRF_HMAC_MD5 		(Not supported yet)
+								2 PRF_HMAC_SHA1 
+								3 PRF_HMAC_TIGER	(Not supported yet)
+								4 PRF_AES128_XCBC	(Not supported yet)
+								5 PRF_AES128_CBC 	(See INSTALL to get AES cryptographic suite) -->
+								
+			<INTEGRITY>7</INTEGRITY> <!-- INTEGRITY ALGORITHM
+											1 AUTH_HMAC_MD5_96			(Not supported yet)
+											2 AUTH_HMAC_SHA1_96			(Not supported yet)
+											3 AUTH_DES_MAC				(Not supported yet)
+											4 AUTH_KPDK_MD5				(Not supported yet)
+											5 AUTH_AES_XCBC_96			(Not supported yet)
+											6 AUTH_HMAC_MD5_128			(Not supported yet)
+											7 AUTH_HMAC_SHA1_160 		
+											8 AUTH_AES_CMAC 			(See INSTALL to get AES cryptographic suite)-->
+		</ALGORITHMS>
+
+		<SERVER_CERTS> <!-- Server certificates configuration -->
+			<CA_CERT>ca.pem</CA_CERT>
+			<SERVER_CERT>server.pem</SERVER_CERT>
+			<SERVER_KEY>server.key</SERVER_KEY>
+		</SERVER_CERTS>
+		
+		<TIMEOUT_CLIENT>30</TIMEOUT_CLIENT> <!-- Timeout for expiring client session -->
+		<TIME_ANSWER>3</TIME_ANSWER> <!-- Time while a session is on the server without answer for the first PAR message -->
+		
+		<WORKERS>1</WORKERS> <!-- Number of threads used to service requests -->
+
+
+		<AUTH_SERVER>  <!-- Radius Server information -->
+			<IP_VERSION_AUTH>4</IP_VERSION_AUTH>
+			<AS_IP>127.0.0.1</AS_IP>
+			<AS_PORT>1812</AS_PORT>
+			<SHARED_SECRET>testing123</SHARED_SECRET>
+		</AUTH_SERVER>
+		
+		<PING_MECHANISM>
+			<PING_TIME>1</PING_TIME> <!-- Time to check keep alive-->
+			<NUMBER_PING>0</NUMBER_PING> <!-- Number of ping messages to be exchanged.
+											  Set to 0 to be desactivated. -->
+		</PING_MECHANISM>
+
+	</PAA>
+
+<!-- *********************************************************************  -->	
+<!-- ******************** PRE CONFIGURATION DATA *************************  -->	
+<!-- *********************************************************************  -->	
+	<PRE>
+		<INTERFACE_PAC>lo</INTERFACE_PAC> <!-- Interface where the PRE listen to incoming PAC messages -->
+		<PORT_PAC>8888</PORT_PAC>			<!-- Port where the PRE listen to incoming PAC messages -->
+		<INTERFACE_PAA>lo</INTERFACE_PAA> <!-- Interface where the PRE listen to incoming PAA messages -->
+		<PORT_PAA>9999</PORT_PAA>			<!-- Port where the PRE listen to incoming PAA messages -->
+
+		<IP_PAA>::1</IP_PAA>
+		<PORT_PAA>5555</PORT_PAA>
+	</PRE>
+</CONFIG>
+
